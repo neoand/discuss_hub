@@ -1,0 +1,57 @@
+<odoo>
+  <data>
+    <!-- explicit list view definition -->
+
+    <record model="ir.ui.view" id="evo.list">
+      <field name="name">evo list</field>
+      <field name="model">evo_connector</field>
+      <field name="arch" type="xml">
+        <tree>
+          <field name="enabled"/>
+          <field name="name"/>
+          <field name="type"/>
+          <field name="uuid"/>
+          <field name="url"/>
+          <field name="api_key"/>
+          <field name="manager_channel"/>
+        </tree>
+      </field>
+    </record>
+
+
+    <!-- actions opening views on models -->
+
+    <record model="ir.actions.act_window" id="evo.action_window">
+      <field name="name">List Connectors</field>
+      <field name="res_model">evo_connector</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- server action to the one above -->
+
+    <record model="ir.actions.server" id="evo.action_server">
+      <field name="name">evo server</field>
+      <field name="model_id" ref="model_evo_connector"/>
+      <field name="state">code</field>
+      <field name="code">
+        action = {
+          "type": "ir.actions.act_window",
+          "view_mode": "tree,form",
+          "res_model": model._name,
+        }
+      </field>
+    </record>
+
+    <!-- Top menu item -->
+
+    <menuitem name="evo" id="evo.menu_root"/>
+
+    <!-- menu categories -->
+
+    <menuitem name="Conectors" id="evo.connector" parent="evo.menu_root" action="evo.action_window"/>
+
+    <!-- actions -->
+
+
+  </data>
+</odoo>
