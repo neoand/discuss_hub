@@ -5,8 +5,11 @@ class DiscussChannel(models.Model):
         Reprensenting a conversation between users.
         It extends the base method for anonymous usage.
     """
-
-    _name = 'discuss.channel'
     _inherit = ['discuss.channel']
 
-    evo_connector = fields.Many2one('evo.connector', 'Connector', index='btree_not_null')
+    evo_connector = fields.Many2one(
+        comodel_name='evo_connector', 
+        string='Connector', 
+        index='btree_not_null', 
+        auto_join=True, ondelete='set null',
+    )

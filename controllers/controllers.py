@@ -17,6 +17,10 @@ class Evo(http.Controller):
             ],
         )
         if not len(connector):
+            # TODO:CONFIG: allow auto configure for module
+            # In this mode, whenever a new payload is sent, create a new connector
+            # with the provided uuid, url and api_key
+            _logger.warning(f"action:connector_not_found identifier:{identifier}")
             response = Response(json.dumps(
                 {'message': 'Connector Not Found'}), status=404, content_type='application/json')
             return response
