@@ -28,6 +28,7 @@ Long description of module's purpose
         'security/ir.model.access.csv',
         'views/views.xml',
         'views/templates.xml',
+        #TODO: add base_automations data to config on install
     ],
     # only loaded in demonstration mode
     'demo': [

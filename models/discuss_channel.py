@@ -13,3 +13,6 @@ class DiscussChannel(models.Model):
         index='btree_not_null', 
         auto_join=True, ondelete='set null',
     )
+    evo_outgoing_destination = fields.Char(
+        string="Evo Outgoing Destination for this channel"
+    )

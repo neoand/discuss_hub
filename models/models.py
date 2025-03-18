@@ -4,6 +4,7 @@ from odoo import models, fields, Command
 import logging
 import uuid
 import base64
+import re
 from markupsafe import Markup
 import requests
 
@@ -38,9 +39,15 @@ class EvoConnector(models.Model):
     description = fields.Text()
 
     def process_payload(self, payload):
+        '''
+        This method will process the payload from the evolution server
+
+        TODO: can use chats.update to update the user online
+        TODO: can also use DELIVERY_ACK to mark message as read
+        '''
         event = payload.get("event")
         response = {"success": False,
-                    "action": "process_payload", "extra": "did nothing"}
+                    "action": "process_payload", "event": "did nothing"}
         #
         # Administrative msgs
         #
@@ -56,10 +63,29 @@ class EvoConnector(models.Model):
             message_id = data.get("key", {}).get("id")
             name = data.get("pushName")
             if remote_jid:
+                #
+                # Handle Status Broadcast
+                #
+                if remote_jid == "status@broadcast":
+                    remote_jid = data.get("key", {}).get("participant")
+                    _logger.info(
+                        f"action:process_payload event:message.upsert({message_id}) status@broadcast message from participant {remote_jid}")
+                    #
+                    # TODO:CONFIG: options: allow/disallow broadcast messages
+                    #
+                    response = {
+                        "success": False,
+                        "action": "process_payload",
+                        "event": "messages.upsert_status@broadcast",
+                        "broadcast": True
+                    }
+                    
+                
                 contact = {"remoteJid": remote_jid,
                            "pushName": name}
                 partner = self.get_or_create_partner(
-                    contact, instance=payload.get("instance"))
+                    contact, instance=payload.get("instance")
+                )
                 # here we may have multiple partners. we can treat it here
                 # TODO:CONFIG: options: allow multiple partners, or select newest
                 if len(partner) > 1:
@@ -104,6 +130,7 @@ class EvoConnector(models.Model):
                         channel = self.env['discuss.channel'].create(
                             {
                                 'evo_connector': self.id,
+                                'evo_outgoing_destination': remote_jid,
                                 'name': f'Whatsapp: {name} <{remote_jid}>',
                                 'channel_partner_ids':  partners_to_add,
                                 'image_128': partner.image_128,
@@ -119,10 +146,10 @@ class EvoConnector(models.Model):
                         _logger.info(
                             f"action:process_payload event:message.upsert({message_id}) found channel {channel} for connector {self} and remote_jid:{remote_jid}. REUSING CHANNEL.")
 
-                # Got a channel, send message
+                # Got a channel, send message or reactions
                 # text message
                 if data.get("message", {}).get("conversation"):
-                    message = data.get("message", {}).get("conversation")
+                    body = data.get("message", {}).get("conversation")
                     # TODO: DO NOT ALLOW MESSAGES WITH existing message_id
                     # define author as
                     # first the child contact, then the partner
@@ -130,18 +157,135 @@ class EvoConnector(models.Model):
                         author = partner.parent_id.id
                     else:
                         author = partner.id
+                    # if message is a reply, find the parent message
+                    quote = data.get("contextInfo", {}).get("quotedMessage")
+                    if quote:
+                        quoted_id = data.get("contextInfo", {}).get("stanzaId")
+                        quoted_message = self.env['mail.message'].search(
+                            [
+                                ('evo_message_id', '=', quoted_id),
+                            ],
+                            order='create_date desc',
+                            limit=1
+                        )[0]
                     message = channel.message_post(
+                        parent_id=quoted_message.id if quote else None,
                         author_id=author,
-                        body=message,
+                        body=body or None,
                         message_type="comment",
                         subtype_xmlid='mail.mt_comment',
-                        message_id=message_id
+                        message_id=message_id,
                     )
+                    # update message with reference
+                    message.write({
+                        "evo_message_id": message_id
+                    })
                     _logger.info(
                         f"action:process_payload event:message.upsert({message_id}) new message at {channel} for connector {self} and remote_jid:{remote_jid}: {message}")
+
+
+                # Handle Reactions
+                if data.get("message", {}).get("reactionMessage"):
+                    message_id = data.get("message", {}).get("reactionMessage", {}).get("key", {}).get("id")
+                    # find message
+                    message = self.env['mail.message'].search(
+                        [
+                            ('evo_message_id', '=', message_id),
+                        ],
+                        order='create_date desc',
+                        limit=1
+                    )
+                    reaction_emoji = data.get("message", {}).get("reactionMessage", {}).get("text")
+                    self.env['mail.message.reaction'].create(
+                        {
+                            'message_id': message.id,
+                            'partner_id': partner.id,
+                            'content': reaction_emoji,
+                        }
+                    )
+                    message = channel.message_post(
+                        author_id=partner.id,
+                        body=f"Reaction: {reaction_emoji}",
+                        message_type="comment",
+                        subtype_xmlid='mail.mt_comment',
+                        parent_id=message.id,
+                        #evo_message_id=message_id
+                    )
+                    message.write({
+                            "evo_message_id": message_id
+                    })                    
+                    
+                    
+                    _logger.info(
+                        f"action:process_payload event:message.upsert({message_id}) reaction to message {message_id} at {channel} for connector {self} and remote_jid:{remote_jid}.")
+
+                # Handle Image/Doc/Video Messages
+                # TODO: check multiple
+                if data.get("message", {}).get("imageMessage"):
+                    image_base64 =  data.get("message", {}).get("base64", {})
+                    caption =  data.get("message", {}).get("imageMessage", {}).get("caption", '')
+                    mimetype =  data.get("message", {}).get("imageMessage", {}).get("mimetype", {})
+                    # find message
+                    decoded_data = base64.b64decode(image_base64)
+                    attachments = [(caption, decoded_data)]
+                    message = channel.message_post(
+                        author_id=partner.id,
+                        body=caption,
+                        message_type="comment",
+                        subtype_xmlid='mail.mt_comment',
+                        attachments=attachments,
+                        #evo_message_id=message_id
+                    )
+                    message.write({
+                            "evo_message_id": message_id
+                    })                    
+                    _logger.info(
+                        f"action:process_payload event:message.upsert({message_id}) image message at {channel} for connector {self} and remote_jid:{remote_jid}.")                
+                    response["action"] = "process_payload"
+                    response["event"] = "messages.upsert"
+                    response["success"] = True
+                    response["image_message"] = message.id
+                
+                if data.get("message", {}).get("videoMessage"):
+                    content_base64 =  data.get("message", {}).get("base64", {})
+                    caption =  data.get("message", {}).get("videoMessage", {}).get("caption", '')
+                    file_name = data.get("message", {}).get("videoMessage", {}).get("title", message_id) + ".mp4" # TODO: check if this will work with other formats
+                    decoded_data = base64.b64decode(content_base64)
+                    mimetype =  data.get("message", {}).get("videoMessage", {}).get("mimetype", {})
+                    # attachment = self.env['ir.attachment'].create(
+                    #     {
+                    #         'name': file_name,
+                    #         'datas': decoded_data,
+                    #         'type': 'binary',
+                    #         'mimetype': mimetype,
+                    #         'res_model': 'discuss.channel',
+                    #         'res_id': channel.id,
+                    #     }
+                    # )
+                    # attachments = [attachment.id]
+                    # self.env.cr.commit()
+                    attachments = [(file_name, decoded_data)]
+                    message = channel.message_post(
+                        author_id=partner.id,
+                        body=caption,
+                        message_type="comment",
+                        subtype_xmlid='mail.mt_comment',
+                        attachments=attachments,
+                        #evo_message_id=message_id
+                    )
+                    message.write({
+                            "evo_message_id": message_id
+                    })                    
+                    _logger.info(
+                        f"action:process_payload event:message.upsert({message_id}) videoMessage at {channel} for connector {self} and remote_jid:{remote_jid}.")
+                    response["action"] = "process_payload"
+                    response["event"] = "messages.upsert"
+                    response["success"] = True
+                    response["video_message"] = message.id                    
+
+
                 # commit changes
                 self.env.cr.commit()
-
         #
         # Contacts Upsert after connection
         #
@@ -325,11 +469,76 @@ class EvoConnector(models.Model):
 
         return partner
 
-    def outgo_message(self, message):
-        _logger.info(f"action:outgo_message message:{message}")
+    def outgo_message(self, channel, message):
+        '''
+        This method will receive the channel and message from the channel base automation
+        with the below filter and code:
+            
+            domain filter:
+            [("evo_connector", "!=", False)]
 
+            code:
+last_message = record.message_ids[0]
+_logger.info(f"automation_base: running outgo message ({last_message}) to {record}")
+record.evo_connector.outgo_message(channel=record, message=last_message)
+        '''
+        #
+        # TODO:COFIG add template to format message, for ex, adding the author name
+        #
+        headers = {
+            'apikey': self.api_key
+        }
+        payload = {
+            "number": channel.evo_outgoing_destination,
+            "text": html_to_whatsapp(message.body.unescape())
+        }
+        url = f"{self.url}/message/sendText/{channel.evo_connector.name}"
+        response = requests.post(
+            url,
+            json=payload,
+            headers=headers
+        )
+        sent_message_id = response.json().get("key", {}).get("id")
+        message.write({
+            "evo_message_id": sent_message_id
+        })  
+        self.env.cr.commit()
+        _logger.info(f"action:outgo_message channel: {channel} message:{message} payload: {payload} url: {url} got message_id: {sent_message_id} from response: {response}")
 
 class EvoSocialNetworkeType(models.Model):
     _name = 'evo_social_network_type'
     _description = 'evo_social_network_type'
     name = fields.Char(required=True)
+
+
+def html_to_whatsapp(html_text):
+    """
+    Converts basic HTML to WhatsApp formatting.
+
+    Args:
+        html_text: The HTML string to convert.
+
+    Returns:
+        A string with WhatsApp formatting.
+    """
+
+    # Basic formatting
+    text = re.sub(r'<b>(.*?)</b>', r'*\1*', html_text, flags=re.IGNORECASE)
+    text = re.sub(r'<strong>(.*?)</strong>', r'*\1*', text, flags=re.IGNORECASE)
+    text = re.sub(r'<i>(.*?)</i>', r'_\1_', text, flags=re.IGNORECASE)
+    text = re.sub(r'<em>(.*?)</em>', r'_\1_', text, flags=re.IGNORECASE)
+    text = re.sub(r'<s>(.*?)</s>', r'~\1~', text, flags=re.IGNORECASE)
+    text = re.sub(r'<strike>(.*?)</strike>', r'~\1~', text, flags=re.IGNORECASE)
+    text = re.sub(r'<del>(.*?)</del>', r'~\1~', text, flags=re.IGNORECASE)
+    text = re.sub(r'<u>(.*?)</u>', r'_\1_', text, flags=re.IGNORECASE) #whatsapp doesn't have an underline but this is better than nothing.
+    text = re.sub(r'<br\s*/?>', '\n', text, flags=re.IGNORECASE)
+    text = re.sub(r'<p>(.*?)</p>', r'\1\n\n', text, flags=re.IGNORECASE)
+
+    # Remove remaining HTML tags
+    text = re.sub(r'<[^>]*>', '', text)
+
+    # Decode HTML entities
+    import html
+    text = html.unescape(text)
+
+    return text.strip()
