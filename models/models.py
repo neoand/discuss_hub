@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import json
 from odoo import models, fields, Command
 import logging
 import uuid
@@ -203,6 +203,7 @@ class EvoConnector(models.Model):
                             'content': reaction_emoji,
                         }
                     )
+                    #TODO:CONFIG: optionally create a new message to notify of the react
                     message = channel.message_post(
                         author_id=partner.id,
                         body=f"Reaction: {reaction_emoji}",
@@ -285,7 +286,8 @@ class EvoConnector(models.Model):
                     response["video_message"] = message.id                    
 
                 if data.get("message", {}).get("audioMessage"):
-                    # TODO:CONFIG: option to translate
+                    # TODO:CONFIG: option to Transcribe and send as notification
+                    # TODO:CONFIG option to convert the received ogg to mp3 for visualization
                     content_base64 =  data.get("message", {}).get("base64", {})
                     decoded_data = base64.b64decode(content_base64)
                     mimetype =  data.get("message", {}).get("videoMessage", {}).get("mimetype", {})
@@ -535,40 +537,90 @@ record.evo_connector.outgo_message(channel=record, message=last_message)
         headers = {
             'apikey': self.api_key
         }
-        payload = {
-            "number": channel.evo_outgoing_destination,
-            "text": html_to_whatsapp(message.body.unescape())
-        }
-        url = f"{self.url}/message/sendText/{channel.evo_connector.name}"
-        response = requests.post(
-            url,
-            json=payload,
-            headers=headers
-        )
-        sent_message_id = response.json().get("key", {}).get("id")
-        message.write({
-            "evo_message_id": sent_message_id
-        })
-        _logger.info(f"action:outgo_message channel:{channel} message:{message} payload: {payload} url: {url} got message_id: {sent_message_id} from response: {response}")
+        body = ''
+        if message.body:
+            body = html_to_whatsapp(message.body.unescape())
+            payload = {
+                "number": channel.evo_outgoing_destination,
+                "text": body
+            }
+            url = f"{self.url}/message/sendText/{channel.evo_connector.name}"
+            response = requests.post(
+                url,
+                json=payload,
+                headers=headers
+            )
+            sent_message_id = response.json().get("key", {}).get("id")
+            message.write({
+                "evo_message_id": sent_message_id
+            })
+            _logger.info(f"action:outgo_message channel:{channel} message:{message} payload: {payload} url: {url} got message_id: {sent_message_id} from response: {response}")
+            
         # if message has attachments, handle
         if message.attachment_ids:
+            # get message
+            message = self.env['mail.message'].search([('id', '=', message.id)])[0]
             url = f"{self.url}/message/sendMedia/{channel.evo_connector.name}"
             for attachment in message.attachment_ids:
+                filename = None
+                if attachment.index_content in ["image", "video", "audio"]:
+                    mediatype = attachment.index_content
+                    if mediatype == "audio":
+                        filename = "audio.ogg"
+                else:
+                    mediatype = "document"
+                    filename = attachment.name
                 payload = {
                     "number": channel.evo_outgoing_destination,
-                    "media_type": attachment.index_content,
-                    "mimetype": attachment.mimetype
+                    "mediatype": mediatype,
+                    "mimetype": attachment.mimetype,
+                    "media": attachment.datas.decode('utf-8'),
+                    "fileName": filename
                 }
+                # TODO:CONFIG
+                # if only one image attachment, can use the text as caption.
                 response = requests.post(
                     url,
                     json=payload,
                     headers=headers
                 )
-            sent_message_id = response.json().get("key", {}).get("id")
-            _logger.info(f"action:outgo_message.with_attachment channel:{channel} message:{message} payload:{payload} url:{url} got message_id:{sent_message_id} from response:{response}")
+                sent_message_id = response.json().get("key", {}).get("id")
+                attachment.write({
+                    "evo_remote_message_id": sent_message_id,
+                    "evo_local_message_id": message.id
+                })
+                _logger.info(f"action:outgo_message.with_attachment channel:{channel} message:{message} payload:{json.dumps(payload)} url:{url} got message_id:{sent_message_id} from response:{response}")
 
         self.env.cr.commit()
-        
+
+    def outgo_reaction(self, channel, message, reaction):
+        '''
+            # DOMAIN FILTER FOR BASE AUTOMATION
+            [("message_id.evo_message_id", "!=", "")]
+            AUTOMATION BASE CODE FOR REACTION
+            #_logger.info(f"automation_base: running outgo reaction to {record}")
+channel = env['discuss.channel'].search([('id', '=', record.message_id.res_id)])
+channel.evo_connector.outgo_reaction(channel, record.message_id, record)
+_logger.info(f"automation_base: connector:{channel.evo_connector} channel:{channel} reaction {record} to message {record.message_id}")
+        '''
+        headers = {
+            'apikey': self.api_key
+        }
+        payload = {
+            "key": {
+                "remoteJid": channel.evo_outgoing_destination,
+                "fromMe": message.evo_message_id != message.message_id,
+                "id": message.evo_message_id
+            },
+            "reaction": reaction.content
+        }
+        url = f"{self.url}/message/sendReaction/{channel.evo_connector.name}"
+        response = requests.post(
+            url,
+            json=payload,
+            headers=headers
+        )
+        _logger.info(f"action:outgo_reaction channel:{channel} reaction:{reaction} payload:{json.dumps(payload)} url:{url} got response:{response}")
 
 class EvoSocialNetworkeType(models.Model):
     _name = 'evo_social_network_type'
