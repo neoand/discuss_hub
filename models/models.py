@@ -42,7 +42,7 @@ class EvoConnector(models.Model):
         '''
         This method will process the payload from the evolution server
 
-        TODO: can use chats.update to update the user online
+        TODO: can use presence.update to update the user online
         TODO: can also use DELIVERY_ACK to mark message as read
         '''
         event = payload.get("event")
@@ -247,6 +247,7 @@ class EvoConnector(models.Model):
                     response["image_message"] = message.id
                 
                 if data.get("message", {}).get("videoMessage"):
+                    # TODO: CONFIG show screenshot
                     content_base64 =  data.get("message", {}).get("base64", {})
                     caption =  data.get("message", {}).get("videoMessage", {}).get("caption", '')
                     file_name = data.get("message", {}).get("videoMessage", {}).get("title", message_id) + ".mp4" # TODO: check if this will work with other formats
@@ -283,6 +284,52 @@ class EvoConnector(models.Model):
                     response["success"] = True
                     response["video_message"] = message.id                    
 
+                if data.get("message", {}).get("audioMessage"):
+                    # TODO:CONFIG: option to translate
+                    content_base64 =  data.get("message", {}).get("base64", {})
+                    decoded_data = base64.b64decode(content_base64)
+                    mimetype =  data.get("message", {}).get("videoMessage", {}).get("mimetype", {})
+                    file_name = "audio.ogg"
+                    # attachment = self.env['ir.attachment'].create(
+                    #     {
+                    #         'name': file_name,
+                    #         'datas': decoded_data,
+                    #         'type': 'binary',
+                    #         'mimetype': mimetype,
+                    #         'res_model': 'discuss.channel',
+                    #         'res_id': channel.id,
+                    #     }
+                    # )
+                    # attachments = [attachment.id]
+                    # self.env.cr.commit()
+                    attachments = [(file_name, decoded_data)]
+                    message = channel.message_post(
+                        author_id=partner.id,
+                        body='',
+                        message_type="comment",
+                        subtype_xmlid='mail.mt_comment',
+                        attachments=attachments,
+                        #evo_message_id=message_id
+                    )
+                    message.write({
+                            "evo_message_id": message_id
+                    })                    
+                    _logger.info(
+                        f"action:process_payload event:message.upsert({message_id}) videoMessage at {channel} for connector {self} and remote_jid:{remote_jid}.")
+                    response["action"] = "process_payload"
+                    response["event"] = "messages.upsert"
+                    response["success"] = True
+                    response["video_message"] = message.id       
+
+                if data.get("message", {}).get("contactMessage"):
+                    pass
+                    #TODO:CONFIG: handle contact message. It can have an option to automatically add as partner, so
+                    # one could send messages, for example.
+                    # content_base64 =  data.get("message", {}).get("base64", {})
+                    # caption =  data.get("message", {}).get("documentMessage", {}).get("title", message_id)
+                    # file_name = caption + ".pdf"
+
+                # to implement: eventMessage
 
                 # commit changes
                 self.env.cr.commit()
@@ -501,9 +548,27 @@ record.evo_connector.outgo_message(channel=record, message=last_message)
         sent_message_id = response.json().get("key", {}).get("id")
         message.write({
             "evo_message_id": sent_message_id
-        })  
+        })
+        _logger.info(f"action:outgo_message channel:{channel} message:{message} payload: {payload} url: {url} got message_id: {sent_message_id} from response: {response}")
+        # if message has attachments, handle
+        if message.attachment_ids:
+            url = f"{self.url}/message/sendMedia/{channel.evo_connector.name}"
+            for attachment in message.attachment_ids:
+                payload = {
+                    "number": channel.evo_outgoing_destination,
+                    "media_type": attachment.index_content,
+                    "mimetype": attachment.mimetype
+                }
+                response = requests.post(
+                    url,
+                    json=payload,
+                    headers=headers
+                )
+            sent_message_id = response.json().get("key", {}).get("id")
+            _logger.info(f"action:outgo_message.with_attachment channel:{channel} message:{message} payload:{payload} url:{url} got message_id:{sent_message_id} from response:{response}")
+
         self.env.cr.commit()
-        _logger.info(f"action:outgo_message channel: {channel} message:{message} payload: {payload} url: {url} got message_id: {sent_message_id} from response: {response}")
+        
 
 class EvoSocialNetworkeType(models.Model):
     _name = 'evo_social_network_type'
