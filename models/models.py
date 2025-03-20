@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+from markupsafe import Markup
 from odoo import models, fields, Command
 import logging
 import uuid
@@ -44,6 +45,8 @@ class EvoConnector(models.Model):
 
         TODO: can use presence.update to update the user online
         TODO: can also use DELIVERY_ACK to mark message as read
+        TODO:CONFIG: can ignore some contacts
+        TODO:CONFIG: message read receipt for now only appear to the one that sent the message. It should appear to all in UI
         '''
         event = payload.get("event")
         response = {"success": False,
@@ -182,7 +185,10 @@ class EvoConnector(models.Model):
                     })
                     _logger.info(
                         f"action:process_payload event:message.upsert({message_id}) new message at {channel} for connector {self} and remote_jid:{remote_jid}: {message}")
-
+                    response["action"] = "process_payload"
+                    response["event"] = "messages.upsert.conversation"
+                    response["success"] = True
+                    response["video_message"] = message.id
 
                 # Handle Reactions
                 if data.get("message", {}).get("reactionMessage"):
@@ -216,9 +222,12 @@ class EvoConnector(models.Model):
                             "evo_message_id": message_id
                     })                    
                     
-                    
                     _logger.info(
                         f"action:process_payload event:message.upsert({message_id}) reaction to message {message_id} at {channel} for connector {self} and remote_jid:{remote_jid}.")
+                    response["action"] = "process_payload"
+                    response["event"] = "messages.upsert.reactionMessage"
+                    response["success"] = True
+                    response["video_message"] = message.id
 
                 # Handle Image/Doc/Video Messages
                 # TODO: check multiple
@@ -243,7 +252,7 @@ class EvoConnector(models.Model):
                     _logger.info(
                         f"action:process_payload event:message.upsert({message_id}) image message at {channel} for connector {self} and remote_jid:{remote_jid}.")                
                     response["action"] = "process_payload"
-                    response["event"] = "messages.upsert"
+                    response["event"] = "messages.upsert.imageMessage"
                     response["success"] = True
                     response["image_message"] = message.id
                 
@@ -281,7 +290,7 @@ class EvoConnector(models.Model):
                     _logger.info(
                         f"action:process_payload event:message.upsert({message_id}) videoMessage at {channel} for connector {self} and remote_jid:{remote_jid}.")
                     response["action"] = "process_payload"
-                    response["event"] = "messages.upsert"
+                    response["event"] = "messages.upsert.videoMessage"
                     response["success"] = True
                     response["video_message"] = message.id                    
 
@@ -319,7 +328,7 @@ class EvoConnector(models.Model):
                     _logger.info(
                         f"action:process_payload event:message.upsert({message_id}) videoMessage at {channel} for connector {self} and remote_jid:{remote_jid}.")
                     response["action"] = "process_payload"
-                    response["event"] = "messages.upsert"
+                    response["event"] = "messages.upsert.contactMessage"
                     response["success"] = True
                     response["video_message"] = message.id       
 
@@ -331,10 +340,80 @@ class EvoConnector(models.Model):
                     # caption =  data.get("message", {}).get("documentMessage", {}).get("title", message_id)
                     # file_name = caption + ".pdf"
 
+                if data.get("message", {}).get("locationMessage"):
+                    thumb = content_base64 =  data.get("message", {}).get("locationMessage", {}).get("jpegThumbnail", {})
+                    decoded_data = base64.b64decode(thumb)
+                    lat = content_base64 =  data.get("message", {}).get("locationMessage", {}).get("degreesLatitude", {})
+                    lon = content_base64 =  data.get("message", {}).get("locationMessage", {}).get("degreesLongitude", {})
+                    # send image with text linking to the lat long website
+                    attachments = [("location.jpeg", decoded_data)]
+                    message = channel.message_post(
+                        author_id=partner.id,
+                        body=Markup(f'<a href="https://maps.google.com/?q={lat},{lon}">📍{lat}, {lon}</a>'),
+                        message_type="comment",
+                        subtype_xmlid='mail.mt_comment',
+                        message_id=message_id,
+                        attachments=attachments,
+                        body_is_html=True
+                    )
+                    message.write({
+                            "evo_message_id": message_id
+                    })                    
+                    _logger.info(
+                        f"action:process_payload event:message.upsert({message_id}) locationMessage at {channel} for connector {self} and remote_jid:{remote_jid}.")
+                    response["action"] = "process_payload"
+                    response["event"] = "messages.upsert.locationMessage"
+                    response["success"] = True
+                    response["location_message"] = message.id                           
+
+
                 # to implement: eventMessage
 
                 # commit changes
                 self.env.cr.commit()
+
+
+        #
+        # Messages update
+        #
+        if event in ["messages.update"]:
+            # Message READ
+            if payload.get("data", {}).get("status") == "READ":
+                # mark this message as latest in the channel memebership
+                #TODO:CONFIG: option to enable/disable last message seen
+                evo_message_id = payload.get("data", {}).get("keyId", {})
+                message = self.env['mail.message'].search([('evo_message_id', '=', evo_message_id)], limit=1)
+                if message:
+                    channel_id = message.res_id
+                # get partner
+                contact = {
+                    "remoteJid": payload.get("data", {}).get("participant", {}).split("@")[0].split(":")[0]
+                }
+                partner = self.get_or_create_partner(
+                    contact=contact, 
+                    instance=payload.get("instance"), 
+                    update_profile_picture=False,
+                    create_contact=False,
+                )
+                channel_member = self.env["discuss.channel.member"].search(
+                    [
+                        ("channel_id", "=", channel_id), 
+                        ("partner_id", "=", partner.parent_id.id)
+                    ],
+                    limit=1
+                )
+                channel_member._mark_as_read(message.id, sync=True)
+                self.env.cr.commit()
+                # channel = self.env['discuss.channel'].search([('id', '=', message.res_id)])[0]
+                # get the channel membership, of a channel that has a message that has evo_message_id as 
+                _logger.info(
+                    f"action:process_payload event:message.update.read({evo_message_id}) partner:{partner} channel_membership:{channel_member}")
+                response["action"] = "process_payload"
+                response["event"] = "messages.update.mark_read"
+                response["success"] = True
+                response["read_message"] = message.id
+                response["read_partner"] = partner.parent_id.id
+
         #
         # Contacts Upsert after connection
         #
@@ -426,7 +505,7 @@ class EvoConnector(models.Model):
             "contacts": len(payload.get("data", []))
         }
 
-    def get_or_create_partner(self, contact, instance=None, update_profile_picture=True):
+    def get_or_create_partner(self, contact, instance=None, update_profile_picture=True, create_contact=True):
         # 
         # contact=
         #         "remoteJid": "5533999999999@s.whatsapp.net",
@@ -454,6 +533,9 @@ class EvoConnector(models.Model):
             ],
             order='create_date desc',
         )
+        if not create_contact:
+            return partner
+        
         if not len(partner):
             partner = self.env['res.partner'].create(
                 {
