@@ -24,8 +24,13 @@ class Evo(http.Controller):
             response = Response(json.dumps(
                 {'message': 'Connector Not Found'}), status=404, content_type='application/json')
             return response
-
-        incoming_payload = json.loads(http.request.httprequest.data)
+        try:
+            incoming_payload = json.loads(http.request.httprequest.data)
+        except json.decoder.JSONDecodeError:
+            _logger.error(f"action:json_decode_error identifier:{identifier}, payload:{http.request.httprequest.data}")
+            response = Response(json.dumps(
+                {'message': 'Invalid JSON Payload'}), status=400, content_type='application/json')
+            return response
         _logger.info(f"action incoming_payload connector {connector.id} payload {json.dumps(incoming_payload)}")
         response = connector.process_payload(incoming_payload)                
         return Response(json.dumps(response), headers={'Content-Type': 'application/json'})
