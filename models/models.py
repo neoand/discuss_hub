@@ -6,13 +6,19 @@ import re
 import html
 import requests
 from jinja2 import Template
+import vobject
 from markupsafe import Markup
 from odoo import models, fields, Command
 
 _logger = logging.getLogger(__name__)
 
+
 class EvoConnector(models.Model):
     '''
+    TODO: allow templatable channel name
+    TODO: implement optional composing
+    TODO: option to ignore groups
+    TODO: option to grab all participants of a group and show the participant name and photo instead of the participant name prepended
     '''
 
     _name = 'evo_connector'
@@ -188,7 +194,8 @@ class EvoConnector(models.Model):
         # Process different message types
         if data.get("message", {}).get("conversation"):
             response = self._handle_text_message(
-                data, channel, partner, message_id)
+                data, channel, partner, message_id
+            )
 
         elif data.get("message", {}).get("reactionMessage"):
             response = self._handle_reaction_message(
@@ -214,6 +221,10 @@ class EvoConnector(models.Model):
             response = self._handle_document_message(
                 data, channel, partner, message_id)
 
+        elif data.get("message", {}).get("contactMessage"):
+            response = self._handle_contact_message(
+                data, channel, partner, message_id)
+
         # Commit changes
         self.env.cr.commit()
         return response
@@ -230,7 +241,8 @@ class EvoConnector(models.Model):
             limit=1
         )
 
-        # Add partners to channel
+        # define parters to auto add
+        # TODO: here we can add some logic for agent distribution
         partners_to_add = [Command.link(p.id)
                            for p in self.automatic_added_partners]
         partners_to_add.append(Command.link(partner.id))
@@ -251,13 +263,21 @@ class EvoConnector(models.Model):
                     return membership.channel_id
         # create new channel
         _logger.info(
-            f"action:process_payload event:message.upsert({message_id}) active channel membership not found for connector {self} and remote_jid:{remote_jid}. CREATING CHANNEL.")
+            f'''action:process_payload event:message.upsert({message_id}) 
+            active channel membership not found for connector {self} and
+              remote_jid:{remote_jid}. CREATING CHANNEL.'''
+        )
+        # TODO: add templated channel name here
+        if remote_jid.endswith("@g.us"):
+            channel_name = f'WGROUP: <{remote_jid}>'
+        else:    
+            channel_name = f'Whatsapp: {name} <{remote_jid}>'
 
         # Create channel
         channel = self.env['discuss.channel'].create({
             'evo_connector': self.id,
             'evo_outgoing_destination': remote_jid,
-            'name': f'Whatsapp: {name} <{remote_jid}>',
+            'name': channel_name,
             'channel_partner_ids': partners_to_add,
             'image_128': partner.image_128,
             'channel_type': 'group',
@@ -269,7 +289,12 @@ class EvoConnector(models.Model):
         '''Handle text messages'''
         body = data.get("message", {}).get("conversation")
 
+        # if the channel is a group, prepend the name of the participant
+        if data.get("key", {}).get("remoteJid").endswith("@g.us"):
+            body = f"{data.get("pushName")}: {body}"
+
         # Determine author - use parent contact if available
+        # TODO: this can be changed to reflect a pre ingested partner
         author = partner.parent_id.id if partner.parent_id else partner.id
 
         # Check if message is a reply
@@ -511,6 +536,62 @@ class EvoConnector(models.Model):
             "document_message": message.id
         }
 
+    def _handle_contact_message(self, data, channel, partner, message_id):
+        # Determine author - use parent contact if available
+        author = partner.parent_id.id if partner.parent_id else partner.id
+
+        quoted_message = None
+        # Check if message is a reply
+        if data.get("contextInfo", {}) and data.get("contextInfo", {}).get("quotedMessage"):
+            quote = data.get("contextInfo", {}).get("quotedMessage")
+            quoted_message = None
+
+            if quote:
+                quoted_id = data.get("contextInfo", {}).get("stanzaId")
+                quoted_messages = self.env['mail.message'].search([
+                    ('evo_message_id', '=', quoted_id),
+                ], order='create_date desc', limit=1)
+
+                if quoted_messages:
+                    quoted_message = quoted_messages[0]
+
+        # parse vcard
+        # vcard = data.get("message", {}).get("contactMessage", {}).get("vcard")
+        # if vcard:
+        #    vcard = vobject.readOne(vcard)
+        #    #body = vcard.prettyPrint()
+        #    body = vcard
+
+        # Post message
+        message = channel.message_post(
+            parent_id=quoted_message.id if quoted_message else None,
+            author_id=author,
+            body=data.get("message", {}).get(
+                "contactMessage", {}).get("vcard"),
+            message_type="comment",
+            subtype_xmlid='mail.mt_comment',
+            message_id=message_id
+        )
+
+        # Update message with reference
+        message.write({"evo_message_id": message_id})
+
+        _logger.info(
+            f"action:process_payload event:message.upsert({message_id}) new message at {channel} for connector {self} and remote_jid:{data.get('key', {}).get('remoteJid')}: {message}")
+
+        return {
+            "action": "process_payload",
+            "event": "messages.upsert.contactMessage",
+            "success": True,
+            "text_message": message.id
+        }
+        # else:
+        #     return {
+        #         "success": False,
+        #         "action": "process_payload",
+        #         "event": "messages.upsert.contactMessage.Failed",
+        #     }
+
     def _process_messages_update(self, payload):
         '''Process message updates like read status'''
         # Skip if read receipts are disabled
@@ -670,7 +751,8 @@ class EvoConnector(models.Model):
                 _logger.error(f"Error downloading profile picture: {str(e)}")
 
     def _format_message_before_send(self, message):
-        body = message.body.unescape() if hasattr(message.body, 'unescape') else message.body
+        body = message.body.unescape() if hasattr(
+            message.body, 'unescape') else message.body
 
         # load template
         template_content = self.text_message_template
