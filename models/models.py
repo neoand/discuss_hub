@@ -1,20 +1,18 @@
 # -*- coding: utf-8 -*-
-import json
 import logging
 import uuid
 import base64
 import re
 import html
 import requests
+from jinja2 import Template
 from markupsafe import Markup
 from odoo import models, fields, Command
 
 _logger = logging.getLogger(__name__)
 
-
 class EvoConnector(models.Model):
     '''
-    TODO: outgo quote message
     '''
 
     _name = 'evo_connector'
@@ -55,6 +53,9 @@ class EvoConnector(models.Model):
         default=True, string="Notify Message Reactions")
     default_admin_partner_id = fields.Many2one(
         'res.partner', string="Default Admin Partner", default=lambda self: self.env['res.partner'].search([('id', '=', 1)], limit=1))
+    text_message_template = fields.Text(
+        string="Text Message Template", default="<p>{{message.author_id.name}}<br /><p>{{body}}</p></p>"
+    )
 
     def process_payload(self, payload):
         '''
@@ -668,10 +669,33 @@ class EvoConnector(models.Model):
             except requests.RequestException as e:
                 _logger.error(f"Error downloading profile picture: {str(e)}")
 
+    def _format_message_before_send(self, message):
+        body = message.body.unescape() if hasattr(message.body, 'unescape') else message.body
+
+        # load template
+        template_content = self.text_message_template
+        if not template_content:
+            template_content = "<p>{{message.author_id.name}}<br /><p>{{body}}</p></p>"
+
+        # Define context explicitly
+        context = {
+            'message': message,
+            'body': body,
+        }
+
+        # Create and render the Jinja2 template
+        template = Template(template_content)
+        body = template.render(context)
+
+        # Convert HTML to WhatsApp formatting
+        body = html_to_whatsapp(body)
+
+        return body
+
     def _send_text_message(self, channel, message, headers):
         '''Send text message to WhatsApp'''
-        body = html_to_whatsapp(message.body.unescape() if hasattr(
-            message.body, 'unescape') else message.body)
+
+        body = self._format_message_before_send(message)
 
         payload = {
             "number": channel.evo_outgoing_destination,
@@ -753,6 +777,12 @@ class EvoConnector(models.Model):
 
     def outgo_message(self, channel, message):
         '''Send outgoing message to WhatsApp'''
+        if not self.enabled:
+            # improve log saying channel and message
+            _logger.warning(
+                f"action:outgo_message connector {self} is not active"
+            )
+            return
         if not channel or not message:
             _logger.error("Missing channel or message in outgo_message")
             return
@@ -775,10 +805,16 @@ class EvoConnector(models.Model):
 
     def outgo_reaction(self, channel, message, reaction):
         '''Send message reaction to WhatsApp'''
-
+        if not self.enabled:
+            # improve log saying channel and message
+            _logger.warning(
+                f"action:outgo_message connector {self} is not active"
+            )
+            return
         if not channel or not message or not reaction:
             _logger.error(
-                "Missing channel, message or reaction in outgo_reaction")
+                f"Missing channel, message or reaction in outgo_reaction"
+            )
             return
 
         headers = {'apikey': self.api_key}
