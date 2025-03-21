@@ -20,7 +20,7 @@ Long description of module's purpose
     'installable': True,
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'mail'],
+    'depends': ['base', 'mail', 'base_automation'],
 
     # always loaded
     'data': [
