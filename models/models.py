@@ -8,7 +8,7 @@ import requests
 from jinja2 import Template
 import vobject
 from markupsafe import Markup
-from odoo import models, fields, Command
+from odoo import models, fields, Command, api
 
 _logger = logging.getLogger(__name__)
 
@@ -19,6 +19,7 @@ class EvoConnector(models.Model):
     TODO: implement optional composing
     TODO: option to ignore groups
     TODO: option to grab all participants of a group and show the participant name and photo instead of the participant name prepended
+    TODO: something with statusbroadcast may be sending status as the remotejid at some point.
     '''
 
     _name = 'evo_connector'
@@ -32,6 +33,7 @@ class EvoConnector(models.Model):
         # Fixed: Use function call to avoid evaluation at import time
         default=lambda self: str(uuid.uuid4())
     )
+    description = fields.Text()
     type = fields.Selection([
         ('evolution', 'Evolution'),
     ], default='evolution', required=True)
@@ -45,7 +47,6 @@ class EvoConnector(models.Model):
         comodel_name="res.partner",
         string="Automatic Added Partners",
     )
-    description = fields.Text()
     # Configuration options
     allow_broadcast_messages = fields.Boolean(
         default=True, string="Allow Status Broadcast Messages")
@@ -62,6 +63,61 @@ class EvoConnector(models.Model):
     text_message_template = fields.Text(
         string="Text Message Template", default="<p>{{message.author_id.name}}<br /><p>{{body}}</p></p>"
     )
+
+    last_message_date = fields.Datetime(
+        string="Last Message Date",
+        compute='_compute_last_message',
+        store=False
+    )
+    status = fields.Selection(
+        [
+            ('open', 'Open'),
+            ('closed', 'Closed'),
+            ('not_found', 'Not Found'),
+            ('error', 'Error'),
+        ],
+        compute='_compute_status',
+        default='closed', 
+        required=False,
+        store=False
+    )
+
+    def _compute_last_message(self):
+        for connector in self:
+            last_message = self.env['discuss.channel'].search([
+                ('evo_connector', '=', connector.id),
+            ], order="write_date desc", limit=1)
+
+            #connector.last_message = last_message.body if last_message else "No messages yet"
+            connector.last_message_date = last_message.write_date if last_message else None
+    
+    def _compute_status(self):
+        for connector in self:
+            connector.status = connector._get_status()
+
+    #
+    # UI METHODS
+    #
+
+    def last_message(self):
+        last_message = self.env["mail.message"].search(
+            [("channel_id.evo_connector", "=", self.id)],
+            order="create_date desc",
+            limit=1
+        )
+        return last_message
+
+    def get_modal_content(self):
+        self.ensure_one()  # Ensure the action is performed on a single record
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Modal View',
+            'view_mode': 'form',
+            'res_model': 'evo_connector',
+            'res_id': self.id,
+            'views': [(False, 'form')],
+            'target': 'new',  # Opens as a modal
+        }
 
     def process_payload(self, payload):
         '''
@@ -856,6 +912,38 @@ class EvoConnector(models.Model):
             except requests.RequestException as e:
                 _logger.error(f"Error sending attachment: {str(e)}")
                 return False
+
+    def _get_status(self):
+        '''Get the status of the connector'''
+        headers = {'apikey': self.api_key}
+        url = f"{self.url}/instance/connect/{self.name}"
+        try:
+            query = requests.get(url, headers=headers, timeout=10)
+            if query.status_code == 404:
+                status = "not_found"
+            else:
+                status = query.json().get("instance", {}).get("state", "closed")
+        except requests.RequestException as e:
+            _logger.error(f"Error getting status: {str(e)} connector {self}")
+            status = "error"
+        return status
+
+    def restart_instance(self):
+        '''Get the status of the connector'''
+        for record in self:
+            headers = {'apikey': record.api_key}
+            url = f"{record.url}/instance/restart/{record.name}"
+            try:
+                query = requests.post(url, headers=headers, timeout=10)
+                if query.status_code == 404:
+                    status = "not_found"
+                else:
+                    status = query.json().get("instance", {}).get("state", "closed")
+            except requests.RequestException as e:
+                _logger.error(f"Error getting status: {str(e)} connector {record}")
+                status = "error"
+            
+
 
     def outgo_message(self, channel, message):
         '''Send outgoing message to WhatsApp'''
