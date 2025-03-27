@@ -2,3 +2,4 @@ id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
 access_evo_social_network_type,access_evo_social_network_type,model_evo_social_network_type,base.group_user,1,1,1,1
 access_evo_connector,Evo App Access,model_evo_connector,base.group_system,1,1,1,1
 access_evo_connector_public,Connector Public Read,model_evo_connector,base.group_public,1,0,0,0
+acess_evo_connector_status_modal,Evo Start / Status Modal,model_evo_connector_status,base.group_system,1,1,1,1

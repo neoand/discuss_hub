@@ -60,7 +60,10 @@
                   <field name="description" /><br /> Type: <field name="type" />
                 </t>
                 <br />
-                <small>Last message: <field name="last_message_date" /></small>
+                <small>
+                Total Channels: <field name="channels_total" /><br />
+                Last message: <field name="last_message_date" />
+                </small>
 
                 <!-- Button to trigger action
                 if status is open, show restart and close
@@ -72,12 +75,12 @@
                   <button class="btn btn-warning btn-sm" name="restart_instance" type="object">
                     Restart
                   </button>
-                  <button class="btn btn-danger btn-sm ms-1" name="get_modal_content" type="object">
-                    Close
+                  <button class="btn btn-danger btn-sm ms-1" name="logout_instance" type="object">
+                    Logout
                   </button>
                 </t>
                 <t t-if="record.status.raw_value == 'closed'">
-                  <button class="btn btn-success btn-sm ms-1" name="get_modal_content" type="object">
+                  <button class="btn btn-success btn-sm ms-1" name="action_open_html" type="object">
                     Start
                   </button>
                 </t>
@@ -87,7 +90,6 @@
         </kanban>
       </field>
     </record>
-
 
     <!-- actions opening views on models -->
 

@@ -2,6 +2,7 @@
 import logging
 import uuid
 import base64
+import time
 import re
 import html
 import requests
@@ -20,8 +21,11 @@ class EvoConnector(models.Model):
     TODO: option to ignore groups
     TODO: option to grab all participants of a group and show the participant name and photo instead of the participant name prepended
     TODO: something with statusbroadcast may be sending status as the remotejid at some point.
+    TODO: Allow selection of partners to ignore
+    TODO; auto add base automations
     '''
 
+    # TODO: change model name... to evo.connector. Not sure why I did this hehehee
     _name = 'evo_connector'
     _description = 'WhatsApp Integration Connector'
 
@@ -61,19 +65,25 @@ class EvoConnector(models.Model):
     default_admin_partner_id = fields.Many2one(
         'res.partner', string="Default Admin Partner", default=lambda self: self.env['res.partner'].search([('id', '=', 1)], limit=1))
     text_message_template = fields.Text(
-        string="Text Message Template", default="<p>{{message.author_id.name}}<br /><p>{{body}}</p></p>"
+        string="Text Message Template", default="<p><b>[{{message.author_id.name}}]</b><br /><p>{{body}}</p></p>"
     )
-
+    
     last_message_date = fields.Datetime(
         string="Last Message Date",
         compute='_compute_last_message',
         store=False
     )
+    channels_total = fields.Integer(
+        string="Total Channels",
+        compute='_compute_channels_total',
+        store=False
+    )    
     status = fields.Selection(
         [
             ('open', 'Open'),
             ('closed', 'Closed'),
             ('not_found', 'Not Found'),
+             ('unauthorized', 'Unauthorized'),
             ('error', 'Error'),
         ],
         compute='_compute_status',
@@ -81,6 +91,40 @@ class EvoConnector(models.Model):
         required=False,
         store=False
     )
+    qr_code_base64 = fields.Text(
+        compute='_compute_status',
+        store=False
+    )
+
+    def action_open_html(self):
+        """Opens an HTML content in a new wizard."""
+        self.ensure_one()
+
+        status, qr_code_base64 = self._get_status()
+
+        html_content = f"""
+            <html>
+            <head>
+                <title>Connector Statuss</title>
+            </head>
+            <body>
+                <h1>{self.name}</h1>
+                <p>Status: {status}</p>
+                <p>QR Code: 
+                <img style="background-color:#71639e;" src="{qr_code_base64}" />
+                </p>
+            </body>
+            </html>
+        """
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Connector Status',
+            'res_model': 'evo_connector_status',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'default_html_content': html_content},
+        }
 
     def _compute_last_message(self):
         for connector in self:
@@ -90,34 +134,54 @@ class EvoConnector(models.Model):
 
             #connector.last_message = last_message.body if last_message else "No messages yet"
             connector.last_message_date = last_message.write_date if last_message else None
-    
+
+    def _compute_channels_total(self):
+        for connector in self:
+            connector.channels_total = self.env['discuss.channel'].search_count([
+                ('evo_connector', '=', connector.id),
+            ])
+
+    @api.depends("api_key", "url", "name")
     def _compute_status(self):
         for connector in self:
-            connector.status = connector._get_status()
-
+            status, qr_code_base64 = connector._get_status()
+            connector.status = status
+            connector.qr_code_base64 = qr_code_base64
     #
     # UI METHODS
     #
 
-    def last_message(self):
-        last_message = self.env["mail.message"].search(
-            [("channel_id.evo_connector", "=", self.id)],
-            order="create_date desc",
-            limit=1
-        )
-        return last_message
-
-    def get_modal_content(self):
-        self.ensure_one()  # Ensure the action is performed on a single record
+    def open_status_modal(self):
         return {
             'type': 'ir.actions.act_window',
-            'name': 'Modal View',
+            'name': 'Status Details',
             'view_mode': 'form',
             'res_model': 'evo_connector',
             'res_id': self.id,
-            'views': [(False, 'form')],
-            'target': 'new',  # Opens as a modal
+            'target': 'new',
         }
+
+    def _get_status(self):
+        '''Get the status of the connector'''
+        headers = {'apikey': self.api_key}
+        url = f"{self.url}/instance/connect/{self.name}"
+        qrcode = None
+        try:
+            query = requests.get(url, headers=headers, timeout=10)
+            if query.status_code == 404:
+                status = "not_found"
+            elif query.status_code == 401:
+                status = "unauthorized"
+            else:
+                qrcode_base64 = query.json().get("base64", None)
+                if qrcode_base64:
+                    status = "qr_code"
+                    qrcode = qrcode_base64  
+                status = query.json().get("instance", {}).get("state", "closed")
+        except requests.RequestException as e:
+            _logger.error(f"Error getting status: {str(e)} connector {self}")
+            status = "error"
+        return status, qrcode
 
     def process_payload(self, payload):
         '''
@@ -913,20 +977,7 @@ class EvoConnector(models.Model):
                 _logger.error(f"Error sending attachment: {str(e)}")
                 return False
 
-    def _get_status(self):
-        '''Get the status of the connector'''
-        headers = {'apikey': self.api_key}
-        url = f"{self.url}/instance/connect/{self.name}"
-        try:
-            query = requests.get(url, headers=headers, timeout=10)
-            if query.status_code == 404:
-                status = "not_found"
-            else:
-                status = query.json().get("instance", {}).get("state", "closed")
-        except requests.RequestException as e:
-            _logger.error(f"Error getting status: {str(e)} connector {self}")
-            status = "error"
-        return status
+
 
     def restart_instance(self):
         '''Get the status of the connector'''
@@ -942,11 +993,40 @@ class EvoConnector(models.Model):
             except requests.RequestException as e:
                 _logger.error(f"Error getting status: {str(e)} connector {record}")
                 status = "error"
-            
+        # wait for the instance to restart
+        time.sleep(5)
+
+    def logout_instance(self):
+        '''Get the status of the connector'''
+        for record in self:
+            headers = {'apikey': record.api_key}
+            url = f"{record.url}/instance/logout/{record.name}"
+            try:
+                query = requests.delete(url, headers=headers, timeout=10)
+                if query.status_code == 404:
+                    status = "not_found"
+                else:
+                    status = query.json().get("instance", {}).get("state", "closed")
+            except requests.RequestException as e:
+                _logger.error(f"Error getting status: {str(e)} connector {record}")
+                status = "error"
+        # wait for the instance to restart
+        time.sleep(5)
 
 
     def outgo_message(self, channel, message):
-        '''Send outgoing message to WhatsApp'''
+        '''
+        This method will receive the channel and message from the channel base automation
+        with the below filter and code:
+            
+            domain filter:
+            [("evo_connector", "!=", False)]
+
+            code:
+last_message = record.message_ids[0]
+_logger.info(f"automation_base: running outgo message ({last_message}) to {record}")
+record.evo_connector.outgo_message(channel=record, message=last_message)
+        '''
         if not self.enabled:
             # improve log saying channel and message
             _logger.warning(
@@ -974,7 +1054,14 @@ class EvoConnector(models.Model):
         self.env.cr.commit()
 
     def outgo_reaction(self, channel, message, reaction):
-        '''Send message reaction to WhatsApp'''
+        '''
+            # DOMAIN FILTER FOR BASE AUTOMATION
+            [("message_id.evo_message_id", "!=", "")]
+            AUTOMATION BASE CODE FOR REACTION
+channel = env['discuss.channel'].search([('id', '=', record.message_id.res_id)])
+channel.evo_connector.outgo_reaction(channel, record.message_id, record)
+_logger.info(f"automation_base: connector:{channel.evo_connector} channel:{channel} reaction {record} to message {record.message_id}")
+        '''
         if not self.enabled:
             # improve log saying channel and message
             _logger.warning(
@@ -1048,3 +1135,23 @@ def html_to_whatsapp(html_text):
     text = html.unescape(text)
 
     return text.strip()
+
+
+# # create a transient model for ConnectorStatus
+# # it will have the status and possible the qrcode to connect
+# class EvoConnectorStatus(models.TransientModel):
+#     _name = 'evo_connector_status'
+#     _description = 'Evo Connector Status'
+
+#     status = fields.Char(string='Status', readonly=True)
+#     qrcode = fields.Binary(string='QR Code', readonly=True)
+#     qrcode_filename = fields.Char(string='QR Code Filename', readonly=True)
+
+#     def action_close(self):
+#         self.ensure_one()
+#         return {'type': 'ir.actions.act_window_close'}
+
+
+class HtmlDisplay(models.TransientModel):
+    _name = 'evo_connector_status'
+    html_content = fields.Html('HTML Content', readonly=True)
