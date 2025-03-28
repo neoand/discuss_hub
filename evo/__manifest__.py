@@ -28,7 +28,8 @@
         'security/ir.model.access.csv',
         'views/views.xml',
         'views/templates.xml',
-        'datas/data.xml'
+        # initial base_automation
+        # 'datas/data.xml'
     ],
     # only loaded in demonstration mode
     'demo': [
