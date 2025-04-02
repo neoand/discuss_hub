@@ -14,9 +14,11 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    ports:
+      - 5432:5432
 
   crm:
-    image: odoo:18
+    image: odoo:18.0
     user: root
     depends_on:
       - db

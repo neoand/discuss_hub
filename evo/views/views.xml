@@ -27,14 +27,29 @@
         <kanban class="o_kanban_mobile" sample="1">
           <field name="name" />
           <field name="enabled" />
+          <field name="status" />
+          <field name="description" />
+          <field name="type" />
           <templates>
             <t t-name="kanban-box">
+
               <div t-attf-class="oe_kanban_global_click">
+                <!-- Ribbon -->
+                <t t-if="record.status.raw_value == 'open'">
+                  <widget name="web_ribbon" title="Open" bg_color="text-bg-success" />
+                </t>
+                <t t-if="record.status.raw_value == 'closed'">
+                  <widget name="web_ribbon" title="Closed" bg_color="text-bg-danger" />
+                </t>
+                <t t-if="record.status.raw_value == 'error'">
+                  <widget name="web_ribbon" title="Error" bg_color="text-bg-warning" />
+                </t>
+
                 <div class="row">
                   <div class="col-12">
                     <!---
-                    add success if enabled, danger if disabled
-                    -->
+            add success if enabled, danger if disabled
+            -->
                     <t t-if="record.enabled.raw_value">
                       <strong class="me-3 text-success">
                         <field name="name" />
@@ -45,45 +60,39 @@
                         <field name="name" />
                       </strong>
                     </t>
-                    <t t-if="record.status.raw_value == 'open'">
-                      <span class="text-success ms-3">Open</span>
-                    </t>
-                    <t t-else="">
-                      <span class="text-warning ms-3">
-                        <field name="status"></field>
-                      </span>
-                    </t>
                   </div>
                 </div>
-                <hr class="mt8 mb8" />
                 <t t-if="record.description.value">
                   <field name="description" /><br /> Type: <field name="type" />
                 </t>
                 <br />
-                <small>
-                Total Channels: <field name="channels_total" /><br />
-                Last message: <field name="last_message_date" />
+                <small> Total Channels: <field name="channels_total" /><br /> Last message: <field
+                    name="last_message_date" />
                 </small>
 
                 <!-- Button to trigger action
-                if status is open, show restart and close
-                else show start
-                -->
-                <div class="mt8"></div>
-                <t t-if="record.status.raw_value == 'open'">
+        if status is open, show restart and close
+        else show start
+        -->
+                <div class="mt8 float-end">
+                  <t t-if="record.status.raw_value == 'open'">
 
-                  <button class="btn btn-warning btn-sm" name="restart_instance" type="object">
-                    Restart
-                  </button>
-                  <button class="btn btn-danger btn-sm ms-1" name="logout_instance" type="object">
-                    Logout
-                  </button>
-                </t>
-                <t t-if="record.status.raw_value == 'closed'">
-                  <button class="btn btn-success btn-sm ms-1" name="action_open_html" type="object">
-                    Start
-                  </button>
-                </t>
+                    <button class="btn btn-warning btn-sm" name="restart_instance" type="object">
+                      Restart
+                    </button>
+                    <button class="btn btn-danger btn-sm ms-1" name="logout_instance" type="object">
+                      Logout
+                    </button>
+                  </t>
+                  <t t-if="record.status.raw_value == 'closed'">
+                    <button class="btn btn-success btn-sm ms-1" name="action_open_html"
+                      type="object">
+                      Start
+                    </button>
+                  </t>
+                </div>
+
+
               </div>
             </t>
           </templates>

@@ -29,7 +29,7 @@
         'views/views.xml',
         'views/templates.xml',
         # initial base_automation
-        # 'datas/data.xml'
+        'datas/base_automation.xml'
     ],
     # only loaded in demonstration mode
     'demo': [

@@ -1,9 +1,0 @@
-<odoo>
-    <record id="automation_outgo_message" model="base.automation">
-        <field name="name">{"en_US": "outgomessage"}</field>
-        <field name="filter_domain">[["evo_connector", "!=", False]]</field>
-        <field name="record_getter">model.env[payload.get('_model')].browse(int(payload.get('_id')))</field>
-        <field name="trigger">on_message_sent</field>
-        <field name="active">True</field>
-    </record>
-</odoo>

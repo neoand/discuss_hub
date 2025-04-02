@@ -101,7 +101,6 @@ class EvoConnector(models.Model):
         self.ensure_one()
 
         status, qr_code_base64 = self._get_status()
-
         html_content = f"""
             <html>
             <head>
@@ -289,6 +288,7 @@ class EvoConnector(models.Model):
         partner = self.get_or_create_partner(
             contact, instance=payload.get("instance")
         )
+        
 
         # Handle multiple partners (using first one)
         if isinstance(partner, list) and len(partner) > 1:
@@ -310,6 +310,12 @@ class EvoConnector(models.Model):
 
         response = {"success": False, "action": "process_payload",
                     "event": "messages.upsert"}
+
+        # if the message is from me (sent by the connected number)
+        # use the default admin partner id
+        if data.get("key", {}).get("fromMe"):
+            partner = self.default_admin_partner_id
+
 
         # Process different message types
         if data.get("message", {}).get("conversation"):
