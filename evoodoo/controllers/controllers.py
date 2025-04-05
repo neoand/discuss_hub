@@ -40,7 +40,8 @@ class Evo(http.Controller):
             incoming_payload = json.loads(http.request.httprequest.data)
         except json.decoder.JSONDecodeError:
             _logger.error(
-                f"action:json_decode_error identifier:{identifier}, payload:{http.request.httprequest.data}"
+                f"action:json_decode_error identifier:{identifier},"
+                + " payload:{http.request.httprequest.data}"
             )
             response = Response(
                 json.dumps({"message": "Invalid JSON Payload"}),
@@ -49,7 +50,8 @@ class Evo(http.Controller):
             )
             return response
         _logger.info(
-            f"action incoming_payload connector {connector.id} payload {json.dumps(incoming_payload)}"
+            f"action incoming_payload connector {connector.id}"
+            + "payload {json.dumps(incoming_payload)}"
         )
         response = connector.process_payload(incoming_payload)
         return Response(

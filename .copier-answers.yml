@@ -15,13 +15,13 @@ github_enforce_dev_status_compatibility: true
 include_wkhtmltopdf: true
 odoo_test_flavor: Both
 odoo_version: 18.0
-org_name: Dudatende
-org_slug: dudatende
+org_name: Duda Nogueira
+org_slug: dudanogueira
 rebel_module_groups: []
 repo_description: Integrate third party message channels into Odoo's discuss
 repo_name: Evoodoo
 repo_slug: evoodoo
-repo_website: https://github.com/dudatende/evoodoo
+repo_website: https://github.com/dudanogueira/evoodoo
 use_pyproject_toml: true
 use_ruff: true
 

@@ -48,12 +48,12 @@ repos:
       # update the NOT INSTALLABLE ADDONS section above
       - id: oca-update-pre-commit-excluded-addons
       - id: oca-fix-manifest-website
-        args: ["https://github.com/dudatende/evoodoo"]
+        args: ["https://github.com/dudanogueira/evoodoo"]
       - id: oca-gen-addon-readme
         args:
           - --addons-dir=.
           - --branch=18.0
-          - --org-name=dudatende
+          - --org-name=dudanogueira
           - --repo-name=evoodoo
           - --if-source-changed
           - --keep-source-digest

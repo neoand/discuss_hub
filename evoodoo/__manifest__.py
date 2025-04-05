@@ -1,16 +1,11 @@
 {
-    "name": "evo",
-    "summary": "WhatsApp and Other channels integrated in Odoo",
-    "description": """
-    Odoo and Evolution integration done right. Whatsapp, Instagram, Facebook
-    """,
+    "name": "evoodoo",
+    "summary": "Third Party Messsage integration for Odoo's Discuss Channel",
     "author": "Duda Nogueira",
-    "website": "https://github.com/dudatende/evoodoo",
-    # Categories can be used to filter modules in modules listing
-    # Check https://github.com/odoo/odoo/blob/15.0/odoo/addons/base/data/ir_module_category_data.xml
-    # for the full list
+    "website": "https://github.com/dudanogueira/evoodoo",
     "category": "marketing",
-    "version": "0.1",
+    "version": "18.0.0.0.1",
+    "license": "AGPL-3",
     "application": True,
     "installable": True,
     # any module necessary for this one to work correctly
@@ -26,6 +21,6 @@
     ],
     # only loaded in demonstration mode
     "demo": [
-        "demo/demo.xml",
+        # "demo/demo.xml",
     ],
 }

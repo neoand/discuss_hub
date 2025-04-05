@@ -20,8 +20,11 @@ class EvoConnector(models.Model):
     TODO: allow templatable channel name
     TODO: implement optional composing
     TODO: option to ignore groups
-    TODO: option to grab all participants of a group and show the participant name and photo instead of the participant name prepended
-    TODO: something with statusbroadcast may be sending status as the remotejid at some point.
+    TODO: option to grab all participants of a group and show the participant
+    name and photo instead
+    of the participant name prepended
+    TODO: something with statusbroadcast may be sending status as the remotejid
+     at some point.
     TODO: Allow selection of partners to ignore
     TODO; auto add base automations
     """
@@ -48,38 +51,26 @@ class EvoConnector(models.Model):
     )
     url = fields.Char(required=True)
     api_key = fields.Char(required=True)
-    manager_channel = fields.Many2many(
-        comodel_name="discuss.channel", string="Channel Manager"
-    )
-    automatic_added_partners = fields.Many2many(
-        comodel_name="res.partner",
-        string="Automatic Added Partners",
-    )
+    manager_channel = fields.Many2many(comodel_name="discuss.channel")
+    automatic_added_partners = fields.Many2many(comodel_name="res.partner")
     # Configuration options
     allow_broadcast_messages = fields.Boolean(
         default=True, string="Allow Status Broadcast Messages"
     )
-    reopen_last_archived_channel = fields.Boolean(
-        default=False, string="Reopen Last Archived Channel"
-    )
-    always_update_profile_picture = fields.Boolean(
-        default=False, string="Always Update Profile Pictures"
-    )
-    show_read_receipts = fields.Boolean(default=True, string="Show Read Receipts")
-    notify_reactions = fields.Boolean(default=True, string="Notify Message Reactions")
+    reopen_last_archived_channel = fields.Boolean(default=False)
+    always_update_profile_picture = fields.Boolean(default=False)
+    show_read_receipts = fields.Boolean(default=True)
+    notify_reactions = fields.Boolean(default=True)
     default_admin_partner_id = fields.Many2one(
         "res.partner",
         string="Default Admin Partner",
         default=lambda self: self.env["res.partner"].search([("id", "=", 1)], limit=1),
     )
     text_message_template = fields.Text(
-        string="Text Message Template",
         default="<p><b>[{{message.author_id.name}}]</b><br /><p>{{body}}</p></p>",
     )
 
-    last_message_date = fields.Datetime(
-        string="Last Message Date", compute="_compute_last_message", store=False
-    )
+    last_message_date = fields.Datetime(compute="_compute_last_message", store=False)
     channels_total = fields.Integer(
         string="Total Channels", compute="_compute_channels_total", store=False
     )
@@ -100,14 +91,15 @@ class EvoConnector(models.Model):
 
     @api.model
     def action_new_connector():
-        """Decides whether to open a modal or regular form based on env variables"""
-        return {
-            "type": "ir.actions.act_window",
-            "name": "New Connector",
-            "res_model": "evo_connector",
-            "view_mode": "form",
-            "target": "new",  # Opens as a modal
-        }
+        """Decides whether to open a modal
+        or regular form based on env variables"""
+        # return {
+        #     "type": "ir.actions.act_window",
+        #     "name": "New Connector",
+        #     "res_model": "evo_connector",
+        #     "view_mode": "form",
+        #     "target": "new",  # Opens as a modal
+        # }
         if (
             os.getenv("ODOO_CONNECTOR_MODAL")
             and os.getenv("EVOLUTION_API_KEY")
@@ -167,8 +159,6 @@ class EvoConnector(models.Model):
                 order="write_date desc",
                 limit=1,
             )
-
-            # connector.last_message = last_message.body if last_message else "No messages yet"
             connector.last_message_date = (
                 last_message.write_date if last_message else None
             )
@@ -254,7 +244,8 @@ class EvoConnector(models.Model):
         return response
 
     def _process_administrative_payload(self, payload):
-        """Handle administrative events like QR code updates and connection status"""
+        """Handle administrative events like QR code updates and
+        connection status"""
         data = payload.get("data", {})
         event = payload.get("event")
         instance = payload.get("instance")
@@ -285,7 +276,10 @@ class EvoConnector(models.Model):
                 status_emoji = "🟢" if status == 200 else "🔴"
                 if data.get("state") == "connecting":
                     status_emoji = "🟡"
-                body = f"Instance:{instance}:<b>{data.get('state').upper()}</b>:{status_emoji}"
+                body = (
+                    f"Instance:{instance}:"
+                    + f"<b>{data.get('state').upper()}</b>:{status_emoji}"
+                )
 
             # Logout instance
             elif event == "logout.instance":
@@ -311,8 +305,6 @@ class EvoConnector(models.Model):
             )
             if attachments:
                 attachments.unlink()
-
-        self.env.cr.commit()
         return {"success": True, "action": "process_administrative_payload"}
 
     def _process_messages_upsert(self, payload):
@@ -342,7 +334,8 @@ class EvoConnector(models.Model):
 
             remote_jid = data.get("key", {}).get("participant")
             _logger.info(
-                f"action:process_payload event:message.upsert({message_id}) status@broadcast message from participant {remote_jid}"
+                f"action:process_payload event:message.upsert({message_id}) "
+                + f"status@broadcast message from participant {remote_jid}"
             )
 
         # Get or create partner
@@ -356,7 +349,8 @@ class EvoConnector(models.Model):
 
         if not partner:
             _logger.error(
-                f"action:process_payload event:message.upsert({message_id}) could not create partner for remote_jid:{remote_jid}"
+                f"action:process_payload event:message.upsert({message_id})"
+                + f"could not create partner for remote_jid:{remote_jid}"
             )
             return {
                 "success": False,
@@ -411,13 +405,12 @@ class EvoConnector(models.Model):
         elif data.get("message", {}).get("contactMessage"):
             response = self._handle_contact_message(data, channel, partner, message_id)
 
-        # Commit changes
-        self.env.cr.commit()
         return response
 
     def _find_or_create_channel(self, partner, remote_jid, name, message_id):
         """Find existing channel or create a new one for the partner"""
-        # Check if we have an unarchived channel for this connector and partner as member
+        # Check if we have an unarchived channel
+        # for this connector and partner as member
         membership = self.env["discuss.channel.member"].search(
             [
                 # ('channel_id.active', '=', True),
@@ -438,7 +431,9 @@ class EvoConnector(models.Model):
             if membership.channel_id.active:
                 channel = membership.channel_id
                 _logger.info(
-                    f"action:process_payload event:message.upsert({message_id}) found channel {channel} for connector {self} and remote_jid:{remote_jid}. REUSING CHANNEL."
+                    f"action:process_payload event:message.upsert({message_id})"
+                    + f" found channel {channel} for connector {self} "
+                    + f"and remote_jid:{remote_jid}. REUSING CHANNEL."
                 )
                 return channel
             # or reopen if that's the configuration
@@ -446,7 +441,9 @@ class EvoConnector(models.Model):
                 if self.reopen_last_archived_channel:
                     membership.channel_id.action_unarchive()
                     _logger.info(
-                        f"action:process_payload event:message.upsert({message_id}) reactivated channel {membership.channel_id} for connector {self} and remote_jid:{remote_jid}. REOPENING CHANNEL"
+                        f"action:process_payload event:message.upsert({message_id})"
+                        + f" reactivated channel {membership.channel_id} for connector "
+                        + f"{self} and remote_jid:{remote_jid}. REOPENING CHANNEL"
                     )
                     return membership.channel_id
         # create new channel
@@ -518,7 +515,9 @@ class EvoConnector(models.Model):
         message.write({"evo_message_id": message_id})
 
         _logger.info(
-            f"action:process_payload event:message.upsert({message_id}) new message at {channel} for connector {self} and remote_jid:{data.get('key', {}).get('remoteJid')}: {message}"
+            f"action:process_payload event:message.upsert({message_id}) new message at"
+            + f"{channel} for connector {self} and "
+            + f"remote_jid:{data.get('key', {}).get('remoteJid')}: {message}"
         )
 
         return {
@@ -559,7 +558,6 @@ class EvoConnector(models.Model):
                 "content": reaction_emoji,
             }
         )
-        self.env.cr.commit()
 
         # Notify about reaction if enabled
         if self.notify_reactions:
@@ -573,7 +571,8 @@ class EvoConnector(models.Model):
             notification.write({"evo_message_id": message_id})
 
         _logger.info(
-            f"action:process_payload event:message.upsert({message_id}) reaction to message {original_message_id} at {channel}"
+            f"action:process_payload event:message.upsert({message_id}) reaction to "
+            + f"message {original_message_id} at {channel}"
         )
 
         return {
@@ -604,7 +603,8 @@ class EvoConnector(models.Model):
         message.write({"evo_message_id": message_id})
 
         _logger.info(
-            f"action:process_payload event:message.upsert({message_id}) image message at {channel}"
+            f"action:process_payload event:message.upsert({message_id}) "
+            + f"image message at {channel}"
         )
 
         return {
@@ -639,7 +639,8 @@ class EvoConnector(models.Model):
         message.write({"evo_message_id": message_id})
 
         _logger.info(
-            f"action:process_payload event:message.upsert({message_id}) videoMessage at {channel}"
+            f"action:process_payload event:message.upsert({message_id}) "
+            + f"videoMessage at {channel}"
         )
 
         return {
@@ -659,9 +660,10 @@ class EvoConnector(models.Model):
         attachments = [(file_name, decoded_data)]
 
         # Post message
+        message_text = "audio"
         message = channel.message_post(
             author_id=partner.id,
-            body="Audio message",
+            body=message_text,
             message_type="comment",
             subtype_xmlid="mail.mt_comment",
             attachments=attachments,
@@ -670,7 +672,8 @@ class EvoConnector(models.Model):
         message.write({"evo_message_id": message_id})
 
         _logger.info(
-            f"action:process_payload event:message.upsert({message_id}) audioMessage at {channel}"
+            f"action:process_payload event:message.upsert({message_id}) "
+            + "audioMessage at {channel}"
         )
 
         return {
@@ -706,7 +709,8 @@ class EvoConnector(models.Model):
         message.write({"evo_message_id": message_id})
 
         _logger.info(
-            f"action:process_payload event:message.upsert({message_id}) locationMessage at {channel}"
+            f"action:process_payload event:message.upsert({message_id}) "
+            + f"locationMessage at {channel}"
         )
 
         return {
@@ -738,7 +742,8 @@ class EvoConnector(models.Model):
         message.write({"evo_message_id": message_id})
 
         _logger.info(
-            f"action:process_payload event:message.upsert({message_id}) documentMessage at {channel}"
+            f"action:process_payload event:message.upsert({message_id})"
+            + f"documentMessage at {channel}"
         )
 
         return {
@@ -794,7 +799,9 @@ class EvoConnector(models.Model):
         message.write({"evo_message_id": message_id})
 
         _logger.info(
-            f"action:process_payload event:message.upsert({message_id}) new message at {channel} for connector {self} and remote_jid:{data.get('key', {}).get('remoteJid')}: {message}"
+            f"action:process_payload event:message.upsert({message_id}) new message"
+            + f" at {channel} for connector {self} "
+            + f"and remote_jid:{data.get('key', {}).get('remoteJid')}: {message}"
         )
 
         return {
@@ -872,7 +879,8 @@ class EvoConnector(models.Model):
             channel_member._mark_as_read(message.id, sync=True)
 
             _logger.info(
-                f"action:process_payload event:message.update.read({evo_message_id}) partner:{partner} channel_membership:{channel_member}"
+                f"action:process_payload event:message.update.read({evo_message_id})"
+                + f" partner:{partner} channel_membership:{channel_member}"
             )
 
             return {
@@ -899,12 +907,6 @@ class EvoConnector(models.Model):
         for contact in contacts:
             self.get_or_create_partner(contact, payload.get("instance"))
             processed_count += 1
-
-            # Commit in batches to avoid long transactions
-            if processed_count % 50 == 0:
-                self.env.cr.commit()
-
-        self.env.cr.commit()
 
         return {
             "success": True,
@@ -957,7 +959,6 @@ class EvoConnector(models.Model):
                 }
             )
 
-            self.env.cr.commit()
             partner = partner_contact
         else:
             # We already have the partner
@@ -1006,7 +1007,6 @@ class EvoConnector(models.Model):
                     image_base64 = base64.b64encode(response.content).decode("utf-8")
                     parent_partner.write({"image_1920": image_base64})
                     partner_contact.write({"image_128": image_base64})
-                    self.env.cr.commit()
             except requests.RequestException as e:
                 _logger.error(f"Error downloading profile picture: {str(e)}")
 
@@ -1063,12 +1063,14 @@ class EvoConnector(models.Model):
                 sent_message_id = response.json().get("key", {}).get("id")
                 message.write({"evo_message_id": sent_message_id})
                 _logger.info(
-                    f"action:outgo_message channel:{channel} message:{message} got message_id: {sent_message_id}"
+                    f"action:outgo_message channel:{channel} message:{message}"
+                    + f"got message_id: {sent_message_id}"
                 )
                 return response
             else:
                 _logger.error(
-                    f"Failed to send text message: {response.status_code} - {response.text}; Payload: {payload}"
+                    f"Failed to send text message: {response.status_code} - "
+                    + f"{response.text}; Payload: {payload}"
                 )
                 return False
         except requests.RequestException as e:
@@ -1107,12 +1109,14 @@ class EvoConnector(models.Model):
                         }
                     )
                     _logger.info(
-                        f"action:outgo_message.with_attachment message:{message} got message_id:{sent_message_id}"
+                        f"action:outgo_message.with_attachment message:{message} "
+                        + f"got message_id:{sent_message_id}"
                     )
                     return response
                 else:
                     _logger.error(
-                        f"Failed to send attachment: {response.status_code} - {response.text}"
+                        "Failed to send attachment: "
+                        + f"{response.status_code} - {response.text}"
                     )
                     return False
             except requests.RequestException as e:
@@ -1134,6 +1138,7 @@ class EvoConnector(models.Model):
                 _logger.error(f"Error getting status: {str(e)} connector {record}")
                 status = "error"
         # wait for the instance to restart
+        _logger.info(f"LOUGOUT STATS FOR INSTANCE {self}: {status}")
         time.sleep(5)
 
     def logout_instance(self):
@@ -1151,20 +1156,15 @@ class EvoConnector(models.Model):
                 _logger.error(f"Error getting status: {str(e)} connector {record}")
                 status = "error"
         # wait for the instance to restart
+        _logger.info(f"LOUGOUT STATS FOR INSTANCE {self}: {status}")
         time.sleep(5)
 
     def outgo_message(self, channel, message):
         """
-                This method will receive the channel and message from the channel base automation
-                with the below filter and code:
-
-                    domain filter:
-                    [("evo_connector", "!=", False)]
-
-                    code:
-        last_message = record.message_ids[0]
-        _logger.info(f"automation_base: running outgo message ({last_message}) to {record}")
-        record.evo_connector.outgo_message(channel=record, message=last_message)
+        This method will receive the channel and message
+        from the channel base automation
+        with the below filter and code:
+            the code is available as a data import
         """
         if not self.enabled:
             # improve log saying channel and message
@@ -1186,16 +1186,13 @@ class EvoConnector(models.Model):
             sent_message = self._send_attachments(channel, message, headers)
             sent_message_id = sent_message.json().get("key", {}).get("id")
         message.write({"evo_message_id": sent_message_id})
-        self.env.cr.commit()
 
     def outgo_reaction(self, channel, message, reaction):
         """
-                    # DOMAIN FILTER FOR BASE AUTOMATION
-                    [("message_id.evo_message_id", "!=", "")]
-                    AUTOMATION BASE CODE FOR REACTION
-        channel = env['discuss.channel'].search([('id', '=', record.message_id.res_id)])
-        channel.evo_connector.outgo_reaction(channel, record.message_id, record)
-        _logger.info(f"automation_base: connector:{channel.evo_connector} channel:{channel} reaction {record} to message {record.message_id}")
+        # DOMAIN FILTER FOR BASE AUTOMATION
+        [("message_id.evo_message_id", "!=", "")]
+        AUTOMATION BASE CODE FOR REACTION
+        the code is available as a data import
         """
         if not self.enabled:
             # improve log saying channel and message
@@ -1221,7 +1218,8 @@ class EvoConnector(models.Model):
         try:
             response = requests.post(url, json=payload, headers=headers, timeout=10)
             _logger.info(
-                f"action:outgo_reaction channel:{channel} reaction:{reaction} payload:{payload} response:{response.status_code}"
+                f"action:outgo_reaction channel:{channel} reaction:{reaction}"
+                + f"payload:{payload} response:{response.status_code}"
             )
         except requests.RequestException as e:
             _logger.error(f"Error sending reaction: {str(e)}")
