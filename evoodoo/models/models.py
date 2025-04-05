@@ -1,6 +1,7 @@
 import base64
 import json
 import logging
+import re
 import time
 import uuid
 
@@ -1333,8 +1334,6 @@ class EvoodooSocialNetworkeType(models.Model):
 
     name = fields.Char(required=True)
     # TODO ADD IMAGE TO SHOW ON CHANNEL
-
-
 class HtmlDisplay(models.TransientModel):
     _name = "evoodoo.connector.status"
     html_content = fields.Html("HTML Content", readonly=True)
