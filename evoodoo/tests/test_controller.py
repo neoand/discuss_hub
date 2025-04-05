@@ -14,7 +14,7 @@ class TestControllerActiveInactive(HttpCase):
                 "name": "test_connector",
                 "type": "evolution",
                 "enabled": True,
-                "uuid": "76320171-94ec-455e-89c8-42995918fec6",
+                "uuid": "11111111-1111-1111-1111-111111111111",
                 "url": "http://evolution:8080",
                 "api_key": "1234567890",
             }
@@ -22,7 +22,7 @@ class TestControllerActiveInactive(HttpCase):
         # send a request to that connector
         data = '{"name": "Odoo Test"}'
         response = self.url_open(
-            "/evoodoo/connector/76320171-94ec-455e-89c8-42995918fec6",
+            "/evoodoo/connector/11111111-1111-1111-1111-111111111111",
             data=data,
         )
         # assert response is 200
@@ -31,7 +31,7 @@ class TestControllerActiveInactive(HttpCase):
         connector.write({"enabled": False})
         # send a request to that connector
         response = self.url_open(
-            "/evoodoo/connector/76320171-94ec-455e-89c8-42995918fec6",
+            "/evoodoo/connector/11111111-1111-1111-1111-111111111111",
             data=data,
         )
         # assert response is 404
