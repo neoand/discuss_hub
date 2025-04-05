@@ -42,8 +42,9 @@ it will have a new connector.
 
 However, we need to create a new instance to connector with it.
 
-This can be easily done with (note, you may need to change apikey according
- to the one that is in Evolution.
+This can be easily done with
+
+note, you may need to change apikey according to the one that is in Evolution.
 
  Here how to create a new instance in Evoltuion that will work just fine:
 
