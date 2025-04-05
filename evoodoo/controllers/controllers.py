@@ -8,7 +8,6 @@ from odoo import http
 
 _logger = logging.getLogger(__name__)
 
-
 class Evo(http.Controller):
     @http.route(
         "/evoodoo/connector/<uuid:identifier>",
