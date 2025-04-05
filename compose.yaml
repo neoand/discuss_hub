@@ -10,7 +10,7 @@ services:
       - db_data:/var/lib/postgresql/data
     restart: unless-stopped
     logging:
-      driver: 'json-file'
+      driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
@@ -36,12 +36,12 @@ services:
       - crm_conf:/etc/odoo
       - crm_data:/var/lib/odoo
       #- extra_addons:/mnt/extra-addons  # Mapeamento para módulos extras
-      - ./evo/:/mnt/extra-addons/evo  # Mapeamento para módulos extras
+      - ./evo/:/mnt/extra-addons/evo # Mapeamento para módulos extras
     ports:
       - "8069:8069"
     restart: unless-stopped
     logging:
-      driver: 'json-file'
+      driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
@@ -87,7 +87,7 @@ services:
       - WA_BUSINESS_LANGUAGE=pt_BR
       - OPENAI_ENABLED=true
     logging:
-      driver: 'json-file'
+      driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
@@ -101,7 +101,7 @@ services:
       - 6379
     restart: unless-stopped
     logging:
-      driver: 'json-file'
+      driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
@@ -109,7 +109,7 @@ services:
 volumes:
   db_data:
   crm_conf:
-  extra_addons:       # Volume para módulos extras
+  extra_addons: # Volume para módulos extras
   crm_data:
   api_instances:
   redis_data:

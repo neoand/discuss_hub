@@ -1,11 +1,11 @@
-from odoo import api, fields, models, _
+from odoo import fields, models
+
 
 class Message(models.Model):
-    """ Chat Session
-        Reprensenting a conversation between users.
-        It extends the base method for anonymous usage.
+    """Chat Session
+    Reprensenting a conversation between users.
+    It extends the base method for anonymous usage.
     """
-    _inherit = ['mail.message']
-    evo_message_id = fields.Char(
-        string="Evo Message ID"
-    )
+
+    _inherit = ["mail.message"]
+    evo_message_id = fields.Char(string="Evo Message ID")

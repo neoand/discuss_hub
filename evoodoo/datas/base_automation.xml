@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <odoo>
     <!-- Messages -->
     <record model="base.automation" id="rule_evo_outgo_message">
@@ -41,5 +41,5 @@ channel.evo_connector.outgo_reaction(channel, record.message_id, record)
 _logger.info(f"automation_base: connector:{channel.evo_connector} channel:{channel} reaction {record} to message {record.message_id}")
         </field>
         <field name="base_automation_id" ref="rule_evo_outgo_reaction" />
-    </record> 
+    </record>
 </odoo>

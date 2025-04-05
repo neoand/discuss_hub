@@ -1,138 +1,163 @@
 <odoo>
-  <data>
-    <!-- explicit list view definition -->
+    <data>
+        <!-- explicit list view definition -->
 
-    <record model="ir.ui.view" id="evo.list">
-      <field name="name">evo list</field>
-      <field name="model">evo_connector</field>
-      <field name="arch" type="xml">
-        <list>
-          <field name="enabled" />
-          <field name="import_contacts" />
-          <field name="name" />
-          <field name="type" />
-          <field name="uuid" />
-          <field name="url" />
-          <field name="api_key" />
-          <field name="manager_channel" />
-        </list>
-      </field>
-    </record>
+        <record model="ir.ui.view" id="evo.list">
+            <field name="name">evo list</field>
+            <field name="model">evo_connector</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="enabled" />
+                    <field name="import_contacts" />
+                    <field name="name" />
+                    <field name="type" />
+                    <field name="uuid" />
+                    <field name="url" />
+                    <field name="api_key" />
+                    <field name="manager_channel" />
+                </list>
+            </field>
+        </record>
 
-    <!-- explicit kanban definition -->
-    <record id="test_model_view_kanban" model="ir.ui.view">
-      <field name="name">evo.connector.view.kanban</field>
-      <field name="model">evo_connector</field>
-      <field name="arch" type="xml">
-        <kanban class="o_kanban_mobile" sample="1">
-          <field name="name" />
-          <field name="enabled" />
-          <field name="status" />
-          <field name="description" />
-          <field name="type" />
-          <templates>
-            <t t-name="kanban-box">
+        <!-- explicit kanban definition -->
+        <record id="test_model_view_kanban" model="ir.ui.view">
+            <field name="name">evo.connector.view.kanban</field>
+            <field name="model">evo_connector</field>
+            <field name="arch" type="xml">
+                <kanban class="o_kanban_mobile" sample="1">
+                    <field name="name" />
+                    <field name="enabled" />
+                    <field name="status" />
+                    <field name="description" />
+                    <field name="type" />
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_global_click">
+                                <!-- Ribbon -->
+                                <t t-if="record.status.raw_value == 'open'">
+                                    <widget
+                                        name="web_ribbon"
+                                        title="Open"
+                                        bg_color="text-bg-success"
+                                    />
+                                </t>
+                                <t t-if="record.status.raw_value == 'closed'">
+                                    <widget
+                                        name="web_ribbon"
+                                        title="Closed"
+                                        bg_color="text-bg-danger"
+                                    />
+                                </t>
+                                <t t-if="record.status.raw_value == 'error'">
+                                    <widget
+                                        name="web_ribbon"
+                                        title="Error"
+                                        bg_color="text-bg-warning"
+                                    />
+                                </t>
 
-              <div t-attf-class="oe_kanban_global_click">
-                <!-- Ribbon -->
-                <t t-if="record.status.raw_value == 'open'">
-                  <widget name="web_ribbon" title="Open" bg_color="text-bg-success" />
-                </t>
-                <t t-if="record.status.raw_value == 'closed'">
-                  <widget name="web_ribbon" title="Closed" bg_color="text-bg-danger" />
-                </t>
-                <t t-if="record.status.raw_value == 'error'">
-                  <widget name="web_ribbon" title="Error" bg_color="text-bg-warning" />
-                </t>
-
-                <div class="row">
-                  <div class="col-12">
-                    <!---
+                                <div class="row">
+                                    <div class="col-12">
+                                        <!---
             add success if enabled, danger if disabled
             -->
-                    <t t-if="record.enabled.raw_value">
-                      <strong class="me-3 text-success">
-                        <field name="name" />
-                      </strong>
-                    </t>
-                    <t t-else="">
-                      <strong class="me-3 text-danger">
-                        <field name="name" />
-                      </strong>
-                    </t>
-                  </div>
-                </div>
-                <t t-if="record.description.value">
+                                        <t t-if="record.enabled.raw_value">
+                                            <strong class="me-3 text-success">
+                                                <field name="name" />
+                                            </strong>
+                                        </t>
+                                        <t t-else="">
+                                            <strong class="me-3 text-danger">
+                                                <field name="name" />
+                                            </strong>
+                                        </t>
+                                    </div>
+                                </div>
+                                <t t-if="record.description.value">
                   <field name="description" /><br /> Type: <field name="type" />
                 </t>
-                <br />
-                <small> Total Channels: <field name="channels_total" /><br /> Last message: <field
-                    name="last_message_date" />
+                                <br />
+                                <small> Total Channels: <field
+                                    name="channels_total"
+                                /><br /> Last message: <field
+                                    name="last_message_date"
+                                />
                 </small>
 
-                <!-- Button to trigger action
+                                <!-- Button to trigger action
         if status is open, show restart and close
         else show start
         -->
-                <div class="mt8 float-end">
-                  <t t-if="record.status.raw_value == 'open'">
-
-                    <button class="btn btn-warning btn-sm" name="restart_instance" type="object">
+                                <div class="mt8 float-end">
+                                    <t t-if="record.status.raw_value == 'open'">
+                                        <button
+                                            class="btn btn-warning btn-sm"
+                                            name="restart_instance"
+                                            type="object"
+                                        >
                       Restart
                     </button>
-                    <button class="btn btn-danger btn-sm ms-1" name="logout_instance" type="object">
+                                        <button
+                                            class="btn btn-danger btn-sm ms-1"
+                                            name="logout_instance"
+                                            type="object"
+                                        >
                       Logout
                     </button>
-                  </t>
-                  <t t-if="record.status.raw_value == 'closed'">
-                    <button class="btn btn-success btn-sm ms-1" name="action_open_html"
-                      type="object">
+                                    </t>
+                                    <t t-if="record.status.raw_value == 'closed'">
+                                        <button
+                                            class="btn btn-success btn-sm ms-1"
+                                            name="action_open_html"
+                                            type="object"
+                                        >
                       Start
                     </button>
-                  </t>
-                </div>
+                                    </t>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
 
+        <!-- actions opening views on models -->
 
-              </div>
-            </t>
-          </templates>
-        </kanban>
-      </field>
-    </record>
+        <record model="ir.actions.act_window" id="evo.action_window">
+            <field name="name">List Connectors</field>
+            <field name="res_model">evo_connector</field>
+            <field name="view_mode">kanban,list,form</field>
+        </record>
 
-    <!-- actions opening views on models -->
+        <!-- server action to the one above -->
 
-    <record model="ir.actions.act_window" id="evo.action_window">
-      <field name="name">List Connectors</field>
-      <field name="res_model">evo_connector</field>
-      <field name="view_mode">kanban,list,form</field>
-    </record>
-
-    <!-- server action to the one above -->
-
-    <record model="ir.actions.server" id="evo.action_server">
-      <field name="name">evo server</field>
-      <field name="model_id" ref="model_evo_connector" />
-      <field name="state">code</field>
-      <field name="code">
+        <record model="ir.actions.server" id="evo.action_server">
+            <field name="name">evo server</field>
+            <field name="model_id" ref="model_evo_connector" />
+            <field name="state">code</field>
+            <field name="code">
         action = {
         "type": "ir.actions.act_window",
         "view_mode": "list,form",
         "res_model": model._name,
         }
       </field>
-    </record>
+        </record>
 
-    <!-- Top menu item -->
+        <!-- Top menu item -->
 
-    <menuitem name="evo" id="evo.menu_root" />
+        <menuitem name="evo" id="evo.menu_root" />
 
-    <!-- menu categories -->
+        <!-- menu categories -->
 
-    <menuitem name="Conectors" id="evo.connector" parent="evo.menu_root" action="evo.action_window" />
+        <menuitem
+            name="Conectors"
+            id="evo.connector"
+            parent="evo.menu_root"
+            action="evo.action_window"
+        />
 
-    <!-- actions -->
-
-
-  </data>
+        <!-- actions -->
+    </data>
 </odoo>
