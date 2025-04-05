@@ -33,3 +33,51 @@ that explains its license.
 
 ----
 <!-- /!\ Non OCA Context : Set here the full description of your organization. -->
+
+## How to Configure
+
+First, run docker.
+
+Create an instance in Evolution.
+
+```bash
+curl --request POST \
+  --url http://localhost:8080/instance/create \
+  --header 'Content-Type: application/json' \
+  --header 'apikey: 1369429683C4C977415CAAFCCE10F7D57E11' \
+  --data '{
+    "instanceName": "test",
+    "qrcode": true,
+    "integration": "WHATSAPP-BAILEYS",
+    "webhook": {
+			"url": "http://odoo:8069/evoodoo/connector/76320171-94ec-455e-89c8-42995918fec6",
+			"base64": true,
+         "events": [
+             "APPLICATION_STARTUP",
+             "QRCODE_UPDATED",
+             "MESSAGES_SET",
+             "MESSAGES_UPSERT",
+             "MESSAGES_UPDATE",
+             "MESSAGES_DELETE",
+             "SEND_MESSAGE",
+             "CONTACTS_SET",
+            "CONTACTS_UPSERT",
+             "CONTACTS_UPDATE",
+             "PRESENCE_UPDATE",
+             "CHATS_SET",
+             "CHATS_UPSERT",
+             "CHATS_UPDATE",
+             "CHATS_DELETE",
+             "GROUPS_UPSERT",
+             "GROUP_UPDATE",
+             "GROUP_PARTICIPANTS_UPDATE",
+             "CONNECTION_UPDATE",
+             "LABELS_EDIT",
+             "LABELS_ASSOCIATION",
+             "CALL",
+             "TYPEBOT_START",
+             "TYPEBOT_CHANGE_STATUS"
+         ]
+     }
+}'
+```

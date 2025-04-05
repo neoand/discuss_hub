@@ -8,10 +8,9 @@ from odoo import http
 
 _logger = logging.getLogger(__name__)
 
-
 class Evo(http.Controller):
     @http.route(
-        "/evo/connector/<uuid:identifier>",
+        "/evoodoo/connector/<uuid:identifier>",
         auth="public",
         csrf=False,
         methods=["POST"],
@@ -19,7 +18,7 @@ class Evo(http.Controller):
     )
     def index(self, identifier: uuid.UUID, **kw):
         connector = (
-            http.request.env["evo_connector"]
+            http.request.env["evoodoo.connector"]
             .sudo(flag=True)
             .search(
                 [("enabled", "=", True), ("uuid", "=", str(identifier))],
@@ -41,7 +40,7 @@ class Evo(http.Controller):
         except json.decoder.JSONDecodeError:
             _logger.error(
                 f"action:json_decode_error identifier:{identifier},"
-                + " payload:{http.request.httprequest.data}"
+                + f" payload:{http.request.httprequest.data}"
             )
             response = Response(
                 json.dumps({"message": "Invalid JSON Payload"}),
@@ -51,7 +50,7 @@ class Evo(http.Controller):
             return response
         _logger.info(
             f"action incoming_payload connector {connector.id}"
-            + "payload {json.dumps(incoming_payload)}"
+            + f"payload {json.dumps(incoming_payload)}"
         )
         response = connector.process_payload(incoming_payload)
         return Response(

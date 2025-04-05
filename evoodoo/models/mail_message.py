@@ -8,4 +8,4 @@ class Message(models.Model):
     """
 
     _inherit = ["mail.message"]
-    evo_message_id = fields.Char(string="Evo Message ID")
+    evoodoo_message_id = fields.Char(string="Evo Message ID")

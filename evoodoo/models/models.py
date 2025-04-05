@@ -1,7 +1,6 @@
 import base64
 import html
 import logging
-import os
 import re
 import time
 import uuid
@@ -29,9 +28,8 @@ class EvoConnector(models.Model):
     TODO; auto add base automations
     """
 
-    # TODO: change model name... to evo.connector. Not sure why I did this hehehee
-    _name = "evo_connector"
-    _description = "WhatsApp Integration Connector"
+    _name = "evoodoo.connector"
+    _description = "Evoodoo Connector"
 
     enabled = fields.Boolean(default=True)
     import_contacts = fields.Boolean(default=True)
@@ -89,37 +87,37 @@ class EvoConnector(models.Model):
     )
     qr_code_base64 = fields.Text(compute="_compute_status", store=False)
 
-    @api.model
-    def action_new_connector():
-        """Decides whether to open a modal
-        or regular form based on env variables"""
-        # return {
-        #     "type": "ir.actions.act_window",
-        #     "name": "New Connector",
-        #     "res_model": "evo_connector",
-        #     "view_mode": "form",
-        #     "target": "new",  # Opens as a modal
-        # }
-        if (
-            os.getenv("ODOO_CONNECTOR_MODAL")
-            and os.getenv("EVOLUTION_API_KEY")
-            and os.getenv("EVOLUTION_ODOO_URL")
-        ):
-            return {
-                "type": "ir.actions.act_window",
-                "name": "New Connector",
-                "res_model": "evo_connector",
-                "view_mode": "form",
-                "target": "new",  # Opens as a modal
-            }
-        else:
-            return {
-                "type": "ir.actions.act_window",
-                "name": "New Connector",
-                "res_model": "evo_connector",
-                "view_mode": "form",
-                "target": "current",  # Opens as a regular form
-            }
+    # @api.model
+    # def action_new_connector():
+    #     """Decides whether to open a modal
+    #     or regular form based on env variables"""
+    #     # return {
+    #     #     "type": "ir.actions.act_window",
+    #     #     "name": "New Connector",
+    #     #     "res_model": "evo_connector",
+    #     #     "view_mode": "form",
+    #     #     "target": "new",  # Opens as a modal
+    #     # }
+    #     if (
+    #         os.getenv("ODOO_CONNECTOR_MODAL")
+    #         and os.getenv("EVOLUTION_API_KEY")
+    #         and os.getenv("EVOLUTION_ODOO_URL")
+    #     ):
+    #         return {
+    #             "type": "ir.actions.act_window",
+    #             "name": "New Connector",
+    #             "res_model": "evoodoo.connector",
+    #             "view_mode": "form",
+    #             "target": "new",  # Opens as a modal
+    #         }
+    #     else:
+    #         return {
+    #             "type": "ir.actions.act_window",
+    #             "name": "New Connector",
+    #             "res_model": "evo_connector",
+    #             "view_mode": "form",
+    #             "target": "current",  # Opens as a regular form
+    #         }
 
     def action_open_html(self):
         """Opens an HTML content in a new wizard."""
@@ -144,7 +142,7 @@ class EvoConnector(models.Model):
         return {
             "type": "ir.actions.act_window",
             "name": "Connector Status",
-            "res_model": "evo_connector_status",
+            "res_model": "evoodoo.connector.status",
             "view_mode": "form",
             "target": "new",
             "context": {"default_html_content": html_content},
@@ -154,7 +152,7 @@ class EvoConnector(models.Model):
         for connector in self:
             last_message = self.env["discuss.channel"].search(
                 [
-                    ("evo_connector", "=", connector.id),
+                    ("evoodoo_connector", "=", connector.id),
                 ],
                 order="write_date desc",
                 limit=1,
@@ -167,7 +165,7 @@ class EvoConnector(models.Model):
         for connector in self:
             connector.channels_total = self.env["discuss.channel"].search_count(
                 [
-                    ("evo_connector", "=", connector.id),
+                    ("evoodoo_connector", "=", connector.id),
                 ]
             )
 
@@ -187,7 +185,7 @@ class EvoConnector(models.Model):
             "type": "ir.actions.act_window",
             "name": "Status Details",
             "view_mode": "form",
-            "res_model": "evo_connector",
+            "res_model": "evoodoo.connector",
             "res_id": self.id,
             "target": "new",
         }
@@ -218,6 +216,9 @@ class EvoConnector(models.Model):
         """
         Process the payload from the evolution server for this connector
         """
+        # TODO: if configured, check for the bearer token on auth headers
+        # EVOLUTION can configure a header, so we can add this option here and return
+        # unauthorized if the token is not present or different from configured
         event = payload.get("event")
         response = {
             "success": False,
@@ -414,7 +415,7 @@ class EvoConnector(models.Model):
         membership = self.env["discuss.channel.member"].search(
             [
                 # ('channel_id.active', '=', True),
-                ("channel_id.evo_connector", "=", self.id),
+                ("channel_id.evoodoo_connector", "=", self.id),
                 ("partner_id", "=", partner.id),
             ],
             order="create_date desc",
@@ -461,8 +462,8 @@ class EvoConnector(models.Model):
         # Create channel
         channel = self.env["discuss.channel"].create(
             {
-                "evo_connector": self.id,
-                "evo_outgoing_destination": remote_jid,
+                "evoodoo_connector": self.id,
+                "evoodoo_outgoing_destination": remote_jid,
                 "name": channel_name,
                 "channel_partner_ids": partners_to_add,
                 "image_128": partner.image_128,
@@ -493,7 +494,7 @@ class EvoConnector(models.Model):
             quoted_id = data.get("contextInfo", {}).get("stanzaId")
             quoted_messages = self.env["mail.message"].search(
                 [
-                    ("evo_message_id", "=", quoted_id),
+                    ("evoodoo_message_id", "=", quoted_id),
                 ],
                 order="create_date desc",
                 limit=1,
@@ -513,7 +514,7 @@ class EvoConnector(models.Model):
         )
 
         # Update message with reference
-        message.write({"evo_message_id": message_id})
+        message.write({"evoodoo_message_id": message_id})
 
         _logger.info(
             f"action:process_payload event:message.upsert({message_id}) new message at"
@@ -535,7 +536,7 @@ class EvoConnector(models.Model):
         # Find original message
         messages = self.env["mail.message"].search(
             [
-                ("evo_message_id", "=", original_message_id),
+                ("evoodoo_message_id", "=", original_message_id),
             ],
             order="create_date desc",
             limit=1,
@@ -569,7 +570,7 @@ class EvoConnector(models.Model):
                 subtype_xmlid="mail.mt_comment",
                 parent_id=message.id,
             )
-            notification.write({"evo_message_id": message_id})
+            notification.write({"evoodoo_message_id": message_id})
 
         _logger.info(
             f"action:process_payload event:message.upsert({message_id}) reaction to "
@@ -601,7 +602,7 @@ class EvoConnector(models.Model):
             attachments=attachments,
             message_id=message_id,
         )
-        message.write({"evo_message_id": message_id})
+        message.write({"evoodoo_message_id": message_id})
 
         _logger.info(
             f"action:process_payload event:message.upsert({message_id}) "
@@ -637,7 +638,7 @@ class EvoConnector(models.Model):
             attachments=attachments,
             message_id=message_id,
         )
-        message.write({"evo_message_id": message_id})
+        message.write({"evoodoo_message_id": message_id})
 
         _logger.info(
             f"action:process_payload event:message.upsert({message_id}) "
@@ -670,7 +671,7 @@ class EvoConnector(models.Model):
             attachments=attachments,
             message_id=message_id,
         )
-        message.write({"evo_message_id": message_id})
+        message.write({"evoodoo_message_id": message_id})
 
         _logger.info(
             f"action:process_payload event:message.upsert({message_id}) "
@@ -707,7 +708,7 @@ class EvoConnector(models.Model):
             body_is_html=True,
             message_id=message_id,
         )
-        message.write({"evo_message_id": message_id})
+        message.write({"evoodoo_message_id": message_id})
 
         _logger.info(
             f"action:process_payload event:message.upsert({message_id}) "
@@ -740,7 +741,7 @@ class EvoConnector(models.Model):
             attachments=attachments,
             message_id=message_id,
         )
-        message.write({"evo_message_id": message_id})
+        message.write({"evoodoo_message_id": message_id})
 
         _logger.info(
             f"action:process_payload event:message.upsert({message_id})"
@@ -770,7 +771,7 @@ class EvoConnector(models.Model):
                 quoted_id = data.get("contextInfo", {}).get("stanzaId")
                 quoted_messages = self.env["mail.message"].search(
                     [
-                        ("evo_message_id", "=", quoted_id),
+                        ("evoodoo_message_id", "=", quoted_id),
                     ],
                     order="create_date desc",
                     limit=1,
@@ -797,7 +798,7 @@ class EvoConnector(models.Model):
         )
 
         # Update message with reference
-        message.write({"evo_message_id": message_id})
+        message.write({"evoodoo_message_id": message_id})
 
         _logger.info(
             f"action:process_payload event:message.upsert({message_id}) new message"
@@ -834,9 +835,9 @@ class EvoConnector(models.Model):
 
         # Handle read status
         if payload.get("data", {}).get("status") == "READ":
-            evo_message_id = payload.get("data", {}).get("keyId", {})
+            evoodoo_message_id = payload.get("data", {}).get("keyId", {})
             message = self.env["mail.message"].search(
-                [("evo_message_id", "=", evo_message_id)], limit=1
+                [("evoodoo_message_id", "=", evoodoo_message_id)], limit=1
             )
 
             if not message:
@@ -880,7 +881,8 @@ class EvoConnector(models.Model):
             channel_member._mark_as_read(message.id, sync=True)
 
             _logger.info(
-                f"action:process_payload event:message.update.read({evo_message_id})"
+                "action:process_payload"
+                + f"event:message.update.read({evoodoo_message_id})"
                 + f" partner:{partner} channel_membership:{channel_member}"
             )
 
@@ -1043,26 +1045,26 @@ class EvoConnector(models.Model):
 
         body = self._format_message_before_send(message)
 
-        payload = {"number": channel.evo_outgoing_destination, "text": body}
+        payload = {"number": channel.evoodoo_outgoing_destination, "text": body}
         if message.parent_id:
             quoted_message = self.env["mail.message"].search(
                 [("id", "=", message.parent_id.id)], limit=1
             )
             quoted = None
-            if quoted_message.evo_message_id:
+            if quoted_message.evoodoo_message_id:
                 quoted = {
-                    "key": {"id": quoted_message.evo_message_id},
+                    "key": {"id": quoted_message.evoodoo_message_id},
                 }
                 payload["quoted"] = quoted
 
-        url = f"{self.url}/message/sendText/{channel.evo_connector.name}"
+        url = f"{self.url}/message/sendText/{channel.evoodoo_connector.name}"
 
         try:
             response = requests.post(url, json=payload, headers=headers, timeout=10)
 
             if response.status_code == 201:
                 sent_message_id = response.json().get("key", {}).get("id")
-                message.write({"evo_message_id": sent_message_id})
+                message.write({"evoodoo_message_id": sent_message_id})
                 _logger.info(
                     f"action:outgo_message channel:{channel} message:{message}"
                     + f"got message_id: {sent_message_id}"
@@ -1080,7 +1082,7 @@ class EvoConnector(models.Model):
 
     def _send_attachments(self, channel, message, headers):
         """Send message attachments to WhatsApp"""
-        url = f"{self.url}/message/sendMedia/{channel.evo_connector.name}"
+        url = f"{self.url}/message/sendMedia/{channel.evoodoo_connector.name}"
 
         for attachment in message.attachment_ids:
             # Determine media type
@@ -1092,7 +1094,7 @@ class EvoConnector(models.Model):
                 filename = attachment.name
 
             payload = {
-                "number": channel.evo_outgoing_destination,
+                "number": channel.evoodoo_outgoing_destination,
                 "mediatype": mediatype,
                 "mimetype": attachment.mimetype,
                 "media": attachment.datas.decode("utf-8"),
@@ -1105,8 +1107,8 @@ class EvoConnector(models.Model):
                     sent_message_id = response.json().get("key", {}).get("id")
                     attachment.write(
                         {
-                            "evo_remote_message_id": sent_message_id,
-                            "evo_local_message_id": message.id,
+                            "evoodoo_remote_message_id": sent_message_id,
+                            "evoodoo_local_message_id": message.id,
                         }
                     )
                     _logger.info(
@@ -1186,12 +1188,12 @@ class EvoConnector(models.Model):
         if message.attachment_ids:
             sent_message = self._send_attachments(channel, message, headers)
             sent_message_id = sent_message.json().get("key", {}).get("id")
-        message.write({"evo_message_id": sent_message_id})
+        message.write({"evoodoo_message_id": sent_message_id})
 
     def outgo_reaction(self, channel, message, reaction):
         """
         # DOMAIN FILTER FOR BASE AUTOMATION
-        [("message_id.evo_message_id", "!=", "")]
+        [("message_id.evoodoo_message_id", "!=", "")]
         AUTOMATION BASE CODE FOR REACTION
         the code is available as a data import
         """
@@ -1207,14 +1209,14 @@ class EvoConnector(models.Model):
 
         payload = {
             "key": {
-                "remoteJid": channel.evo_outgoing_destination,
-                "fromMe": message.evo_message_id != message.message_id,
-                "id": message.evo_message_id,
+                "remoteJid": channel.evoodoo_outgoing_destination,
+                "fromMe": message.evoodoo_message_id != message.message_id,
+                "id": message.evoodoo_message_id,
             },
             "reaction": reaction.content,
         }
 
-        url = f"{self.url}/message/sendReaction/{channel.evo_connector.name}"
+        url = f"{self.url}/message/sendReaction/{channel.evoodoo_connector.name}"
 
         try:
             response = requests.post(url, json=payload, headers=headers, timeout=10)
@@ -1226,11 +1228,12 @@ class EvoConnector(models.Model):
             _logger.error(f"Error sending reaction: {str(e)}")
 
 
-class EvoSocialNetworkeType(models.Model):
-    _name = "evo_social_network_type"
+class EvoodooSocialNetworkeType(models.Model):
+    _name = "evoodoo_social_network_type"
     _description = "Social Network Types"
 
     name = fields.Char(required=True)
+    # TODO ADD IMAGE TO SHOW ON CHANNEL
 
 
 def html_to_whatsapp(html_text):
@@ -1267,21 +1270,6 @@ def html_to_whatsapp(html_text):
     return text.strip()
 
 
-# # create a transient model for ConnectorStatus
-# # it will have the status and possible the qrcode to connect
-# class EvoConnectorStatus(models.TransientModel):
-#     _name = 'evo_connector_status'
-#     _description = 'Evo Connector Status'
-
-#     status = fields.Char(string='Status', readonly=True)
-#     qrcode = fields.Binary(string='QR Code', readonly=True)
-#     qrcode_filename = fields.Char(string='QR Code Filename', readonly=True)
-
-#     def action_close(self):
-#         self.ensure_one()
-#         return {'type': 'ir.actions.act_window_close'}
-
-
 class HtmlDisplay(models.TransientModel):
-    _name = "evo_connector_status"
+    _name = "evoodoo.connector.status"
     html_content = fields.Html("HTML Content", readonly=True)

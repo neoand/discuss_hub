@@ -9,13 +9,13 @@ class DiscussChannel(models.Model):
 
     _inherit = ["discuss.channel"]
 
-    evo_connector = fields.Many2one(
-        comodel_name="evo_connector",
+    evoodoo_connector = fields.Many2one(
+        comodel_name="evoodoo.connector",
         string="Connector",
         index="btree_not_null",
         auto_join=True,
         ondelete="set null",
     )
-    evo_outgoing_destination = fields.Char(
-        string="Evo Outgoing Destination for this channel"
+    evoodoo_outgoing_destination = fields.Char(
+        string="EvoOdoo Outgoing Destination for this channel"
     )

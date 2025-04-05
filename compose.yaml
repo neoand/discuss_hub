@@ -3,8 +3,8 @@ services:
     image: postgres:16
     user: root
     environment:
-      - POSTGRES_USER=odoo
-      - POSTGRES_PASSWORD=123OTImi17@2025
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
       - POSTGRES_DB=postgres
     volumes:
       - db_data:/var/lib/postgresql/data
@@ -17,26 +17,27 @@ services:
     ports:
       - 5432:5432
 
-  crm:
+  odoo:
     image: odoo:18.0
     user: root
     depends_on:
       - db
     tty: true
-    command: odoo --db-filter=^odoo* -i base,base_automations -u evo
+    command: odoo -d odoo -i base,base_automations,evoodoo -u evoodoo
     environment:
       - ODOO_RC=/etc/odoo/odoo.conf
       - HOST=db
-      - USER=odoo
-      - PASSWORD=123OTImi17@2025
-      - EVOLUTION_URL=http://api:8080
+      - USER=admin
+      - PASSWORD=admin
+      - ADMIN_PASSWORD=admin
+      - EVOLUTION_URL=http://evolution:8080
       - EVOLUTION_API_KEY=1369429683C4C977415CAAFCCE10F7D57E11
-      - EVOLUTION_ODOO_URL=http://crm:8069
+      - EVOLUTION_ODOO_URL=http://odoo:8069
     volumes:
-      - crm_conf:/etc/odoo
-      - crm_data:/var/lib/odoo
+      - odoo_conf:/etc/odoo
+      - odoo_data:/var/lib/odoo
       #- extra_addons:/mnt/extra-addons  # Mapeamento para módulos extras
-      - ./evo/:/mnt/extra-addons/evo # Mapeamento para módulos extras
+      - ./evoodoo/:/mnt/extra-addons/evoodoo # Mapeamento para módulos extras
     ports:
       - "8069:8069"
     restart: unless-stopped
@@ -46,7 +47,7 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  api:
+  evolution:
     image: atendai/evolution-api
     restart: always
     depends_on:
@@ -54,13 +55,13 @@ services:
     ports:
       - 8080:8080
     volumes:
-      - api_instances:/evolution/instances
+      - evolution_instances:/evolution/instances
     expose:
       - 8080
     environment:
       - SERVER_URL=http://localhost:8080
       - DATABASE_PROVIDER=postgresql
-      - DATABASE_CONNECTION_URI=postgresql://odoo:123OTImi17@2025@db:5432/evolution?schema=public
+      - DATABASE_CONNECTION_URI=postgresql://admin:admin@db:5432/admin?schema=public
       - DATABASE_SAVE_DATA_INSTANCE=true
       - DATABASE_SAVE_DATA_NEW_MESSAGE=true
       - DATABASE_SAVE_MESSAGE_UPDATE=true
@@ -108,8 +109,7 @@ services:
 
 volumes:
   db_data:
-  crm_conf:
-  extra_addons: # Volume para módulos extras
-  crm_data:
-  api_instances:
+  odoo_data:
+  odoo_conf:
+  evolution_instances:
   redis_data:
