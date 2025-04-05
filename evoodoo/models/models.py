@@ -478,7 +478,8 @@ class EvoConnector(models.Model):
 
         # if the channel is a group, prepend the name of the participant
         if data.get("key", {}).get("remoteJid").endswith("@g.us"):
-            body = f"{data.get("pushName")}: {body}"
+            push_name = data.get("pushName")
+            body = f"{push_name}: {body}"
 
         # Determine author - use parent contact if available
         # TODO: this can be changed to reflect a pre ingested partner
