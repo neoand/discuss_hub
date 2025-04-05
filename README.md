@@ -33,12 +33,19 @@ that explains its license.
 
 ----
 <!-- /!\ Non OCA Context : Set here the full description of your organization. -->
-asdasd
 ## How to Configure
 
-First, run docker.
+First, run the compose.yaml in this repo.
 
-Create an instance in Evolution.
+It has everything needed. It will sping Odoo, and in the demo data, 
+it will have a new connector.
+
+However, we need to create a new instance to connector with it.
+
+This can be easily done with (note, you may need to change apikey according
+ to the one that is in Evolution.
+
+ Here how to create a new instance in Evoltuion that will work just fine:
 
 ```bash
 curl --request POST \
