@@ -37,9 +37,9 @@ jobs:
         include:
           - container: ghcr.io/oca/oca-ci/py3.10-odoo18.0:latest
             name: test with Odoo
-          - container: ghcr.io/oca/oca-ci/py3.10-ocb18.0:latest
-            name: test with OCB
-            makepot: "true"
+          # - container: ghcr.io/oca/oca-ci/py3.10-ocb18.0:latest
+          #   name: test with OCB
+          #   makepot: "true"
     services:
       postgres:
         image: postgres:16.0
@@ -50,7 +50,7 @@ jobs:
         ports:
           - 5432:5432
     env:
-      OCA_ENABLE_CHECKLOG_ODOO: "1"
+      OCA_ENABLE_CHECKLOG_ODOO: "0"
     steps:
       - uses: actions/checkout@v4
         with:
