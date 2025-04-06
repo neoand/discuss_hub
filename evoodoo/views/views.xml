@@ -30,7 +30,7 @@
                 <field name="description" />
                 <field name="type" />
                 <templates>
-                    <t t-name="kanban-box">
+                    <t t-name="card">
                         <div t-attf-class="oe_kanban_global_click">
                             <!-- Ribbon -->
                             <t t-if="record.status.raw_value == 'not_found'">
