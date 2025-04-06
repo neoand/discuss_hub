@@ -1,5 +1,5 @@
 from odoo.tests import tagged
-from odoo.tests.common import TransactionCase, HttpCase
+from odoo.tests.common import HttpCase
 
 
 @tagged("evoodoo", "controller")
@@ -22,7 +22,7 @@ class TestControllerActiveInactive(HttpCase):
         # send a request to that connector
         data = '{"name": "Odoo Test"}'
         response = self.url_open(
-            '/evoodoo/connector/76320171-94ec-455e-89c8-42995918fec6',
+            "/evoodoo/connector/76320171-94ec-455e-89c8-42995918fec6",
             data=data,
         )
         # assert response is 200
@@ -31,7 +31,7 @@ class TestControllerActiveInactive(HttpCase):
         connector.write({"enabled": False})
         # send a request to that connector
         response = self.url_open(
-            '/evoodoo/connector/76320171-94ec-455e-89c8-42995918fec6',
+            "/evoodoo/connector/76320171-94ec-455e-89c8-42995918fec6",
             data=data,
         )
         # assert response is 404

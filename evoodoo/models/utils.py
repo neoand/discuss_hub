@@ -1,6 +1,7 @@
-from markupsafe import Markup
 import html
 import re
+
+from markupsafe import Markup
 
 
 def add_strikethrough_to_paragraphs(html_body):
@@ -13,11 +14,6 @@ def add_strikethrough_to_paragraphs(html_body):
     )
     return Markup(modified)
 
-import re
-import html
-
-import re
-import html
 
 def html_to_whatsapp(html_text):
     """
@@ -55,5 +51,5 @@ def html_to_whatsapp(html_text):
     text = html.unescape(text)
 
     # Final cleanup: compress 3+ line breaks to 2
-    text = re.sub(r'\n{3,}', '\n\n', text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
     return text.strip()

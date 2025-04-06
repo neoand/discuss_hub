@@ -8,9 +8,9 @@ import requests
 from jinja2 import Template
 from markupsafe import Markup
 
-from . import utils
-
 from odoo import Command, api, fields, models
+
+from . import utils
 
 _logger = logging.getLogger(__name__)
 
@@ -1333,12 +1333,6 @@ class EvoodooSocialNetworkeType(models.Model):
 
     name = fields.Char(required=True)
     # TODO ADD IMAGE TO SHOW ON CHANNEL
-
-
-
-
-
-
 
 
 class HtmlDisplay(models.TransientModel):
