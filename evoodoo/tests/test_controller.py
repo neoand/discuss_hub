@@ -2,11 +2,6 @@ from odoo.tests import tagged
 from odoo.tests.common import TransactionCase, HttpCase
 
 
-@tagged("evoodoo")
-class TestSomething(TransactionCase):
-    def test_basic(self):
-        self.assertEqual(1 + 1, 2)
-
 @tagged("evoodoo", "controller")
 class TestControllerActiveInactive(HttpCase):
     def test_controller_active_inactive(self):

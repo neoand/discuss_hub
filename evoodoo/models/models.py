@@ -1,14 +1,14 @@
 import base64
-import html
 import json
 import logging
-import re
 import time
 import uuid
 
 import requests
 from jinja2 import Template
 from markupsafe import Markup
+
+from . import utils
 
 from odoo import Command, api, fields, models
 
@@ -977,7 +977,7 @@ class EvoConnector(models.Model):
                 "message": "Message Not Found",
             }
         # update the message content
-        updated_body = add_strikethrough_to_paragraphs(message.body)
+        updated_body = utils.add_strikethrough_to_paragraphs(message.body)
         message.write({"body": updated_body})
         # add new message alerting of the delete
         # TODO: make this optional
@@ -1135,7 +1135,7 @@ class EvoConnector(models.Model):
         body = template.render(context)
 
         # Convert HTML to WhatsApp formatting
-        body = html_to_whatsapp(body)
+        body = utils.html_to_whatsapp(body)
 
         return body
 
@@ -1335,49 +1335,10 @@ class EvoodooSocialNetworkeType(models.Model):
     # TODO ADD IMAGE TO SHOW ON CHANNEL
 
 
-def html_to_whatsapp(html_text):
-    """
-    Converts basic HTML to WhatsApp formatting.
-    """
-    if not html_text:
-        return ""
-
-    # Basic formatting
-    conversions = [
-        (r"<b>(.*?)</b>", r"*\1*"),
-        (r"<strong>(.*?)</strong>", r"*\1*"),
-        (r"<i>(.*?)</i>", r"_\1_"),
-        (r"<em>(.*?)</em>", r"_\1_"),
-        (r"<s>(.*?)</s>", r"~\1~"),
-        (r"<strike>(.*?)</strike>", r"~\1~"),
-        (r"<del>(.*?)</del>", r"~\1~"),
-        (r"<u>(.*?)</u>", r"_\1_"),
-        (r"<br\s*/?>", "\n"),
-        (r"<p>(.*?)</p>", r"\1\n\n"),
-    ]
-
-    text = html_text
-    for pattern, replacement in conversions:
-        text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
-
-    # Remove remaining HTML tags
-    text = re.sub(r"<[^>]*>", "", text)
-
-    # Decode HTML entities
-    text = html.unescape(text)
-
-    return text.strip()
 
 
-def add_strikethrough_to_paragraphs(html_body):
-    # This regex finds content inside <p>...</p> and wraps it with <s>...</s>
-    modified = re.sub(
-        r"(<p[^>]*>)(.*?)(</p>)",
-        lambda m: f"{m.group(1)}<s>{m.group(2)}</s>{m.group(3)}",
-        html_body,
-        flags=re.DOTALL,
-    )
-    return Markup(modified)
+
+
 
 
 class HtmlDisplay(models.TransientModel):
