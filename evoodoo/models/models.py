@@ -1,13 +1,14 @@
 import base64
 import json
 import logging
-import re
 import time
 import uuid
 
 import requests
 from jinja2 import Template
 from markupsafe import Markup
+
+from . import utils
 
 from odoo import Command, api, fields, models
 

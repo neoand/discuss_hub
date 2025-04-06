@@ -14,6 +14,11 @@ def add_strikethrough_to_paragraphs(html_body):
     )
     return Markup(modified)
 
+import re
+import html
+
+import re
+import html
 
 def html_to_whatsapp(html_text):
     """

@@ -1,9 +1,18 @@
+<<<<<<< HEAD
+=======
+from odoo.tests import tagged
+>>>>>>> bae0743 (added some more tests and separated utils)
 from odoo.tests.common import TransactionCase
 
 from ..models.utils import add_strikethrough_to_paragraphs, html_to_whatsapp
 
+<<<<<<< HEAD
 
 class TestStrikethroughFunction(TransactionCase):
+=======
+class TestStrikethroughFunction(TransactionCase):
+
+>>>>>>> bae0743 (added some more tests and separated utils)
     def test_basic_paragraph(self):
         html = "<p>Hello</p>"
         expected = "<p><s>Hello</s></p>"
@@ -34,8 +43,13 @@ class TestStrikethroughFunction(TransactionCase):
         result = add_strikethrough_to_paragraphs(html)
         self.assertEqual(str(result), expected)
 
+<<<<<<< HEAD
 
 class TestHtmlToWhatsapp(TransactionCase):
+=======
+class TestHtmlToWhatsapp(TransactionCase):
+
+>>>>>>> bae0743 (added some more tests and separated utils)
     def test_bold_and_italic(self):
         html = "<b>Bold</b> and <i>Italic</i>"
         expected = "*Bold* and _Italic_"
@@ -63,4 +77,8 @@ class TestHtmlToWhatsapp(TransactionCase):
 
     def test_empty_and_plain_text(self):
         self.assertEqual(html_to_whatsapp(""), "")
+<<<<<<< HEAD
         self.assertEqual(html_to_whatsapp("Just text"), "Just text")
+=======
+        self.assertEqual(html_to_whatsapp("Just text"), "Just text")
+>>>>>>> bae0743 (added some more tests and separated utils)
