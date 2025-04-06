@@ -1,5 +1,6 @@
 from odoo.tests import tagged
-from odoo.tests.common import HttpCase
+from odoo.tests.common import TransactionCase, HttpCase
+
 
 @tagged("evoodoo", "controller")
 class TestControllerActiveInactive(HttpCase):
