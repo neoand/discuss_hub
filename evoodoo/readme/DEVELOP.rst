@@ -11,3 +11,8 @@ docker compose run --rm odoo odoo --dev=all --db-filter=^test_only\$ -d test_onl
 ```bash
 SKIP="oca-gen-addon-readme" pre-commit run --all-files --show-diff-on-failure --color=always
 ```
+
+# Run shell to play with the code
+```bash
+docker compose run --rm odoo odoo shell -d odoo
+```

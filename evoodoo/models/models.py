@@ -1,5 +1,6 @@
 import base64
 import html
+import json
 import logging
 import re
 import time
@@ -238,6 +239,9 @@ class EvoConnector(models.Model):
         elif event in ["messages.update"]:
             response = self._process_messages_update(payload)
 
+        elif event in ["messages.delete"]:
+            response = self._process_messages_delete(payload)
+
         # Contacts Upsert after connection
         elif event in ["contacts.upsert"] and self.import_contacts:
             response = self._process_contacts_upsert(payload)
@@ -361,7 +365,7 @@ class EvoConnector(models.Model):
             }
 
         # Find or create channel
-        channel = self._find_or_create_channel(partner, remote_jid, name, message_id)
+        channel = self._get_or_create_channel(partner, remote_jid, name, message_id)
         if not channel:
             return {
                 "success": False,
@@ -408,7 +412,7 @@ class EvoConnector(models.Model):
 
         return response
 
-    def _find_or_create_channel(self, partner, remote_jid, name, message_id):
+    def _get_or_create_channel(self, partner, remote_jid, name, message_id):
         """Find existing channel or create a new one for the partner"""
         # Check if we have an unarchived channel
         # for this connector and partner as member
@@ -473,7 +477,9 @@ class EvoConnector(models.Model):
 
         return channel
 
-    def _handle_text_message(self, data, channel, partner, message_id):
+    def _handle_text_message(
+        self, data, channel, partner, message_id, parent_message_id=None
+    ):
         """Handle text messages"""
         body = data.get("message", {}).get("conversation")
 
@@ -819,23 +825,44 @@ class EvoConnector(models.Model):
         #         "event": "messages.upsert.contactMessage.Failed",
         #     }
 
+    def _get_message_by_id(self, payload):
+        """Get message by ID"""
+        message_id = payload.get("data", {}).get("keyId")
+        if not message_id:
+            return False
+
+        headers = {"apikey": self.api_key}
+        image_url_api = f"{self.url}/chat/findMessages/{self.name}"
+        payload_to_send = {"where": {"key": {"id": message_id}}}
+        response = requests.post(
+            image_url_api,
+            json=payload_to_send,
+            headers=headers,
+            timeout=5,
+        )
+        records = (
+            response.json()
+            .get("messages", {})
+            .get(
+                "records",
+            )
+        )
+        return records or False
+
     def _process_messages_update(self, payload):
         """Process message updates like read status"""
-        # Skip if read receipts are disabled
-        if (
-            not self.show_read_receipts
-            and payload.get("data", {}).get("status") == "READ"
-        ):
-            return {
-                "success": True,
-                "action": "process_payload",
-                "event": "messages.update.mark_read",
-                "message": "Read receipts disabled",
-            }
-
+        evoodoo_message_id = payload.get("data", {}).get("keyId", {})
         # Handle read status
         if payload.get("data", {}).get("status") == "READ":
-            evoodoo_message_id = payload.get("data", {}).get("keyId", {})
+            # Skip if read receipts are disabled
+            if not self.show_read_receipts:
+                return {
+                    "success": True,
+                    "action": "process_payload",
+                    "event": "messages.update.mark_read",
+                    "message": "Read receipts disabled",
+                }
+
             message = self.env["mail.message"].search(
                 [("evoodoo_message_id", "=", evoodoo_message_id)], limit=1
             )
@@ -893,12 +920,84 @@ class EvoConnector(models.Model):
                 "read_message": message.id,
                 "read_partner": partner.parent_id.id,
             }
+        else:
+            # TODO: NOT WORKING.
+            # CHECK HERE: https://github.com/EvolutionAPI/evolution-api/issues/1266
+            # message was edited
+            _logger.info(
+                f"action:process_payload event:message.update({evoodoo_message_id})"
+                + " editting message"
+            )
+            # get the message content
+            message_records = self._get_message_by_id(payload)
+            if message_records:
+                _logger.info(f"Message for editing found {payload} {message_records}")
+                # emulate a new payload here, and call _process_messages_upsert
+                emulated_payload = {
+                    "event": "messages.upsert",
+                    "instance": self.name,
+                    "data": message_records[0],
+                }
+                # TODO: optionally return edit as new message here
+                emulated_payload["data"]["contextInfo"] = {
+                    "stanzaId": evoodoo_message_id,
+                    "quotedMessage": {
+                        "conversation": "aaaaaaaaaa",
+                        "messageContextInfo": {},
+                    },
+                }
+                _logger.info(
+                    "Emulated payload generated for editing message:"
+                    + f" {json.dumps(emulated_payload)}"
+                )
+                response = self.process_payload(emulated_payload)
+                response["edited_message"] = True
+                return response
+                # or update the message content, and no new messages
 
         return {
             "success": False,
             "action": "process_payload",
             "event": "messages.update",
             "message": "Unhandled update type",
+        }
+
+    def _process_messages_delete(self, payload):
+        evoodoo_message_id = payload.get("data", {}).get("id", {})
+        # find deleted message
+        message = self.env["mail.message"].search(
+            [("evoodoo_message_id", "=", evoodoo_message_id)], limit=1
+        )
+
+        if not message:
+            return {
+                "success": False,
+                "action": "process_payload",
+                "event": "messages.delete",
+                "message": "Message Not Found",
+            }
+        # update the message content
+        updated_body = add_strikethrough_to_paragraphs(message.body)
+        message.write({"body": updated_body})
+        # add new message alerting of the delete
+        # TODO: make this optional
+        channel_id = message.res_id
+        channel = self.env["discuss.channel"].browse(channel_id)
+        # create a new message, using message as parent,
+        # saying this message was deleted
+        body = "This message was deleted by the user"
+        new_message = channel.message_post(
+            author_id=self.default_admin_partner_id.id,
+            parent_id=message[0].id,
+            body=body,
+            message_type="comment",
+            subtype_xmlid="mail.mt_comment",
+        )
+        return {
+            "success": True,
+            "action": "process_payload",
+            "event": "messages.delete",
+            "message": f"deletion was alerted by message id {new_message.id}",
         }
 
     def _process_contacts_upsert(self, payload):
@@ -1268,6 +1367,17 @@ def html_to_whatsapp(html_text):
     text = html.unescape(text)
 
     return text.strip()
+
+
+def add_strikethrough_to_paragraphs(html_body):
+    # This regex finds content inside <p>...</p> and wraps it with <s>...</s>
+    modified = re.sub(
+        r"(<p[^>]*>)(.*?)(</p>)",
+        lambda m: f"{m.group(1)}<s>{m.group(2)}</s>{m.group(3)}",
+        html_body,
+        flags=re.DOTALL,
+    )
+    return Markup(modified)
 
 
 class HtmlDisplay(models.TransientModel):
