@@ -1,4 +1,4 @@
-\# Running tests
+# Running tests
 
 To run the tests, You can use Docker to set up an Odoo instance with the
 necessary dependencies.
