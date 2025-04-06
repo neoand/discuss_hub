@@ -8,8 +8,6 @@ import requests
 from jinja2 import Template
 from markupsafe import Markup
 
-from . import utils
-
 from odoo import Command, api, fields, models
 
 from . import utils
