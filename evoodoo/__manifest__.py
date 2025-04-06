@@ -4,7 +4,7 @@
     "author": "Duda Nogueira",
     "website": "https://github.com/dudanogueira/evoodoo",
     "category": "marketing",
-    "version": "18.0.0.0.1",
+    "version": "18.0.0.0.2",
     "license": "AGPL-3",
     "application": True,
     "installable": True,
