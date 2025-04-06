@@ -1,7 +1,6 @@
 from odoo.tests import tagged
 from odoo.tests.common import HttpCase
 
-
 @tagged("evoodoo", "controller")
 class TestControllerActiveInactive(HttpCase):
     def test_controller_active_inactive(self):
