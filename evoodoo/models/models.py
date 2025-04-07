@@ -920,10 +920,10 @@ class EvoConnector(models.Model):
                 "read_message": message.id,
                 "read_partner": partner.parent_id.id,
             }
-        else:
+        elif not payload.get("data", {}).get("status"):
+            # message was edited
             # TODO: NOT WORKING.
             # CHECK HERE: https://github.com/EvolutionAPI/evolution-api/issues/1266
-            # message was edited
             _logger.info(
                 f"action:process_payload event:message.update({evoodoo_message_id})"
                 + " editting message"
@@ -942,7 +942,7 @@ class EvoConnector(models.Model):
                 emulated_payload["data"]["contextInfo"] = {
                     "stanzaId": evoodoo_message_id,
                     "quotedMessage": {
-                        "conversation": "aaaaaaaaaa",
+                        "conversation": "this message was edited",
                         "messageContextInfo": {},
                     },
                 }
