@@ -20,11 +20,11 @@
         # initial base_automation
         "datas/base_automation.xml",
     ],
-    'assets': {
-        'web.assets_backend': [
-            'evoodoo/static/src/js/archive_channel_session.js',
+    "assets": {
+        "web.assets_backend": [
+            "evoodoo/static/src/js/archive_channel_session.esm.js",
         ],
-    },    
+    },
     # only loaded in demonstration mode
     "demo": [
         "demo/demo.xml",

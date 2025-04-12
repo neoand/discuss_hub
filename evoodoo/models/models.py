@@ -90,15 +90,17 @@ class EvoConnector(models.Model):
 
     def action_send_msg(self):
         """This function is called when the user clicks the
-         'Send WhatsApp Message' button on a partner's form view. It opens a
-          new wizard to compose and send a WhatsApp message."""
-        return {'type': 'ir.actions.act_window',
-                'name': 'Whatsapp Message',
-                'res_model': 'whatsapp.send.message',
-                'target': 'new',
-                'view_mode': 'form',
-                'view_type': 'form',
-                'context': {'default_user_id': self.id}, }
+        'Send WhatsApp Message' button on a partner's form view. It opens a
+         new wizard to compose and send a WhatsApp message."""
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Whatsapp Message",
+            "res_model": "whatsapp.send.message",
+            "target": "new",
+            "view_mode": "form",
+            "view_type": "form",
+            "context": {"default_user_id": self.id},
+        }
 
     # @api.model
     # def action_new_connector():
@@ -227,7 +229,7 @@ class EvoConnector(models.Model):
 
     #
     # CONTROLLERS / BASE CLASS
-    # 
+    #
     def process_payload(self, payload):
         """
         Process the payload from the evolution server for this connector
@@ -486,12 +488,6 @@ class EvoConnector(models.Model):
                 "channel_type": "group",
             }
         )
-        # Notify the Channel
-        channel.message_post(
-            body="New Chat.",
-            subject="Notification",
-            message_type="notification",
-        )                
         return channel
 
     def _handle_text_message(
@@ -919,7 +915,10 @@ class EvoConnector(models.Model):
 
             # Mark message as read
             channel_member = self.env["discuss.channel.member"].search(
-                [("channel_id", "=", channel_id), ("partner_id", "=", partner.parent_id.id)],
+                [
+                    ("channel_id", "=", channel_id),
+                    ("partner_id", "=", partner.parent_id.id),
+                ],
                 limit=1,
             )
             channel_member._mark_as_read(message.id, sync=True)
@@ -1054,7 +1053,7 @@ class EvoConnector(models.Model):
                 ("parent_id", "!=", False),
             ],
             order="create_date desc",
-            limit=1
+            limit=1,
         )
 
         if not create_contact:
