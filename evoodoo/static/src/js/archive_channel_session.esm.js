@@ -1,6 +1,6 @@
-import { threadActionsRegistry } from "@mail/core/common/thread_actions";
-import { _t } from "@web/core/l10n/translation";
-// import { useComponent } from "@odoo/owl";
+import {_t} from "@web/core/l10n/translation";
+import {threadActionsRegistry} from "@mail/core/common/thread_actions";
+// Import { useComponent } from "@odoo/owl";
 // import { useService } from "@web/core/utils/hooks";
 // import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 
