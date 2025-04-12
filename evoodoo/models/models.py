@@ -88,6 +88,18 @@ class EvoConnector(models.Model):
     )
     qr_code_base64 = fields.Text(compute="_compute_status", store=False)
 
+    def action_send_msg(self):
+        """This function is called when the user clicks the
+         'Send WhatsApp Message' button on a partner's form view. It opens a
+          new wizard to compose and send a WhatsApp message."""
+        return {'type': 'ir.actions.act_window',
+                'name': 'Whatsapp Message',
+                'res_model': 'whatsapp.send.message',
+                'target': 'new',
+                'view_mode': 'form',
+                'view_type': 'form',
+                'context': {'default_user_id': self.id}, }
+
     # @api.model
     # def action_new_connector():
     #     """Decides whether to open a modal
@@ -213,6 +225,9 @@ class EvoConnector(models.Model):
             status = "error"
         return status, qrcode
 
+    #
+    # CONTROLLERS / BASE CLASS
+    # 
     def process_payload(self, payload):
         """
         Process the payload from the evolution server for this connector
@@ -418,19 +433,12 @@ class EvoConnector(models.Model):
         # for this connector and partner as member
         membership = self.env["discuss.channel.member"].search(
             [
-                # ('channel_id.active', '=', True),
                 ("channel_id.evoodoo_connector", "=", self.id),
-                ("partner_id", "=", partner.id),
+                ("partner_id", "=", partner.parent_id.id),
             ],
             order="create_date desc",
             limit=1,
         )
-
-        # define parters to auto add
-        # TODO: here we can add some logic for agent distribution
-        partners_to_add = [Command.link(p.id) for p in self.automatic_added_partners]
-        partners_to_add.append(Command.link(partner.id))
-
         # Return existing channel if found and active
         if membership:
             if membership.channel_id.active:
@@ -457,6 +465,10 @@ class EvoConnector(models.Model):
             active channel membership not found for connector {self} and
               remote_jid:{remote_jid}. CREATING CHANNEL."""
         )
+        # define parters to auto add
+        # TODO: here we can add some logic for agent distribution
+        partners_to_add = [Command.link(p.id) for p in self.automatic_added_partners]
+        partners_to_add.append(Command.link(partner.parent_id.id))
         # TODO: add templated channel name here
         if remote_jid.endswith("@g.us"):
             channel_name = f"WGROUP: <{remote_jid}>"
@@ -474,7 +486,12 @@ class EvoConnector(models.Model):
                 "channel_type": "group",
             }
         )
-
+        # Notify the Channel
+        channel.message_post(
+            body="New Chat.",
+            subject="Notification",
+            message_type="notification",
+        )                
         return channel
 
     def _handle_text_message(
@@ -902,7 +919,7 @@ class EvoConnector(models.Model):
 
             # Mark message as read
             channel_member = self.env["discuss.channel.member"].search(
-                [("channel_id", "=", channel_id), ("partner_id", "=", partner.id)],
+                [("channel_id", "=", channel_id), ("partner_id", "=", partner.parent_id.id)],
                 limit=1,
             )
             channel_member._mark_as_read(message.id, sync=True)
@@ -921,9 +938,9 @@ class EvoConnector(models.Model):
                 "read_partner": partner.parent_id.id,
             }
         elif not payload.get("data", {}).get("status"):
-            # message was edited
             # TODO: NOT WORKING.
             # CHECK HERE: https://github.com/EvolutionAPI/evolution-api/issues/1266
+            # message was edited
             _logger.info(
                 f"action:process_payload event:message.update({evoodoo_message_id})"
                 + " editting message"
@@ -942,7 +959,7 @@ class EvoConnector(models.Model):
                 emulated_payload["data"]["contextInfo"] = {
                     "stanzaId": evoodoo_message_id,
                     "quotedMessage": {
-                        "conversation": "this message was edited",
+                        "conversation": "aaaaaaaaaa",
                         "messageContextInfo": {},
                     },
                 }
@@ -1037,10 +1054,11 @@ class EvoConnector(models.Model):
                 ("parent_id", "!=", False),
             ],
             order="create_date desc",
+            limit=1
         )
 
         if not create_contact:
-            return partner[0] if partner else False
+            return partner[0].parent_id if partner else False
 
         # Create partner if not found
         if not partner:

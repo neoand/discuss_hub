@@ -16,9 +16,15 @@
         "security/ir.model.access.csv",
         "views/views.xml",
         "views/templates.xml",
+        "views/res_partner_view.xml",
         # initial base_automation
         "datas/base_automation.xml",
     ],
+    'assets': {
+        'web.assets_backend': [
+            'evoodoo/static/src/js/archive_channel_session.js',
+        ],
+    },    
     # only loaded in demonstration mode
     "demo": [
         "demo/demo.xml",
