@@ -905,7 +905,12 @@ class EvoConnector(models.Model):
                 create_contact=False,
             )
 
-            if not partner or not partner.parent_id:
+            if not partner:
+                _logger.info(
+                    "action:process_payload"
+                    + f"event:message.update.read({evoodoo_message_id})"
+                    + f" partner: not found for contact {contact}"
+                )
                 return {
                     "success": False,
                     "action": "process_payload",
@@ -917,7 +922,7 @@ class EvoConnector(models.Model):
             channel_member = self.env["discuss.channel.member"].search(
                 [
                     ("channel_id", "=", channel_id),
-                    ("partner_id", "=", partner.parent_id.id),
+                    ("partner_id", "=", partner.id),
                 ],
                 limit=1,
             )
