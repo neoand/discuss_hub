@@ -164,4 +164,43 @@
     />
 
     <!-- actions -->
+
+    <!-- explicit channel list view definition -->
+
+    <record model="ir.actions.act_window" id="action_window_list_channels">
+        <field name="name">List Channels</field>
+        <field name="res_model">discuss.channel</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[("evoodoo_connector", "!=", False)]</field>
+    </record>
+
+    <record model="ir.ui.view" id="evoodoo_channel_list">
+        <field name="name">Evoodoo Channel List</field>
+        <field name="model">discuss.channel</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="active" />
+                <field name="name" />
+                <field name="create_date" />
+                <field name="last_interest_dt" />
+                <field name="write_uid" />
+                <field name="evoodoo_connector" />
+                <field name="channel_partner_ids" />
+            </list>
+        </field>
+    </record>
+
+    <record id="evoodoo_action_view_list" model="ir.actions.act_window.view">
+        <field name="act_window_id" ref="action_window_list_channels" />
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="evoodoo_channel_list" />
+        <field name="sequence" eval="1" />
+    </record>
+
+    <menuitem
+        name="Channels"
+        id="evoodoo.channels_list"
+        parent="evoodoo.menu_root"
+        action="action_window_list_channels"
+    />
 </odoo>

@@ -114,6 +114,7 @@ services:
     image: docker.io/axllent/mailpit:latest
     ports:
       - "8025:8025"
+      - "1025:1025"
 
 volumes:
   db_data:
