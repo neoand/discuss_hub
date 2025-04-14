@@ -3,3 +3,4 @@ access_evoodoo_social_network_type,Evodoo Social Network Type Acess,model_evoodo
 access_evoodoo.connector,Evodoo Connector Access,evoodoo.model_evoodoo_connector,base.group_system,1,1,1,1
 access_evoodoo.connector_public,Evodoo Connector Public Read,evoodoo.model_evoodoo_connector,base.group_public,1,0,0,0
 acess_evoodoo.connector_status_modal,Evoodoo Start / Status Modal,evoodoo.model_evoodoo_connector_status,base.group_system,1,1,1,1
+acess_evoodoo.routing_manager,Evoodoo Routing Manager / Forward,evoodoo.model_evoodoo_routing_manager,base.group_system,1,1,1,1

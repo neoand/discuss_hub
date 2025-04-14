@@ -1,9 +1,21 @@
-from odoo import api, models
+from odoo import api, fields, models
 
 
-class CrmTeamChatManager(models.TransientModel):
+class EvoodooRoutingManager(models.TransientModel):
     _name = "evoodoo.routing_manager"
     _description = "Evoodoo Routing Manager"
+
+    # crm_team = fields.Many2one(
+    #     'crm.team',
+    #     string='CRM Team',
+    #     help='Select a CRM Team.'
+    # )
+    agent = fields.Many2one(
+        "res.users",
+        help="Select an agent",
+        domain="[('partner_id', '!=', False)]",
+    )
+    note = fields.Text(help="Leave some note for context")
 
     @api.model
     def get_teams_and_users_status(self):
