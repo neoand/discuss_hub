@@ -1,6 +1,9 @@
-from odoo import api, fields, models
 import logging
+
+from odoo import api, fields, models
+
 _logger = logging.getLogger(__name__)
+
 
 class EvoodooRoutingManager(models.TransientModel):
     _name = "evoodoo.routing_manager"
@@ -14,16 +17,12 @@ class EvoodooRoutingManager(models.TransientModel):
 
     agent = fields.Many2one(
         comodel_name="res.users",
-        string="Agent",
         required=True,
         help="Select the agent to forward the channel to.",
         domain="[('partner_id', '!=', False)]",
     )
 
-    note = fields.Text(
-        string="Note",
-        help="Add a note for context when forwarding the channel."
-    )
+    note = fields.Text(help="Add a note for context when forwarding the channel.")
 
     def action_forward(self):
         """Forward the channel to the selected agent"""
@@ -32,15 +31,7 @@ class EvoodooRoutingManager(models.TransientModel):
 
         selected_agent = self.agent.partner_id
         selected_note = self.note
-
-        _logger.info(f"Selected agent (Partner): {selected_agent.name} (ID: {selected_agent.id})")
-        _logger.info(f"Note: {selected_note}")
-        _logger.info(f"Channels to Forward: {self.channel_ids}")        
-        # print who is doing the action
-        _logger.info(f"User: {self.env.user.name} (ID: {self.env.user.id}) PARTNER {self.env.user.partner_id}")
         for channel in self.channel_ids:
-            # Your logic to forward to selected target
-            _logger.info(f"Forwarding channel in EvoOdoo for channel {channel}")
             channel.add_members([selected_agent.id])
             # add note
             if selected_note:
@@ -48,27 +39,12 @@ class EvoodooRoutingManager(models.TransientModel):
                 channel.sudo().message_post(
                     body=selected_note,
                     message_type="notification",
-                    partner_ids=[selected_agent.id]
+                    partner_ids=[selected_agent.id],
                 )
-            channel.action_unfollow()                
-        # reload UI
-        
-        return {'type': 'ir.actions.act_window_close'}                
-            # # notify the agent
-            # notification = {
-            #     'type': 'ir.actions.client',
-            #     'tag': 'display_notification',
-            #     'params': {
-            #         'title': 'Click here',
-            #         'message': '%s',
-            #         'links': [{
-            #             'label': "label",
-            #             'url': f'#action={1}&id={2}&model=product.category'
-            #         }],
-            #         'sticky': False,
-            #     }
-            # }
-            # return notification            
+            channel.action_unfollow()
+
+        return {"type": "ir.actions.act_window_close"}
+
     @api.model
     def get_teams_and_users_status(self):
         """Returns CRM teams with users and their online status"""

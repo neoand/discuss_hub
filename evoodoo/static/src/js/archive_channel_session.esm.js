@@ -1,5 +1,4 @@
 import {ConfirmationDialog} from "@web/core/confirmation_dialog/confirmation_dialog";
-import {FormViewDialog} from "@web/views/view_dialogs/form_view_dialog";
 import {_t} from "@web/core/l10n/translation";
 import {threadActionsRegistry} from "@mail/core/common/thread_actions";
 import {useComponent} from "@odoo/owl";
@@ -70,7 +69,7 @@ threadActionsRegistry.add("forward-channel", {
             target: "new",
             context: {
                 default_channel_ids: [thread?.id],
-            }
+            },
         });
     },
 });
