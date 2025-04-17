@@ -13,6 +13,7 @@ threadActionsRegistry.add("archive-channel", {
     condition(component) {
         return (
             component.thread?.model === "discuss.channel" &&
+            component.thread?.channel_type === "group" && // Or "group" depending on Odoo config
             (!component.props.chatWindow || component.props.chatWindow.isOpen)
         );
     },
@@ -26,6 +27,9 @@ threadActionsRegistry.add("archive-channel", {
             body: _t(`Do you want to archive ${thread?.name} ?`),
             title: _t("Archive Channel"),
             confirm: async () => {
+                // TODO: remove all partners that has user
+                // otherwise, if user A archives, User B will still see the channel
+                // on their listing
                 await component.store.env.services.orm.call(
                     "discuss.channel",
                     "action_unfollow",
@@ -53,6 +57,7 @@ threadActionsRegistry.add("forward-channel", {
     condition(component) {
         return (
             component.thread?.model === "discuss.channel" &&
+            component.thread?.channel_type === "group" &&
             (!component.props.chatWindow || component.props.chatWindow.isOpen)
         );
     },
@@ -62,7 +67,7 @@ threadActionsRegistry.add("forward-channel", {
     },
     async open(component) {
         const thread = component.thread;
-        component.actionService.doAction({
+        await component.actionService.doAction({
             type: "ir.actions.act_window",
             res_model: "evoodoo.routing_manager",
             views: [[false, "form"]],
@@ -71,5 +76,9 @@ threadActionsRegistry.add("forward-channel", {
                 default_channel_ids: [thread?.id],
             },
         });
+        // TODO: wait action to close the component
+        // that may be a chat popup
+        // here if the user cancel, the popup is gone.
+        component.close();
     },
 });

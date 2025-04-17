@@ -24,7 +24,7 @@
     ],
     "assets": {
         "web.assets_backend": [
-            "evoodoo/static/src/js/archive_channel_session.esm.js",
+            "evoodoo/static/src/js/discuss_channel_actions.esm.js",
         ],
     },
     # only loaded in demonstration mode

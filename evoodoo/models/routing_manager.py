@@ -42,6 +42,7 @@ class EvoodooRoutingManager(models.TransientModel):
                     partner_ids=[selected_agent.id],
                 )
             channel.action_unfollow()
+            # close the channel on UI
 
         return {"type": "ir.actions.act_window_close"}
 
