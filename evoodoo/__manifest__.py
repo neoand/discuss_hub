@@ -19,6 +19,8 @@
         "views/res_partner_view.xml",
         # initial base_automation
         "datas/base_automation.xml",
+        # wizards
+        "wizard/mail_discuss_channel_forward.xml",
     ],
     "assets": {
         "web.assets_backend": [

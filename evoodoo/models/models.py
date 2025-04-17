@@ -443,8 +443,8 @@ class EvoConnector(models.Model):
         )
         # Return existing channel if found and active
         if membership:
+            channel = membership.channel_id
             if membership.channel_id.active:
-                channel = membership.channel_id
                 _logger.info(
                     f"action:process_payload event:message.upsert({message_id})"
                     + f" found channel {channel} for connector {self} "
@@ -454,13 +454,21 @@ class EvoConnector(models.Model):
             # or reopen if that's the configuration
             else:
                 if self.reopen_last_archived_channel:
-                    membership.channel_id.action_unarchive()
+                    channel.action_unarchive()
                     _logger.info(
                         f"action:process_payload event:message.upsert({message_id})"
-                        + f" reactivated channel {membership.channel_id} for connector "
+                        + f" reactivated channel {channel} for connector "
                         + f"{self} and remote_jid:{remote_jid}. REOPENING CHANNEL"
                     )
-                    return membership.channel_id
+                    # make sure we add the automatic partners
+                    partners_to_add = [p.id for p in self.automatic_added_partners]
+                    channel.add_members(
+                        partner_ids=partners_to_add,
+                        open_chat_window=True,
+                    )
+                    # broadcast as new channel
+                    channel._broadcast(channel.channel_member_ids.partner_id.ids)
+                    return channel
         # create new channel
         _logger.info(
             f"""action:process_payload event:message.upsert({message_id})
@@ -488,6 +496,8 @@ class EvoConnector(models.Model):
                 "channel_type": "group",
             }
         )
+        # alert bus of new group
+        channel._broadcast(channel.channel_member_ids.partner_id.ids)
         return channel
 
     def _handle_text_message(
