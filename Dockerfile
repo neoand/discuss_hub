@@ -8,10 +8,11 @@ WORKDIR /mnt/repositories
 RUN git clone --single-branch --depth 1 https://github.com/dudanogueira/evoodoo
 RUN git clone --single-branch --depth 1 https://github.com/OCA/website
 RUN git clone --single-branch --depth 1 https://github.com/OCA/social
-RUN mv evoodoo/evoodoo /mnt/extra-addons/evoodoo
+# install evoodoo
+RUN mv evoodoo/evoodoo /mnt/extra-addons/
 # other modules
-RUN mv /mnt/repositories/website/website_odoo_debranding /mnt/extra-addons/
-RUN mv /mnt/repositories/social/mail_debrand /mnt/extra-addons/
+#RUN mv website/website_odoo_debranding /mnt/extra-addons/
+#RUN mv social/mail_debrand /mnt/extra-addons/
 # remove the cloned repository
 RUN rm -rf /mnt/repositories
 
