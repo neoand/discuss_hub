@@ -581,6 +581,9 @@ class EvoConnector(models.Model):
         message = messages[0]
         reaction_emoji = reaction_data.get("text")
 
+        # get partner or parent
+        partner = partner.parent_id if partner.parent_id else partner
+
         # Create reaction
         self.env["mail.message.reaction"].create(
             {
