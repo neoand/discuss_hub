@@ -68,7 +68,6 @@ class EvoConnector(models.Model):
     text_message_template = fields.Text(
         default="<p><b>[{{message.author_id.name}}]</b><br /><p>{{body}}</p></p>",
     )
-
     last_message_date = fields.Datetime(compute="_compute_last_message", store=False)
     channels_total = fields.Integer(
         string="Total Channels", compute="_compute_channels_total", store=False
@@ -134,6 +133,10 @@ class EvoConnector(models.Model):
     #             "target": "current",  # Opens as a regular form
     #         }
 
+    #
+    # UI METHODS
+    #
+
     def action_open_html(self):
         """Opens an HTML content in a new wizard."""
         self.ensure_one()
@@ -190,10 +193,6 @@ class EvoConnector(models.Model):
             status, qr_code_base64 = connector._get_status()
             connector.status = status
             connector.qr_code_base64 = qr_code_base64
-
-    #
-    # UI METHODS
-    #
 
     def open_status_modal(self):
         return {
@@ -657,6 +656,9 @@ class EvoConnector(models.Model):
             + ".mp4"
         )
 
+        # define the partner
+        partner = partner.parent_id if partner.parent_id else partner
+
         # Process video
         decoded_data = base64.b64decode(content_base64)
         attachments = [(file_name, decoded_data)]
@@ -693,6 +695,9 @@ class EvoConnector(models.Model):
         # Create attachment
         attachments = [(file_name, decoded_data)]
 
+        # define the partner
+        partner = partner.parent_id if partner.parent_id else partner
+
         # Post message
         message_text = "audio"
         message = channel.message_post(
@@ -727,7 +732,8 @@ class EvoConnector(models.Model):
 
         # Prepare attachments
         attachments = [("location.jpeg", decoded_data)] if decoded_data else []
-
+        # define the partner
+        partner = partner.parent_id if partner.parent_id else partner
         # Post message
         message = channel.message_post(
             author_id=partner.id,
@@ -763,7 +769,8 @@ class EvoConnector(models.Model):
         # Process document
         decoded_data = base64.b64decode(content_base64)
         attachments = [(file_name, decoded_data)]
-
+        # define the partner
+        partner = partner.parent_id if partner.parent_id else partner
         # Post message
         message = channel.message_post(
             author_id=partner.id,
@@ -790,7 +797,8 @@ class EvoConnector(models.Model):
     def _handle_contact_message(self, data, channel, partner, message_id):
         # Determine author - use parent contact if available
         author = partner.parent_id.id if partner.parent_id else partner.id
-
+        # define the partner
+        partner = partner.parent_id if partner.parent_id else partner
         quoted_message = None
         # Check if message is a reply
         if data.get("contextInfo", {}) and data.get("contextInfo", {}).get(
@@ -1338,7 +1346,7 @@ class EvoConnector(models.Model):
         payload = {
             "key": {
                 "remoteJid": channel.evoodoo_outgoing_destination,
-                "fromMe": message.evoodoo_message_id != message.message_id,
+                "fromMe": False,  # message.evoodoo_message_id != message.message_id,
                 "id": message.evoodoo_message_id,
             },
             "reaction": reaction.content,

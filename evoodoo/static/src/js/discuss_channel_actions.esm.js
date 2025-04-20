@@ -13,7 +13,7 @@ threadActionsRegistry.add("archive-channel", {
     condition(component) {
         return (
             component.thread?.model === "discuss.channel" &&
-            component.thread?.channel_type === "group" && // Or "group" depending on Odoo config
+            component.thread?.channel_type === "group" &&
             (!component.props.chatWindow || component.props.chatWindow.isOpen)
         );
     },
