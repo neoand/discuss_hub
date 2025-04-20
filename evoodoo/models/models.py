@@ -1236,12 +1236,6 @@ class EvoConnector(models.Model):
                 response = requests.post(url, json=payload, headers=headers, timeout=30)
                 if response.status_code == 201:
                     sent_message_id = response.json().get("key", {}).get("id")
-                    attachment.write(
-                        {
-                            "evoodoo_remote_message_id": sent_message_id,
-                            "evoodoo_local_message_id": message.id,
-                        }
-                    )
                     _logger.info(
                         f"action:outgo_message.with_attachment message:{message} "
                         + f"got message_id:{sent_message_id}"
