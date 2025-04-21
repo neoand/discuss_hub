@@ -1,6 +1,9 @@
 import base64
+import importlib
 import json
 import logging
+import os
+import sys
 import time
 import uuid
 
@@ -15,7 +18,7 @@ from . import utils
 _logger = logging.getLogger(__name__)
 
 
-class EvoConnector(models.Model):
+class EvoodooConnector(models.Model):
     """
     TODO: allow templatable channel name
     TODO: implement optional composing
@@ -101,6 +104,20 @@ class EvoConnector(models.Model):
             "context": {"default_user_id": self.id},
         }
 
+    def get_connector(self):
+        """Get the connector class and instantiate for usage"""
+        plugin_name = "evolution"  # or "connector1", etc.
+        # Dynamically import the module
+        sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+        module_path = f"plugins.{plugin_name}"  # adjust if your path is deeper
+
+        # Import the module
+        module = importlib.import_module(module_path)
+        PluginClass = module.Plugin
+        # Use it
+        plugin_instance = PluginClass(self)
+        return plugin_instance
+
     # @api.model
     # def action_new_connector():
     #     """Decides whether to open a modal
@@ -137,21 +154,21 @@ class EvoConnector(models.Model):
     # UI METHODS
     #
 
-    def action_open_html(self):
-        """Opens an HTML content in a new wizard."""
+    def action_open_start(self):
+        """Opens an start content in a new wizard."""
         self.ensure_one()
 
-        status, qr_code_base64 = self._get_status()
+        status = self._get_status()
         html_content = f"""
             <html>
             <head>
-                <title>Connector Statuss</title>
+                <title>Connector Status</title>
             </head>
             <body>
                 <h1>{self.name}</h1>
-                <p>Status: {status}</p>
+                <p>Status: {status.get("status")}</p>
                 <p>QR Code:
-                <img style="background-color:#71639e;" src="{qr_code_base64}" />
+                <img style="background-color:#71639e;" src="{status.get("qrcode")}" />
                 </p>
             </body>
             </html>
@@ -190,9 +207,9 @@ class EvoConnector(models.Model):
     @api.depends("api_key", "url", "name")
     def _compute_status(self):
         for connector in self:
-            status, qr_code_base64 = connector._get_status()
-            connector.status = status
-            connector.qr_code_base64 = qr_code_base64
+            status = connector._get_status()
+            connector.status = status.get("status", "not_found")
+            connector.qr_code_base64 = status.get("qr_code_base64", None)
 
     def open_status_modal(self):
         return {
@@ -206,25 +223,8 @@ class EvoConnector(models.Model):
 
     def _get_status(self):
         """Get the status of the connector"""
-        headers = {"apikey": self.api_key}
-        url = f"{self.url}/instance/connect/{self.name}"
-        qrcode = None
-        try:
-            query = requests.get(url, headers=headers, timeout=10)
-            if query.status_code == 404:
-                status = "not_found"
-            elif query.status_code == 401:
-                status = "unauthorized"
-            else:
-                qrcode_base64 = query.json().get("base64", None)
-                if qrcode_base64:
-                    status = "qr_code"
-                    qrcode = qrcode_base64
-                status = query.json().get("instance", {}).get("state", "closed")
-        except requests.RequestException as e:
-            _logger.error(f"Error getting status: {str(e)} connector {self}")
-            status = "error"
-        return status, qrcode
+        connector = self.get_connector()
+        return connector._get_status()
 
     #
     # CONTROLLERS / BASE CLASS

@@ -113,7 +113,7 @@
                                 <t t-if="record.status.raw_value == 'closed'">
                                     <button
                                         class="btn btn-success btn-sm ms-1"
-                                        name="action_open_html"
+                                        name="action_open_start"
                                         type="object"
                                     >
                                         Start
