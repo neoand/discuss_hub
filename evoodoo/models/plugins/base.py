@@ -81,7 +81,9 @@ class PluginBase:
         )
         # define parters to auto add
         # TODO: here we can add some logic for agent distribution
-        partners_to_add = [Command.link(p.id) for p in self.connector.automatic_added_partners]
+        partners_to_add = [
+            Command.link(p.id) for p in self.connector.automatic_added_partners
+        ]
         partners_to_add.append(Command.link(partner.parent_id.id))
         # TODO: add templated channel name here
         if remote_jid.endswith("@g.us"):
