@@ -81,7 +81,7 @@ class PluginBase:
         )
         # define parters to auto add
         # TODO: here we can add some logic for agent distribution
-        partners_to_add = [Command.link(p.id) for p in self.automatic_added_partners]
+        partners_to_add = [Command.link(p.id) for p in self.connector.automatic_added_partners]
         partners_to_add.append(Command.link(partner.parent_id.id))
         # TODO: add templated channel name here
         if remote_jid.endswith("@g.us"):
@@ -90,9 +90,9 @@ class PluginBase:
             channel_name = f"Whatsapp: {name} <{remote_jid}>"
 
         # Create channel
-        channel = self.env["discuss.channel"].create(
+        channel = self.connector.env["discuss.channel"].create(
             {
-                "evoodoo_connector": self.id,
+                "evoodoo_connector": self.connector.id,
                 "evoodoo_outgoing_destination": remote_jid,
                 "name": channel_name,
                 "channel_partner_ids": partners_to_add,
@@ -111,6 +111,7 @@ class PluginBase:
         if not contact.get("remoteJid"):
             return False
 
+        # TODO: move this part to plugin
         whatsapp_number = contact.get("remoteJid").split("@")[0]
 
         # Format Brazilian mobile numbers
