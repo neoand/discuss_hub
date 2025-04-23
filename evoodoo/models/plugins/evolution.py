@@ -957,7 +957,7 @@ class Plugin(PluginBase):
                 + " editting message"
             )
             # get the message content
-            message_records = self._get_message_by_id(payload)
+            message_records = self.get_message_by_id(payload)
             if message_records:
                 _logger.info(f"Message for editing found {payload} {message_records}")
                 # emulate a new payload here, and call _process_messages_upsert
