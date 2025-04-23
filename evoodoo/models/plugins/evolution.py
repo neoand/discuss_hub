@@ -451,7 +451,7 @@ class Plugin(PluginBase):
         # if the message is from me (sent by the connected number)
         # use the default admin partner id
         if data.get("key", {}).get("fromMe"):
-            partner = self.default_admin_partner_id
+            partner = self.connector.default_admin_partner_id
 
         # Process different message types
         if data.get("message", {}).get("conversation"):
@@ -963,7 +963,7 @@ class Plugin(PluginBase):
                 # emulate a new payload here, and call _process_messages_upsert
                 emulated_payload = {
                     "event": "messages.upsert",
-                    "instance": self.name,
+                    "instance": self.connector.name,
                     "data": message_records[0],
                 }
                 # TODO: optionally return edit as new message here
