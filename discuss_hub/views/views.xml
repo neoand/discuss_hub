@@ -2,7 +2,7 @@
     <!-- explicit list view definition -->
 
     <record model="ir.ui.view" id="list">
-        <field name="name">evo list</field>
+        <field name="name">Discuss Hub Connector list</field>
         <field name="model">discuss_hub.connector</field>
         <field name="arch" type="xml">
             <list>
@@ -138,7 +138,7 @@
     <!-- server action to the one above -->
 
     <record model="ir.actions.server" id="action_server">
-        <field name="name">evo server</field>
+        <field name="name">discuss hub server</field>
         <field name="model_id" ref="model_discuss_hub_connector" />
         <field name="state">code</field>
         <field name="code">
@@ -152,7 +152,7 @@
 
     <!-- Top menu item -->
 
-    <menuitem name="evo" id="discuss_hub.menu_root" />
+    <menuitem name="Discuss Hub" id="discuss_hub.menu_root" />
 
     <!-- menu categories -->
 
