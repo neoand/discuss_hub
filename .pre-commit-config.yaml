@@ -48,13 +48,13 @@ repos:
       # update the NOT INSTALLABLE ADDONS section above
       - id: oca-update-pre-commit-excluded-addons
       - id: oca-fix-manifest-website
-        args: ["https://github.com/dudanogueira/evoodoo"]
+        args: ["https://github.com/discusshub/discuss_hub"]
       - id: oca-gen-addon-readme
         args:
           - --addons-dir=.
           - --branch=18.0
-          - --org-name=dudanogueira
-          - --repo-name=evoodoo
+          - --org-name=discusshub
+          - --repo-name=discuss_hub
           - --if-source-changed
           - --keep-source-digest
           - --convert-fragments-to-markdown

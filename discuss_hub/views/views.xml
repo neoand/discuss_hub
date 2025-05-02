@@ -1,0 +1,206 @@
+<odoo>
+    <!-- explicit list view definition -->
+
+    <record model="ir.ui.view" id="list">
+        <field name="name">evo list</field>
+        <field name="model">discuss_hub.connector</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="enabled" />
+                <field name="import_contacts" />
+                <field name="name" />
+                <field name="type" />
+                <field name="uuid" />
+                <field name="url" />
+                <field name="api_key" />
+                <field name="manager_channel" />
+            </list>
+        </field>
+    </record>
+
+    <!-- explicit kanban definition -->
+    <record id="test_model_view_kanban" model="ir.ui.view">
+        <field name="name">discuss_hub.connector.view.kanban</field>
+        <field name="model">discuss_hub.connector</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" sample="1">
+                <field name="name" />
+                <field name="enabled" />
+                <field name="status" />
+                <field name="description" />
+                <field name="type" />
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_global_click">
+                            <!-- Ribbon -->
+                            <t t-if="record.status.raw_value == 'not_found'">
+                                <widget
+                                    name="web_ribbon"
+                                    title="NOT FOUND"
+                                    bg_color="text-bg-info"
+                                />
+                            </t>
+                            <t t-if="record.status.raw_value == 'open'">
+                                <widget
+                                    name="web_ribbon"
+                                    title="Open"
+                                    bg_color="text-bg-success"
+                                />
+                            </t>
+                            <t t-if="record.status.raw_value == 'closed'">
+                                <widget
+                                    name="web_ribbon"
+                                    title="Closed"
+                                    bg_color="text-bg-danger"
+                                />
+                            </t>
+                            <t t-if="record.status.raw_value == 'error'">
+                                <widget
+                                    name="web_ribbon"
+                                    title="Error"
+                                    bg_color="text-bg-warning"
+                                />
+                            </t>
+
+                            <div class="row">
+                                <div class="col-12">
+                                    <!---
+            add success if enabled, danger if disabled
+            -->
+                                    <t t-if="record.enabled.raw_value">
+                                        <strong class="me-3 text-success">
+                                            <field name="name" />
+                                        </strong>
+                                    </t>
+                                    <t t-else="">
+                                        <strong class="me-3 text-danger">
+                                            <field name="name" />
+                                        </strong>
+                                    </t>
+                                </div>
+                            </div>
+                            <t t-if="record.description.value">
+                                <field name="description" /><br /> Type: <field
+                                name="type"
+                            />
+                            </t>
+                            <br />
+                            <small> Total Channels: <field name="channels_total" /><br
+                            /> Last message: <field name="last_message_date" />
+                            </small>
+
+                            <!-- Button to trigger action
+        if status is open, show restart and close
+        else show start
+        -->
+                            <div class="mt8 float-end">
+                                <t t-if="record.status.raw_value == 'open'">
+                                    <button
+                                        class="btn btn-warning btn-sm"
+                                        name="restart_instance"
+                                        type="object"
+                                    >
+                                        Restart
+                                    </button>
+                                    <button
+                                        class="btn btn-danger btn-sm ms-1"
+                                        name="logout_instance"
+                                        type="object"
+                                    >
+                                        Logout
+                                    </button>
+                                </t>
+                                <t t-if="record.status.raw_value == 'closed'">
+                                    <button
+                                        class="btn btn-success btn-sm ms-1"
+                                        name="action_open_start"
+                                        type="object"
+                                    >
+                                        Start
+                                    </button>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- actions opening views on models -->
+
+    <record model="ir.actions.act_window" id="action_window">
+        <field name="name">List Connectors</field>
+        <field name="res_model">discuss_hub.connector</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+
+    <!-- server action to the one above -->
+
+    <record model="ir.actions.server" id="action_server">
+        <field name="name">evo server</field>
+        <field name="model_id" ref="model_discuss_hub_connector" />
+        <field name="state">code</field>
+        <field name="code">
+            action = {
+            "type": "ir.actions.act_window",
+            "view_mode": "list,form",
+            "res_model": model._name,
+            }
+        </field>
+    </record>
+
+    <!-- Top menu item -->
+
+    <menuitem name="evo" id="discuss_hub.menu_root" />
+
+    <!-- menu categories -->
+
+    <menuitem
+        name="Conectors"
+        id="discuss_hub.connector"
+        parent="discuss_hub.menu_root"
+        action="discuss_hub.action_window"
+    />
+
+    <!-- actions -->
+
+    <!-- explicit channel list view definition -->
+
+    <record model="ir.actions.act_window" id="action_window_list_channels">
+        <field name="name">List Channels</field>
+        <field name="res_model">discuss.channel</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[("discuss_hub_connector", "!=", False)]</field>
+    </record>
+
+    <record model="ir.ui.view" id="discuss_hub_channel_list">
+        <field name="name">discuss_hub Channel List</field>
+        <field name="model">discuss.channel</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="active" />
+                <field name="name" />
+                <field name="create_date" />
+                <field name="last_interest_dt" />
+                <field name="write_uid" />
+                <field name="discuss_hub_connector" />
+                <field name="channel_partner_ids" />
+            </list>
+        </field>
+    </record>
+
+    <record id="discuss_hub_action_view_list" model="ir.actions.act_window.view">
+        <field name="act_window_id" ref="action_window_list_channels" />
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="discuss_hub_channel_list" />
+        <field name="sequence" eval="1" />
+    </record>
+
+    <menuitem
+        name="Channels"
+        id="discuss_hub.channels_list"
+        parent="discuss_hub.menu_root"
+        action="action_window_list_channels"
+    />
+</odoo>

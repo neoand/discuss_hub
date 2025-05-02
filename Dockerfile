@@ -5,11 +5,11 @@ RUN mkdir -p /mnt/repositories /mnt/extra-addons
 WORKDIR /mnt/repositories
 
 # Clone the repositories and move them to the correct location
-RUN git clone --single-branch --depth 1 https://github.com/dudanogueira/evoodoo
+RUN git clone --single-branch --depth 1 https://github.com/discusshub/discuss_hub
 RUN git clone --single-branch --depth 1 https://github.com/OCA/website
 RUN git clone --single-branch --depth 1 https://github.com/OCA/social
-# install evoodoo
-RUN mv evoodoo/evoodoo /mnt/extra-addons/
+# install discuss_hub
+RUN mv discuss_hub/discuss_hub /mnt/extra-addons/
 # other modules
 #RUN mv website/website_odoo_debranding /mnt/extra-addons/
 #RUN mv social/mail_debrand /mnt/extra-addons/

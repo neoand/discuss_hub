@@ -1,13 +1,13 @@
 
 <!-- /!\ Non OCA Context : Set here the badge of your runbot / runboat instance. -->
-[![Pre-commit Status](https://github.com/dudanogueira/evoodoo/actions/workflows/pre-commit.yml/badge.svg?branch=18.0)](https://github.com/dudanogueira/evoodoo/actions/workflows/pre-commit.yml?query=branch%3A18.0)
-[![Build Status](https://github.com/dudanogueira/evoodoo/actions/workflows/test.yml/badge.svg?branch=18.0)](https://github.com/dudanogueira/evoodoo/actions/workflows/test.yml?query=branch%3A18.0)
-[![codecov](https://codecov.io/gh/dudanogueira/evoodoo/branch/18.0/graph/badge.svg)](https://codecov.io/gh/dudanogueira/evoodoo)
+[![Pre-commit Status](https://github.com/discusshub/discuss_hub/actions/workflows/pre-commit.yml/badge.svg?branch=18.0)](https://github.com/discusshub/discuss_hub/actions/workflows/pre-commit.yml?query=branch%3A18.0)
+[![Build Status](https://github.com/discusshub/discuss_hub/actions/workflows/test.yml/badge.svg?branch=18.0)](https://github.com/discusshub/discuss_hub/actions/workflows/test.yml?query=branch%3A18.0)
+[![codecov](https://codecov.io/gh/discusshub/discuss_hub/branch/18.0/graph/badge.svg)](https://codecov.io/gh/discusshub/discuss_hub)
 <!-- /!\ Non OCA Context : Set here the badge of your translation instance. -->
 
 <!-- /!\ do not modify above this line -->
 
-# Evoodoo
+# Discuss Hub
 
 Integrate third party message channels into Odoo's discuss
 
@@ -27,7 +27,7 @@ This part will be replaced when running the oca-gen-addons-table script from OCA
 
 This repository is licensed under [AGPL-3.0](LICENSE).
 
-However, each module can have a totally different license, as long as they adhere to Dudatende / Duda Nogueira
+However, each module can have a totally different license, as long as they adhere to the Discuss Hub Community
 policy. Consult each module's `__manifest__.py` file, which contains a `license` key
 that explains its license.
 
@@ -57,7 +57,7 @@ curl --request POST \
     "qrcode": true,
     "integration": "WHATSAPP-BAILEYS",
     "webhook": {
-			"url": "http://odoo:8069/evoodoo/connector/76320171-94ec-455e-89c8-42995918fec6",
+			"url": "http://odoo:8069/discuss_hub/connector/76320171-94ec-455e-89c8-42995918fec6",
 			"base64": true,
          "events": [
              "APPLICATION_STARTUP",

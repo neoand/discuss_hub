@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_discuss_hub_routing_manager_form" model="ir.ui.view">
+        <field name="name">Forward</field>
+        <field name="model">discuss_hub.routing_manager</field>
+        <field name="arch" type="xml">
+            <form string="Forward Channels">
+                <group>
+                    <field name="channel_ids" readonly="1" />
+                    <field name="agent" />
+                    <field name="note" />
+                </group>
+                <footer>
+                    <button
+                        name="action_forward"
+                        string="Forward"
+                        type="object"
+                        class="btn-primary"
+                    />
+                    <button string="Cancel" class="btn-secondary" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.server" id="discuss_channel_forward">
+        <field name="name">Forward</field>
+        <field name="model_id" ref="mail.model_discuss_channel" />
+        <field name="binding_model_id" ref="mail.model_discuss_channel" />
+        <field name="binding_view_types">form,list</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = {
+                'name': 'Forward',
+                'type': 'ir.actions.act_window',
+                'res_model': 'discuss_hub.routing_manager',
+                'view_mode': 'form',
+                'views': [(False, 'form')],
+                'view_id': 'view_discuss_hub_routing_manager_form',
+                'target': 'new',
+                'context': {
+                    'default_channel_ids': [r.id for r in records],
+                }
+            }
+        </field>
+    </record>
+</odoo>
