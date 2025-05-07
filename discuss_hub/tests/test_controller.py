@@ -8,13 +8,13 @@ class TestControllerActiveInactive(HttpCase):
     def setUpClass(self):
         # add env on cls and many other things
         super().setUpClass()
-
+        self.uuid = "21111111-1111-1111-1111-111111111111"
         self.connector = self.env["discuss_hub.connector"].create(
             {
-                "name": "test_connector",
+                "name": "test_connector_controller",
                 "type": "evolution",
                 "enabled": True,
-                "uuid": "11111111-1111-1111-1111-111111111111",
+                "uuid": self.uuid,
                 "url": "http://evolution:8080",
                 "api_key": "1234567890",
             }
@@ -29,7 +29,7 @@ class TestControllerActiveInactive(HttpCase):
         # send a request to that connector
         data = '{"name": "Odoo Test"}'
         response = self.url_open(
-            "/discuss_hub/connector/11111111-1111-1111-1111-111111111111",
+            f"/discuss_hub/connector/{self.uuid}",
             data=data,
         )
         # assert response is 200
@@ -38,7 +38,7 @@ class TestControllerActiveInactive(HttpCase):
         self.connector.write({"enabled": False})
         # send a request to that connector
         response = self.url_open(
-            "/discuss_hub/connector/11111111-1111-1111-1111-111111111111",
+            f"/discuss_hub/connector/{self.uuid}",
             data=data,
         )
         # assert response is 404
@@ -51,7 +51,7 @@ class TestControllerActiveInactive(HttpCase):
         # send a request to that connector
         data = '{"name": discuss_hub Test}'
         response = self.url_open(
-            "/discuss_hub/connector/11111111-1111-1111-1111-111111111111",
+            f"/discuss_hub/connector/{self.uuid}",
             data=data,
         )
         # assert response is 400

@@ -15,25 +15,30 @@ class Plugin:
     it will load the approriate plugin with the same name in this folder
     """
 
-    plugin_name = os.path.basename(__file__).split(".")[0]
+    name = os.path.basename(__file__).split(".")[0]
 
     def __str__(self):
-        return f"<DiscussHubPlugin: {self.plugin_name}: {self.connector}>"
+        return f"<DiscussHubPlugin: {self.name}: {self.connector}>"
 
     def __init__(self, connector):
         self.connector = connector
-        _logger.debug(
-            f"Loaded plugin {self.plugin_name} for connector: {self.connector}"
-        )
+        _logger.debug(f"Loaded plugin {self.name} for connector: {self.connector}")
 
     def get_status(self):
-        return {
-            "sucess": True,
-            "plugin_name": self.plugin_name,
-            "connector": str(self.connector),
-            "status": "not_found",
-            "qr_code_base64": None,
-        }
+        # raise not implemented error
+        raise NotImplementedError(
+            f"Plugin {self.name} does not implemented get_status()"
+        )
+
+    def get_contact_name(self, payload=None):
+        raise NotImplementedError(
+            f"Plugin {self.name} does not implemented get_contact_name()"
+        )
+
+    def get_contact_identifier(self, payload):
+        raise NotImplementedError(
+            f"Plugin {self.name} does not implemented get_contact_identifier()"
+        )
 
     def get_or_create_channel(self, partner, remote_jid, name, message_id):
         """Find existing channel or create a new one for the partner"""
@@ -107,14 +112,6 @@ class Plugin:
         # alert bus of new group
         channel._broadcast(channel.channel_member_ids.partner_id.ids)
         return channel
-
-    def get_contact_name(self, payload=None):
-        """Get the contact name from the payload"""
-        return "Contact Name"
-
-    def get_contact_identifier(self, payload):
-        """Get the contact identifier from the payload"""
-        return "5531999999999"
 
     def get_or_create_partner(
         self, payload, update_profile_picture=True, create_contact=True

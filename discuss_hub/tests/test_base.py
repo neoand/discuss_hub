@@ -19,41 +19,46 @@ class TestBasePlugin(HttpCase):
                 "api_key": "1234567890",
             }
         )
+        self.plugin = self.connector.get_plugin()
 
-    def test_get_contact_name(self):
+    def test_plugin_name(self):
         """
-        Test if get_contact_name returns a contact name
+        test the name of the plugin
         """
-        connector_instance = self.connector.get_connector()
-        contact_name = connector_instance.get_contact_name()
-        self.assertEqual(contact_name, "Contact Name")
+        assert self.plugin.name == "base", "base Plugin name should be 'base'"
 
-    def test_get_contact_identifier(self):
+    def test_get_status_not_implemented(self):
         """
-        Test if get_contact_identifier returns a contact identifier
+        in a base plugin, the get_status method is not implemented
         """
-        connector_instance = self.connector.get_connector()
-        contact_identifier = connector_instance.get_contact_identifier(
-            payload={"name": "test"}
-        )
-        self.assertEqual(contact_identifier, "5531999999999")
+        try:
+            self.plugin.get_status()
+        except NotImplementedError:
+            assert True
+        else:
+            raise AssertionError("get_status() should raise NotImplmenetedError")
 
-    # def test_get_or_create_partner(self):
-    #         """
-    #         Test if get_or_create_partner returns a partner
-    #         """
-    #         # create a connector
-    #         self.connector = self.env["discuss_hub.connector"].create(
-    #             {
-    #                 "name": "test_connector",
-    #                 "type": "evolution",
-    #                 "enabled": True,
-    #                 "uuid": "11111111-1111-1111-1111-111111111111",
-    #                 "url": "http://evolution:8080",
-    #                 "api_key": "1234567890",
-    #             }
-    #         )
-    #         # # create a contact
-    #         # partner = self.connector.get_or_create_partner(
+    # do the same as above for: get_contact_name and get_contact_identifier
+    def test_get_contact_identifier_not_implemented(self):
+        """
+        in a base plugin, the get_contact_identifier method is not implemented
+        """
+        try:
+            self.plugin.get_contact_identifier(payload={"name": "test"})
+        except NotImplementedError:
+            assert True
+        else:
+            raise AssertionError(
+                "get_contact_identifier() should raise NotImplmenetedError"
+            )
 
-    #         # )
+    def test_get_contact_name_not_implemented(self):
+        """
+        in a base plugin, the get_contact_name method is not implemented
+        """
+        try:
+            self.plugin.get_contact_name()
+        except NotImplementedError:
+            assert True
+        else:
+            raise AssertionError("get_contact_name() should raise NotImplementedError")
