@@ -5,8 +5,10 @@ from odoo import Command
 
 _logger = logging.getLogger(__name__)
 
+DEFAULT_UPDATE_PROFILE_PICS = ["image_1920", "image_128"]
 
-class PluginBase:
+
+class Plugin:
     """Base class for all plugins.
     create a basic class that will be inherited by other classes
     this be initiated with a connector object, and based on the type of the connector
@@ -57,7 +59,7 @@ class PluginBase:
                 return channel
             # or reopen if that's the configuration
             else:
-                if self.reopen_last_archived_channel:
+                if self.connector.reopen_last_archived_channel:
                     channel.action_unarchive()
                     _logger.info(
                         f"action:process_payload event:message.upsert({message_id})"
@@ -106,25 +108,25 @@ class PluginBase:
         channel._broadcast(channel.channel_member_ids.partner_id.ids)
         return channel
 
+    def get_contact_name(self, payload=None):
+        """Get the contact name from the payload"""
+        return "Contact Name"
+
+    def get_contact_identifier(self, payload):
+        """Get the contact identifier from the payload"""
+        return "5531999999999"
+
     def get_or_create_partner(
-        self, contact, instance=None, update_profile_picture=True, create_contact=True
+        self, payload, update_profile_picture=True, create_contact=True
     ):
-        """Get or create partner for WhatsApp contact"""
-        if not contact.get("remoteJid"):
-            return False
+        """Get or create partner from using a contact identifier"""
 
-        # TODO: move this part to plugin
-        whatsapp_number = contact.get("remoteJid").split("@")[0]
-
-        # Format Brazilian mobile numbers
-        if whatsapp_number.startswith("55") and len(whatsapp_number) == 12:
-            whatsapp_number = f"{whatsapp_number[:4]}9{whatsapp_number[4:]}"
-
+        contact_identifier = self.get_contact_identifier(payload)
         # Search for existing partner
         partner = self.connector.env["res.partner"].search(
             [
-                ("name", "=", "whatsapp"),
-                ("phone", "=", whatsapp_number),
+                ("name", "=", self.connector.partner_contact_name),
+                (self.connector.partner_contact_field, "=", contact_identifier),
                 ("parent_id", "!=", False),
             ],
             order="create_date desc",
@@ -139,16 +141,16 @@ class PluginBase:
             # Create parent partner
             parent_partner = self.connector.env["res.partner"].create(
                 {
-                    "name": contact.get("pushName") or whatsapp_number,
-                    "phone": whatsapp_number,
+                    "name": self.get_contact_name(payload) or contact_identifier,
+                    self.connector.partner_contact_field: contact_identifier,
                 }
             )
 
             # Create contact partner
             partner_contact = self.connector.env["res.partner"].create(
                 {
-                    "name": "whatsapp",
-                    "phone": whatsapp_number,
+                    "name": self.connector.partner_contact_name,
+                    self.connector.partner_contact_field: contact_identifier,
                     "parent_id": parent_partner.id,
                 }
             )
@@ -163,8 +165,30 @@ class PluginBase:
         if update_profile_picture and (
             not partner.image_128 or self.connector.always_update_profile_picture
         ):
-            self.update_profile_picture(
-                partner_contact, parent_partner, whatsapp_number, contact, instance
-            )
+            imagebase64 = self.get_profile_picture(payload)
+            # TODO: option to not add profile for partner_contact to save resources
+            partners_to_update = [
+                partner_contact,
+                parent_partner,
+            ]
+            # Update profile picture for partners
+            for partner_update in partners_to_update:
+                self.update_profile_picture(partner_update, imagebase64)
+                _logger.info(f"Updated profile picture for partner {partner_update} ")
 
-        return partner_contact
+        return partner
+
+    def update_profile_picture(self, partner, imagebase64, images=None):
+        """Update the profile picture of the partner"""
+        _logger.info(f"Updating profile pic: ({partner.id}) of images {images}")
+        if not images:
+            images = DEFAULT_UPDATE_PROFILE_PICS
+        try:
+            for image in images:
+                partner.write({image: imagebase64})
+            return True
+        except Exception as e:
+            _logger.error(
+                f"Error updating profile picture for partner {partner.id}: {e}"
+            )
+            return False

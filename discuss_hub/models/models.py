@@ -39,6 +39,8 @@ class DiscussHubConnector(models.Model):
     description = fields.Text()
     type = fields.Selection(
         [
+            ("base", "Base Plugin"),
+            ("example", "Exmample Plugin"),
             ("evolution", "Evolution"),
         ],
         default="evolution",
@@ -49,6 +51,8 @@ class DiscussHubConnector(models.Model):
     manager_channel = fields.Many2many(comodel_name="discuss.channel")
     automatic_added_partners = fields.Many2many(comodel_name="res.partner")
     # Configuration options
+    partner_contact_name = fields.Char(required=True, default="whatsapp")
+    partner_contact_field = fields.Char(required=True, default="phone")
     allow_broadcast_messages = fields.Boolean(
         default=True, string="Allow Status Broadcast Messages"
     )
@@ -97,8 +101,8 @@ class DiscussHubConnector(models.Model):
             "context": {"default_user_id": self.id},
         }
 
-    def get_connector(self):
-        """Get the connector class and instantiate for usage"""
+    def get_plugin(self):
+        """Get the plugin class and instantiate for usage"""
         plugin_name = self.type
         # Dynamically import the module
         sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -186,8 +190,8 @@ class DiscussHubConnector(models.Model):
 
     def get_status(self):
         """Get the status of the connector"""
-        connector = self.get_connector()
-        return connector.get_status()
+        plugin = self.get_plugin()
+        return plugin.get_status()
 
     #
     # CONTROLLERS / BASE CLASS
@@ -196,20 +200,22 @@ class DiscussHubConnector(models.Model):
         """
         Channel the incoming payload to the appropriate plugin handlers
         """
-        connector = self.get_connector()
-        return connector.process_payload(payload)
+        plugin = self.get_plugin()
+        return plugin.process_payload(payload)
 
     def restart_instance(self):
         """RESTART connector"""
         for record in self:
-            connector = record.get_connector()
-            connector.restart_instance()
+            _logger.info(f"action:restart_instance connector {record}")
+            plugin = self.get_plugin()
+            plugin.restart_instance()
 
     def logout_instance(self):
         """logout instance"""
         for record in self:
-            connector = record.get_connector()
-            connector.logout_instance()
+            _logger.info(f"action:logout_instance connector {record}")
+            plugin = self.get_plugin()
+            plugin.logout_instance()
 
     def outgo_message(self, channel, message):
         """
@@ -223,8 +229,8 @@ class DiscussHubConnector(models.Model):
         if not channel or not message:
             _logger.error("Missing channel or message in outgo_message")
             return
-        connector = self.get_connector()
-        return connector.outgo_message(channel, message)
+        plugin = self.get_plugin()
+        return plugin.outgo_message(channel, message)
 
     def outgo_reaction(self, channel, message, reaction):
         """
@@ -240,8 +246,8 @@ class DiscussHubConnector(models.Model):
         if not channel or not message or not reaction:
             _logger.error("Missing channel, message or reaction in outgo_reaction")
             return
-        connector = self.get_connector()
-        return connector.outgo_reaction(channel, message, reaction)
+        plugin = self.get_plugin()
+        return plugin.outgo_reaction(channel, message, reaction)
 
 
 class DiscussHubSocialNetworkeType(models.Model):

@@ -7,7 +7,7 @@ import requests
 from jinja2 import Template
 from markupsafe import Markup
 
-from .base import PluginBase
+from .base import Plugin as PluginBase
 
 _logger = logging.getLogger(__name__)
 
@@ -223,6 +223,24 @@ class Plugin(PluginBase):
         except requests.RequestException as e:
             _logger.error(f"Error sending reaction: {str(e)}")
 
+    def get_contact_name(self, payload):
+        """Get the contact name from the payload"""
+        return payload.get("data", {}).get("pushName", False)
+
+    def get_contact_identifier(self, payload):
+        """Get the contact identifier from the payload"""
+        remote_jid = payload.get("data", {}).get("key", {}).get("remoteJid")
+        if not remote_jid:
+            return False
+
+        whatsapp_number = remote_jid.split("@")[0]
+
+        # Format Brazilian mobile numbers
+        if whatsapp_number.startswith("55") and len(whatsapp_number) == 12:
+            whatsapp_number = f"{whatsapp_number[:4]}9{whatsapp_number[4:]}"
+
+        return whatsapp_number
+
     # OUTCOMING
 
     def format_message_before_send(self, message):
@@ -415,8 +433,7 @@ class Plugin(PluginBase):
             )
 
         # Get or create partner
-        contact = {"remoteJid": remote_jid, "pushName": name}
-        partner = self.get_or_create_partner(contact, instance=payload.get("instance"))
+        partner = self.get_or_create_partner(payload)
 
         # Handle multiple partners (using first one)
         if isinstance(partner, list) and len(partner) > 1:
@@ -483,13 +500,13 @@ class Plugin(PluginBase):
 
         return response
 
-    def update_profile_picture(
-        self, partner_contact, parent_partner, whatsapp_number, contact, instance
-    ):
+    def get_profile_picture(self, payload):
         """Update profile picture for the contact"""
+        image_base64 = None
         # First try to get profile URL from contact data
-        image_url = contact.get("profilePicUrl")
-
+        image_url = payload.get("data", {}).get("profilePicUrl")
+        instance = payload.get("instance")
+        contact_identifier = self.get_contact_identifier(payload)
         # If not available, fetch from API
         if not image_url and instance:
             try:
@@ -498,7 +515,7 @@ class Plugin(PluginBase):
                 )
                 response = self.session.post(
                     image_url_api,
-                    json={"number": whatsapp_number},
+                    json={"number": contact_identifier},
                     timeout=5,
                 )
 
@@ -513,10 +530,10 @@ class Plugin(PluginBase):
                 response = requests.get(image_url, timeout=5)
                 if response.status_code == 200:
                     image_base64 = base64.b64encode(response.content).decode("utf-8")
-                    parent_partner.write({"image_1920": image_base64})
-                    partner_contact.write({"image_128": image_base64})
             except requests.RequestException as e:
                 _logger.error(f"Error downloading profile picture: {str(e)}")
+
+        return image_base64
 
     def handle_text_message(
         self, data, channel, partner, message_id, parent_message_id=None
@@ -909,8 +926,7 @@ class Plugin(PluginBase):
             )
             contact = {"remoteJid": participant_id}
             partner = self.get_or_create_partner(
-                contact=contact,
-                instance=payload.get("instance"),
+                payload,
                 update_profile_picture=False,
                 create_contact=False,
             )

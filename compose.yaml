@@ -20,9 +20,9 @@ services:
   odoo:
     ## IF IN DEVELOPMENT, USE THIS
     ## ALSO mount the folder ./discuss_hub/ to /mnt/extra-addons/discuss_hub
-    image: odoo:18
+    #image: odoo:18
     ## FOR TESTING THE DOCKER IMAGE USE THIS
-    #image: discusshub/discuss_hub:latest
+    image: discusshub/discuss_hub:latest
     ## FOR BUILDING THE IMAGE USE THIS
     # build:
     #   context: .
@@ -31,7 +31,7 @@ services:
     depends_on:
       - db
     tty: true
-    command: odoo -d odoo -i base,base_automations,discuss_hub -u discuss_hub
+    command: odoo -d odoo -i discuss_hub -u discuss_hub
     environment:
       - ODOO_RC=/etc/odoo/odoo.conf
       - HOST=db
@@ -44,7 +44,7 @@ services:
       - EVOLUTION_API_KEY=1369429683C4C977415CAAFCCE10F7D57E11
       - EVOLUTION_ODOO_URL=http://odoo:8069
     volumes:
-      - ./discuss_hub/:/mnt/extra-addons/discuss_hub
+      #- ./discuss_hub/:/mnt/extra-addons/discuss_hub
       - odoo_conf:/etc/odoo
       - odoo_data:/var/lib/odoo
     ports:

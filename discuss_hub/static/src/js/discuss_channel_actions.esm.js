@@ -79,6 +79,6 @@ threadActionsRegistry.add("forward-channel", {
         // TODO: wait action to close the component
         // that may be a chat popup
         // here if the user cancel, the popup is gone.
-        //component.close();
+        // component.close();
     },
 });
