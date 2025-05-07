@@ -145,7 +145,7 @@ class Plugin(PluginBase):
         return records or False
 
     def restart_instance(self):
-        """Get the status of the connector"""
+        """restart connector"""
         url = f"{self.connector.url}/instance/restart/{self.connector.name}"
         try:
             query = self.session.post(url, timeout=10)
@@ -157,14 +157,14 @@ class Plugin(PluginBase):
             _logger.error(f"Error getting status: {str(e)} connector {self.connector}")
             status = "error"
         # wait for the instance to restart
-        _logger.info(f"LOUGOUT STATS FOR INSTANCE {self}: {status}")
+        _logger.info(f"RESTART FOR INSTANCE {self}: {status}")
         time.sleep(5)
 
     def logout_instance(self):
         """Get the status of the connector"""
         url = f"{self.connector.url}/instance/logout/{self.connector.name}"
         try:
-            query = requests.delete(url, timeout=10)
+            query = self.session.delete(url, timeout=10)
             if query.status_code == 404:
                 status = "not_found"
             else:
@@ -173,7 +173,9 @@ class Plugin(PluginBase):
             _logger.error(f"Error getting status: {str(e)} connector {self.connector}")
             status = "error"
         # wait for the instance to restart
-        _logger.info(f"LOUGOUT STATS FOR INSTANCE {self}: {status}")
+        _logger.info(
+            f"LOUGOUT STATS FOR INSTANCE {self}: {status}. query: {query}"
+        )
         time.sleep(5)
 
     def outgo_message(self, channel, message):
