@@ -36,9 +36,9 @@ class TestBasePlugin(HttpCase):
         except NotImplementedError:
             assert True
         else:
-            raise AssertionError("get_status() should raise NotImplmenetedError")
+            raise AssertionError(
+                "get_status() should raise NotImplmenetedError")
 
-    # do the same as above for: get_contact_name and get_contact_identifier
     def test_get_contact_identifier_not_implemented(self):
         """
         in a base plugin, the get_contact_identifier method is not implemented
@@ -61,4 +61,5 @@ class TestBasePlugin(HttpCase):
         except NotImplementedError:
             assert True
         else:
-            raise AssertionError("get_contact_name() should raise NotImplementedError")
+            raise AssertionError(
+                "get_contact_name() should raise NotImplementedError")

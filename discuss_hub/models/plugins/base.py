@@ -177,9 +177,9 @@ class Plugin:
 
     def update_profile_picture(self, partner, imagebase64, images=None):
         """Update the profile picture of the partner"""
-        _logger.info(f"Updating profile pic: ({partner.id}) of images {images}")
         if not images:
             images = DEFAULT_UPDATE_PROFILE_PICS
+        _logger.info(f"Updating profile pic: ({partner.id}) of images {images}")
         try:
             for image in images:
                 partner.write({image: imagebase64})
