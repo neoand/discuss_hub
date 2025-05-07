@@ -173,9 +173,7 @@ class Plugin(PluginBase):
             _logger.error(f"Error getting status: {str(e)} connector {self.connector}")
             status = "error"
         # wait for the instance to restart
-        _logger.info(
-            f"LOUGOUT STATS FOR INSTANCE {self}: {status}. query: {query}"
-        )
+        _logger.info(f"LOUGOUT STATS FOR INSTANCE {self}: {status}. query: {query}")
         time.sleep(5)
 
     def outgo_message(self, channel, message):
