@@ -21,6 +21,18 @@ class TestBasePlugin(HttpCase):
         )
         self.plugin = self.connector.get_plugin()
 
+    def test_plugin_str_representation(self):
+        """
+        Test the string representation of the plugin
+        """
+        plugin_str = str(self.plugin)
+        assert (
+            "DiscussHubPlugin: base" in plugin_str
+        ), "Plugin string representation should include its name"
+        assert (
+            str(self.connector) in plugin_str
+        ), "Plugin string representation should include connector info"
+
     def test_plugin_name(self):
         """
         test the name of the plugin
@@ -61,3 +73,31 @@ class TestBasePlugin(HttpCase):
             assert True
         else:
             raise AssertionError("get_contact_name() should raise NotImplementedError")
+
+
+    def test_get_or_create_partner_new(self):
+        """
+        Test creating a new partner when none exists
+        """
+        # Mock required methods
+        self.plugin.get_contact_identifier = lambda payload: "1234567890"
+        self.plugin.get_contact_name = lambda payload: "New Test Partner"
+
+        # Set partner contact field
+        self.connector.partner_contact_field = "phone"
+        self.connector.partner_contact_name = "whatsapp"
+
+        # Test get_or_create_partner
+        result_partner = self.plugin.get_or_create_partner(
+            payload={"test": "data"}, update_profile_picture=False
+        )
+
+        assert (
+            result_partner.name == "whatsapp"
+        ), "Contact partner should have the configured name"
+        assert (
+            result_partner.phone == "1234567890"
+        ), "Contact partner should have the correct phone"
+        assert (
+            result_partner.parent_id.name == "New Test Partner"
+        ), "Parent partner should have the contact name"
