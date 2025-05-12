@@ -19,9 +19,12 @@ jobs:
         zip -r "dist/$dir.zip" "$dir"
         done
 
+    - name: List ZIPs created
+      run: ls -lh dist
+
     - name: Upload all ZIPs
       uses: softprops/action-gh-release@v1
       with:
         files: dist/*.zip
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GH_PAT_RELEASE_UPLOAD }}
