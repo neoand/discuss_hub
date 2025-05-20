@@ -50,10 +50,11 @@ class TestControllerActiveInactive(HttpCase):
         Test if controller returns 400 on invalid json
         """
         # send a request to that connector
-        data = '{"name": discuss_hub Test}'
+        data = '{"name": discuss_hub}//'
         response = self.url_open(
             f"/discuss_hub/connector/{self.uuid}",
             data=data,
+            headers={"Content-Type": "application/json"},
         )
         # assert response is 400
         self.assertEqual(response.status_code, 400)

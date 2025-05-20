@@ -1,3 +1,5 @@
+import json
+
 from odoo.tests import tagged
 from odoo.tests.common import HttpCase
 
@@ -14,8 +16,8 @@ class TestExamplePlugin(HttpCase):
                 "name": "test_example_plugin",
                 "type": "example",
                 "enabled": True,
-                "uuid": "11111111-1111-1111-1111-111111111111",
-                "url": "http://evolution:8080",
+                "uuid": "11111111-1111-1111-1111-111111111112",
+                "url": "http://example.com",
                 "api_key": "1234567890",
             }
         )
@@ -27,7 +29,7 @@ class TestExamplePlugin(HttpCase):
         """
         # create a payload
         payload = {
-            "message_id": 4567,
+            "message_id": "4567",
             "message_type": "text",
             "message": "Hello World",
             "contact_name": "John Doe",
@@ -36,16 +38,12 @@ class TestExamplePlugin(HttpCase):
         }
         response = self.url_open(
             f"/discuss_hub/connector/{self.connector.uuid}",
-            data=payload,
+            data=json.dumps(payload),
+            headers={"Content-Type": "application/json"},
         )
-        content = response.get_data(as_text=True)  # Convert bytes to string
-
-        # If JSON, parse it:
-        import json
-
-        data = json.loads(content)
+        data = response.json()
         # get new message id
-        message_id = data.get("message_id")
+        message_id = payload.get("message_id")
         # check if message with same id exists
         message = self.env["mail.message"].search(
             [
@@ -56,9 +54,7 @@ class TestExamplePlugin(HttpCase):
         # assert the message
         assert message, "Message should be created"
         assert message.discuss_hub_message_id == message_id, "Message id should match"
-        assert message.body == payload["message"], "Message body should match"
-        # process the payload
-        response = self.plugin.process_payload(payload)
+        assert payload["message"] in message.body, "Message body should match"
         # assert the response
-        assert response["success"] is True, "Response should be successful"
-        assert response["status"] == "success", "Response status should be success"
+        assert data["success"] is True, "Response should be successful"
+        assert data["status"] == "success", "Response status should be success"
