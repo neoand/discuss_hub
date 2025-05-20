@@ -39,6 +39,17 @@ class TestBasePlugin(HttpCase):
         """
         assert self.plugin.name == "base", "base Plugin name should be 'base'"
 
+    def test_process_payload_not_implemented(self):
+        """
+        in a base plugin, the process_payload method is not implemented
+        """
+        try:
+            self.plugin.process_payload()
+        except NotImplementedError:
+            assert True
+        else:
+            raise AssertionError("get_status() should raise NotImplmenetedError")
+
     def test_get_status_not_implemented(self):
         """
         in a base plugin, the get_status method is not implemented

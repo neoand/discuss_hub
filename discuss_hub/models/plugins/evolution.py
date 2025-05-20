@@ -241,6 +241,17 @@ class Plugin(PluginBase):
 
         return whatsapp_number
 
+    def get_channel_name(self, payload):
+        # TODO: add templated channel name here
+        remote_jid = payload.get("data", {}).get("key", {}).get("remoteJid")
+        contact_identifier = self.get_contact_identifier(payload)
+        contact_name = self.get_contact_name(payload)
+        if remote_jid.endswith("@g.us"):
+            name = f"WGROUP: <{contact_identifier}>"
+        else:
+            name = f"Whatsapp: {contact_name} <{contact_identifier}>"
+        return name
+
     # OUTCOMING
 
     def format_message_before_send(self, message):
@@ -401,12 +412,23 @@ class Plugin(PluginBase):
             "contacts": processed_count,
         }
 
+    def get_message_id(self, payload):
+        """Get message ID from payload"""
+        message_id = payload.get("data", {}).get("keyId")
+        if not message_id:
+            return False
+
+        # Check if the message ID is a list
+        if isinstance(message_id, list):
+            message_id = message_id[0]
+
+        return message_id
+
     def process_messages_upsert(self, payload):
         """Process new incoming messages"""
         data = payload.get("data", {})
         remote_jid = data.get("key", {}).get("remoteJid")
         message_id = data.get("key", {}).get("id")
-        name = data.get("pushName")
 
         if not remote_jid:
             return {
@@ -453,7 +475,8 @@ class Plugin(PluginBase):
             }
 
         # Find or create channel
-        channel = self.get_or_create_channel(partner, remote_jid, name, message_id)
+        channel = self.get_or_create_channel(partner, payload)
+        message_id = self.get_message_id(payload)
         if not channel:
             return {
                 "success": False,
@@ -918,13 +941,7 @@ class Plugin(PluginBase):
             channel_id = message.res_id
 
             # Get partner
-            participant_id = (
-                payload.get("data", {})
-                .get("participant", {})
-                .split("@")[0]
-                .split(":")[0]
-            )
-            contact = {"remoteJid": participant_id}
+            contact_identifier = self.get_contact_identifier(payload)
             partner = self.get_or_create_partner(
                 payload,
                 update_profile_picture=False,
@@ -935,7 +952,7 @@ class Plugin(PluginBase):
                 _logger.info(
                     "action:process_payload"
                     + f"event:message.update.read({discuss_hub_message_id})"
-                    + f" partner: not found for contact {contact}"
+                    + f" partner: not found for contact identifier {contact_identifier}"
                 )
                 return {
                     "success": False,

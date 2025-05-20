@@ -37,7 +37,11 @@ class Evo(http.Controller):
             )
             return response
         try:
-            incoming_payload = json.loads(http.request.httprequest.data)
+            if http.request.httprequest.mimetype == "application/json":
+                incoming_payload = json.loads(http.request.httprequest.data)
+            else:
+                # For form-encoded data
+                incoming_payload = http.request.params
         except json.decoder.JSONDecodeError:
             _logger.error(
                 f"action:json_decode_error identifier:{identifier},"
@@ -50,8 +54,8 @@ class Evo(http.Controller):
             )
             return response
         _logger.info(
-            f"action incoming_payload connector {connector.id}"
-            + f"payload {json.dumps(incoming_payload)}"
+            f"action incoming_payload connector {connector.id}:"
+            + f" payload {incoming_payload}"
         )
         response = connector.process_payload(incoming_payload)
         return Response(

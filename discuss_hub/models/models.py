@@ -42,6 +42,7 @@ class DiscussHubConnector(models.Model):
             ("base", "Base Plugin"),
             ("example", "Exmample Plugin"),
             ("evolution", "Evolution"),
+            ("notificame", "NotificaMe"),
         ],
         default="evolution",
         required=True,
@@ -175,8 +176,9 @@ class DiscussHubConnector(models.Model):
     def _compute_status(self):
         for connector in self:
             status = connector.get_status()
-            connector.status = status.get("status", "not_found")
-            connector.qr_code_base64 = status.get("qr_code_base64", None)
+            if status:
+                connector.status = status.get("status", "not_found")
+                connector.qr_code_base64 = status.get("qr_code_base64", None)
 
     def open_status_modal(self):
         return {

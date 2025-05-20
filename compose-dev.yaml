@@ -52,7 +52,7 @@ services:
         max-file: "3"
 
   evolution:
-    image: atendai/evolution-api
+    image: evoapicloud/evolution-api
     restart: always
     depends_on:
       - redis

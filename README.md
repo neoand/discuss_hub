@@ -11,6 +11,8 @@
 
 Integrate third party message channels into Odoo's discuss
 
+[Deepwiki tech docs](https://deepwiki.com/discusshub/discuss_hub)
+
 <!-- /!\ do not modify below this line -->
 
 <!-- prettier-ignore-start -->

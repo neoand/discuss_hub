@@ -24,6 +24,18 @@ class Plugin:
         self.connector = connector
         _logger.debug(f"Loaded plugin {self.name} for connector: {self.connector}")
 
+    def process_payload(self):
+        # raise not implemented error
+        raise NotImplementedError(
+            f"Plugin {self.name} does not implemented process_payload()"
+        )
+
+    def get_message_id(self):
+        # raise not implemented error
+        raise NotImplementedError(
+            f"Plugin {self.name} does not implemented get_message_id()"
+        )
+
     def get_status(self):
         # raise not implemented error
         raise NotImplementedError(
@@ -40,8 +52,16 @@ class Plugin:
             f"Plugin {self.name} does not implemented get_contact_identifier()"
         )
 
-    def get_or_create_channel(self, partner, remote_jid, name, message_id):
+    def get_channel_name(self, payload):
+        """Get the channel name"""
+        raise NotImplementedError(
+            f"Plugin {self.name} does not implemented get_channel_name()"
+        )
+
+    def get_or_create_channel(self, partner, payload):
         """Find existing channel or create a new one for the partner"""
+        # get message id
+        message_id = self.get_message_id(payload)
         # Check if we have an unarchived channel
         # for this connector and partner as member
         membership = self.connector.env["discuss.channel.member"].search(
@@ -57,9 +77,9 @@ class Plugin:
             channel = membership.channel_id
             if membership.channel_id.active:
                 _logger.info(
-                    f"action:process_payload event:message.upsert({message_id})"
-                    + f" found channel {channel} for connector {self.connector} "
-                    + f"and remote_jid:{remote_jid}. REUSING CHANNEL."
+                    f"action:process_payload event:message.upsert({message_id}) "
+                    + f"found channel {channel} for connector {self.connector} "
+                    + "REUSING CHANNEL."
                 )
                 return channel
             # or reopen if that's the configuration
@@ -67,9 +87,9 @@ class Plugin:
                 if self.connector.reopen_last_archived_channel:
                     channel.action_unarchive()
                     _logger.info(
-                        f"action:process_payload event:message.upsert({message_id})"
-                        + f" reactivated channel {channel} for connector "
-                        + f"{self} and remote_jid:{remote_jid}. REOPENING CHANNEL"
+                        f"action:process_payload event:message.upsert({message_id}) "
+                        + f"reactivated channel {channel} for connector "
+                        + "REOPENING CHANNEL"
                     )
                     # make sure we add the automatic partners
                     partners_to_add = [p.id for p in self.automatic_added_partners]
@@ -82,9 +102,10 @@ class Plugin:
                     return channel
         # create new channel
         _logger.info(
-            f"""action:process_payload event:message.upsert({message_id})
-            active channel membership not found for connector {self} and
-              remote_jid:{remote_jid}. CREATING CHANNEL."""
+            f"action:process_payload get_or_create channel ({message_id})"
+            + f"active channel membership not found for connector {self.connector}"
+            + "CREATING CHANNEL."
+            ""
         )
         # define parters to auto add
         # TODO: here we can add some logic for agent distribution
@@ -92,17 +113,15 @@ class Plugin:
             Command.link(p.id) for p in self.connector.automatic_added_partners
         ]
         partners_to_add.append(Command.link(partner.parent_id.id))
-        # TODO: add templated channel name here
-        if remote_jid.endswith("@g.us"):
-            channel_name = f"WGROUP: <{remote_jid}>"
-        else:
-            channel_name = f"Whatsapp: {name} <{remote_jid}>"
 
+        channel_name = self.get_channel_name(payload=payload)
         # Create channel
         channel = self.connector.env["discuss.channel"].create(
             {
                 "discuss_hub_connector": self.connector.id,
-                "discuss_hub_outgoing_destination": remote_jid,
+                "discuss_hub_outgoing_destination": self.get_contact_identifier(
+                    payload
+                ),
                 "name": channel_name,
                 "channel_partner_ids": partners_to_add,
                 "image_128": partner.image_128,
@@ -129,6 +148,11 @@ class Plugin:
             order="create_date desc",
             limit=1,
         )
+        _logger.info(
+            f"action:get_or_create_partner for payload ({payload}) "
+            + f"found partner {partner} for connector {self.connector} "
+            + f"and contact identifier :{contact_identifier}"
+        )
 
         if not create_contact:
             return partner[0].parent_id if partner else False
@@ -151,8 +175,13 @@ class Plugin:
                     "parent_id": parent_partner.id,
                 }
             )
-
             partner = partner_contact
+            _logger.info(
+                "action:created partner for payload"
+                + f"created partner {partner_contact} for connector {self.connector} "
+                + f"and contact identifier :{contact_identifier}"
+                + f" with parent {parent_partner}"
+            )
         else:
             # We already have the partner
             partner_contact = partner[0]
@@ -163,15 +192,18 @@ class Plugin:
             not partner.image_128 or self.connector.always_update_profile_picture
         ):
             imagebase64 = self.get_profile_picture(payload)
-            # TODO: option to not add profile for partner_contact to save resources
-            partners_to_update = [
-                partner_contact,
-                parent_partner,
-            ]
-            # Update profile picture for partners
-            for partner_update in partners_to_update:
-                self.update_profile_picture(partner_update, imagebase64)
-                _logger.info(f"Updated profile picture for partner {partner_update} ")
+            if imagebase64:
+                # TODO: option to not add profile for partner_contact to save resources
+                partners_to_update = [
+                    partner_contact,
+                    parent_partner,
+                ]
+                # Update profile picture for partners
+                for partner_update in partners_to_update:
+                    self.update_profile_picture(partner_update, imagebase64)
+                    _logger.info(
+                        f"Updated profile picture for partner {partner_update} "
+                    )
 
         return partner
 

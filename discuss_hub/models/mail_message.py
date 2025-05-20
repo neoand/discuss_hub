@@ -8,4 +8,4 @@ class Message(models.Model):
     """
 
     _inherit = ["mail.message"]
-    discuss_hub_message_id = fields.Char(string="Evo Message ID")
+    discuss_hub_message_id = fields.Char(string="Discuss Hub Message ID", index=True)
