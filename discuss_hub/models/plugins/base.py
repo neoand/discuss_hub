@@ -123,10 +123,10 @@ class Plugin:
                     return channel
         # create new channel
         _logger.info(
-            f"action:process_payload get_or_create channel ({message_id})"
-            + f"active channel membership not found for connector {self.connector}"
-            + "CREATING CHANNEL."
-            ""
+            f"action:process_payload get_or_create channel ({message_id}) "
+            f"for partner {partner} "
+            + f"active channel membership not found for connector {self.connector} "
+            + "CREATING CHANNEL!"
         )
         # define parters to auto add
         # TODO: here we can add some logic for agent distribution
