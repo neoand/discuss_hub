@@ -45,10 +45,9 @@ class TestBasePlugin(HttpCase):
         """
         try:
             self.plugin.process_payload()
+            assert False, "process_payload() should raise NotImplementedError"
         except NotImplementedError:
             assert True
-        else:
-            raise AssertionError("get_status() should raise NotImplmenetedError")
 
     def test_get_status_not_implemented(self):
         """
@@ -56,10 +55,9 @@ class TestBasePlugin(HttpCase):
         """
         try:
             self.plugin.get_status()
+            assert False, "get_status() should raise NotImplementedError"
         except NotImplementedError:
             assert True
-        else:
-            raise AssertionError("get_status() should raise NotImplmenetedError")
 
     def test_get_contact_identifier_not_implemented(self):
         """
@@ -67,12 +65,9 @@ class TestBasePlugin(HttpCase):
         """
         try:
             self.plugin.get_contact_identifier(payload={"name": "test"})
+            assert False, "get_contact_identifier() should raise NotImplementedError"
         except NotImplementedError:
             assert True
-        else:
-            raise AssertionError(
-                "get_contact_identifier() should raise NotImplmenetedError"
-            )
 
     def test_get_contact_name_not_implemented(self):
         """
@@ -80,10 +75,9 @@ class TestBasePlugin(HttpCase):
         """
         try:
             self.plugin.get_contact_name()
+            assert False, "get_contact_name() should raise NotImplementedError"
         except NotImplementedError:
             assert True
-        else:
-            raise AssertionError("get_contact_name() should raise NotImplementedError")
 
     def test_get_or_create_partner_new(self):
         """
