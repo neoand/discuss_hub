@@ -30,7 +30,7 @@ class Plugin:
             f"Plugin {self.name} does not implemented process_payload()"
         )
 
-    def get_message_id(self):
+    def get_message_id(self, payload):
         # raise not implemented error
         raise NotImplementedError(
             f"Plugin {self.name} does not implemented get_message_id()"
@@ -56,6 +56,27 @@ class Plugin:
         """Get the channel name"""
         raise NotImplementedError(
             f"Plugin {self.name} does not implemented get_channel_name()"
+        )
+
+    def restart_instance(self, payload=None):
+        """Restart the instance"""
+        # raise not implemented error
+        raise NotImplementedError(
+            f"Plugin {self.name} does not implemented restart_instance()"
+        )
+
+    def outgo_reaction(self, channel, message, reaction):
+        """Send a reaction to a message"""
+        # raise not implemented error
+        raise NotImplementedError(
+            f"Plugin {self.name} does not implemented outgo_reaction()"
+        )
+
+    def logout_instance(self, payload=None):
+        """Logout the instance"""
+        # raise not implemented error
+        raise NotImplementedError(
+            f"Plugin {self.name} does not implemented logout_instance()"
         )
 
     def get_or_create_channel(self, partner, payload):
@@ -204,7 +225,6 @@ class Plugin:
                     _logger.info(
                         f"Updated profile picture for partner {partner_update} "
                     )
-
         return partner
 
     def update_profile_picture(self, partner, imagebase64, images=None):

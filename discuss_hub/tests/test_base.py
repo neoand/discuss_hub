@@ -71,7 +71,25 @@ class TestBasePlugin(HttpCase):
         in a base plugin, the get_contact_name method is not implemented
         """
         try:
-            self.plugin.get_contact_name()
+            self.plugin.get_contact_name({})
+        except NotImplementedError:
+            assert True
+
+    def test_get_message_id_not_implemented(self):
+        """
+        in a base plugin, the get_message_id method is not implemented
+        """
+        try:
+            self.plugin.get_message_id({})
+        except NotImplementedError:
+            assert True
+
+    def test_get_channel_name_not_implemented(self):
+        """
+        in a base plugin, the get_channel_name method is not implemented
+        """
+        try:
+            self.plugin.get_channel_name({})
         except NotImplementedError:
             assert True
 
@@ -101,6 +119,26 @@ class TestBasePlugin(HttpCase):
         assert (
             result_partner.parent_id.name == "New Test Partner"
         ), "Parent partner should have the contact name"
+
+    def test_get_or_create_partner_non_existing_no_create(self):
+        """
+        Test not creating a new partner when none exists and create_contact is False
+        """
+        # Mock the contact identifier method
+        self.plugin.get_contact_identifier = lambda payload: "1234567890"
+
+        # Set partner contact field
+        self.connector.partner_contact_field = "phone"
+        self.connector.partner_contact_name = "whatsapp"
+
+        # Test get_or_create_partner with create_contact=False
+        result_partner = self.plugin.get_or_create_partner(
+            payload={"test": "data"}, update_profile_picture=False, create_contact=False
+        )
+
+        assert (
+            result_partner is False
+        ), "Should return False when no partner exists and create_contact is False"
 
     def test_get_or_create_partner_existing(self):
         """
@@ -137,3 +175,43 @@ class TestBasePlugin(HttpCase):
         assert (
             result_partner.id == partner_contact.id
         ), "Should return the existing partner contact"
+
+    def test_update_profile_picture(self):
+        """Test the update_profile_picture method of the base plugin"""
+        # Create a test partner
+        test_partner = self.env["res.partner"].create({"name": "Test Partner"})
+
+        # Sample base64 image (this is a minimal valid image)
+        sample_image = (
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4"
+            + "//8/AAX+Av7czFnnAAAAAElFTkSuQmCC"
+        )
+
+        # Test with default image fields
+        result = self.plugin.update_profile_picture(test_partner, sample_image)
+        self.assertTrue(result, "Profile picture update should succeed")
+        sample_image_bytes = sample_image.encode("utf-8")
+        self.assertEqual(
+            test_partner.image_1920,
+            sample_image_bytes,
+            "Image should be updated in image_1920 field",
+        )
+        self.assertEqual(
+            test_partner.image_128,
+            sample_image_bytes,
+            "Image should be updated in image_128 field",
+        )
+
+        # Test with custom image fields
+        custom_fields = ["image_128"]
+        result = self.plugin.update_profile_picture(
+            test_partner, sample_image, images=custom_fields
+        )
+        self.assertTrue(
+            result, "Profile picture update with custom fields should succeed"
+        )
+
+        # Test with invalid image data
+        invalid_image = "not-a-valid-base64-image"
+        result = self.plugin.update_profile_picture(test_partner, invalid_image)
+        self.assertFalse(result, "Profile picture update with invalid data should fail")

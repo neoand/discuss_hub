@@ -52,7 +52,7 @@ services:
         max-file: "3"
 
   evolution:
-    image: evoapicloud/evolution-api
+    image: evoapicloud/evolution-api:homolog
     restart: always
     depends_on:
       - redis

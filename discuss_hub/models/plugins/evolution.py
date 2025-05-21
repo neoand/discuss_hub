@@ -231,9 +231,11 @@ class Plugin(PluginBase):
         """Get the contact identifier from the payload"""
         remote_jid = payload.get("data", {}).get("key", {}).get("remoteJid")
         if not remote_jid:
-            return False
+            remote_jid = payload.get("data", {}).get("remoteJid")
+            if not remote_jid:
+                return False
 
-        whatsapp_number = remote_jid.split("@")[0]
+        whatsapp_number = remote_jid.split("@")[0].split(":")[0]
 
         # Format Brazilian mobile numbers
         if whatsapp_number.startswith("55") and len(whatsapp_number) == 12:
