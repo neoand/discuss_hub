@@ -202,7 +202,7 @@ class DiscussHubArchiveManager(models.TransientModel):
                 ],
                 limit=1,
             )
-            channel_member._channel_fold("closed", 10000000)
+
             if self.send_close_message and self.close_message:
                 channel.message_post(
                     author_id=self.env.user.partner_id.id,
@@ -210,6 +210,10 @@ class DiscussHubArchiveManager(models.TransientModel):
                     message_type="comment",
                     subtype_xmlid="mail.mt_comment",
                 )
+            channel_member._channel_fold("closed", 10000000)
+            # TODO: add internal note as option
+            # TODO: add tags
+            # TODO: close to all members
             channel.action_unfollow()
             channel.action_archive()
 
