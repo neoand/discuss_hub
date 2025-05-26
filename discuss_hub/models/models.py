@@ -51,6 +51,7 @@ class DiscussHubConnector(models.Model):
     api_key = fields.Char(required=True)
     manager_channel = fields.Many2many(comodel_name="discuss.channel")
     automatic_added_partners = fields.Many2many(comodel_name="res.partner")
+    automatic_added_teams = fields.Many2many(comodel_name="discuss_hub.routing_team")
     # Configuration options
     partner_contact_name = fields.Char(required=True, default="whatsapp")
     partner_contact_field = fields.Char(required=True, default="phone")
@@ -250,6 +251,27 @@ class DiscussHubConnector(models.Model):
             return
         plugin = self.get_plugin()
         return plugin.outgo_reaction(channel, message, reaction)
+
+    # Routing
+
+    def get_initial_routed_partners(self, connector=None):
+        """
+        Get the initial routed partners for a channel.
+        This is used to determine which partners should be added to the channel
+        when it is created.
+        """
+        partners = []
+        for p in self.automatic_added_partners:
+            partners.append(p)
+        for team in self.automatic_added_teams:
+            new_member = team.get_next_team_member(connector=connector)
+            if new_member:
+                partners.append(new_member)
+        _logger.info(
+            f"action:get_initial_routed_partners connector {self.name} "
+            f"for channel {connector.name if connector else 'None'}: {partners}"
+        )
+        return set(partners)
 
 
 class DiscussHubSocialNetworkeType(models.Model):

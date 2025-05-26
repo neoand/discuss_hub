@@ -1,6 +1,8 @@
 import logging
+import random
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -12,6 +14,10 @@ class DiscussHubRoutingTeam(models.Model):
     name = fields.Char(
         required=True,
         help="Name of the team to be used for routing.",
+    )
+    active = fields.Boolean(
+        default=True,
+        help="Indicates whether the routing team is active.",
     )
     # TODO: not sure if this is needed
     connector_id = fields.Many2one(
@@ -29,11 +35,7 @@ class DiscussHubRoutingTeam(models.Model):
         default="least_busy",
         help="Select the routing strategy to be used.",
     )
-    limit_routing_strategy_to_team = fields.Boolean(
-        help="Limit the routing strategy to the team members only or apply globally",
-        default=True,
-    )
-    limit_routing_strategy_to_online_users = fields.Boolean(
+    online_users_only = fields.Boolean(
         help="Limit the routing strategy to online users only", default=True
     )
     team_member_ids = fields.One2many(
@@ -42,6 +44,102 @@ class DiscussHubRoutingTeam(models.Model):
         string="Team Members",
         help="Users that are part of this routing team.",
     )
+
+    def available_users(self):
+        """Returns a list of users that are part of the team and online"""
+        self.ensure_one()
+        users = self.team_member_ids.mapped("user_id")
+        # get only active users
+        users = self.env["res.users"].search(
+            [
+                ("id", "in", users.ids),
+                ("active", "=", True),
+            ]
+        )
+        if self.online_users_only:
+            users = users.filtered(lambda u: u.partner_id.im_status == "online")
+        _logger.info(
+            f"Available users in team {self.name}: {[user.name for user in users]}"
+        )
+        return users
+
+    def reset_team_member_counts(self):
+        """Reset all counts from team members"""
+        self.ensure_one()
+        for member in self.team_member_ids:
+            member.count = 0
+        return True
+
+    def get_next_team_member(self, connector=None):
+        """Returns the next team member based on the routing strategy"""
+        self.ensure_one()
+        if self.routing_strategy == "least_busy":
+            return self._get_least_busy_user(connector=connector)
+        elif self.routing_strategy == "round_robin":
+            return self._get_round_robin_user()
+        elif self.routing_strategy == "random":
+            return self._get_random_user()
+        else:
+            return None
+
+    def _get_round_robin_user(self):
+        # get the team members ordered by their order field
+        # and ordered by their count field
+        """Returns the next user in the team based on round robin strategy"""
+        self.ensure_one()
+        users = self.available_users()
+        if not users:
+            return None
+        # get team members based on available users nd ordered
+        next_team_member = self.env["discuss_hub.routing_team_member"].search(
+            [("team_id", "=", self.id), ("user_id", "in", users.ids)],
+            order="count asc, order asc",
+            limit=1,
+        )
+        # increase the count of the team member
+        if not next_team_member:
+            return None
+        # increment the team member count
+        next_team_member.write({"count": next_team_member.count + 1})
+        return next_team_member.user_id.partner_id
+
+    def _get_random_user(self):
+        """Returns a random user from the team"""
+        self.ensure_one()
+        users = self.available_users()
+        random_user = random.choice(users) if users else None
+        if not users:
+            return None
+        return random_user
+
+    def _get_least_busy_user(self, connector=None):
+        """Returns the user in the team with the fewest active chats."""
+        self.ensure_one()
+        users = self.available_users()
+        if not users:
+            return None
+        if connector:
+            channel_filter = ("channel_id.connector_id", "=", connector.id)
+        else:
+            # if no channel is provided, consider all channels (global)
+            channel_filter = ("channel_id.discuss_hub_connector", "!=", False)
+        grouped_data = self.env["discuss.channel.member"].read_group(
+            domain=[
+                ("partner_id.user_ids", "in", users.ids),
+                ("channel_id.discuss_hub_connector", "!=", False),
+                ("channel_id.active", "=", True),
+                # consider only from same channel
+                channel_filter,
+            ],
+            fields=["partner_id", "create_date:max"],
+            groupby=["partner_id"],
+            orderby="create_date desc",
+            limit=1,
+        )
+        if grouped_data:
+            return grouped_data[0].get("partner_id")
+        else:
+            return None
 
 
 class DiscussHubRoutingTeamMember(models.Model):
@@ -85,12 +183,25 @@ class DiscussHubRoutingManager(models.TransientModel):
 
     agent = fields.Many2one(
         comodel_name="res.users",
-        required=True,
+        required=False,
         help="Select the agent to forward the channel to.",
         domain="[('partner_id', '!=', False)]",
     )
 
+    team = fields.Many2one(
+        comodel_name="discuss_hub.routing_team",
+        required=False,
+        help="Select the team to which the agent belongs.",
+        domain="[('active', '=', True)]",
+    )
+
     note = fields.Text(help="Add a note for context when forwarding the channel.")
+
+    @api.constrains("agent", "team")
+    def _check_agent_or_team_selected(self):
+        for record in self:
+            if not record.agent and not record.team:
+                raise ValidationError(_("You must select either an agent or a team."))
 
     def action_forward(self):
         """Forward the channel to the selected agent"""
@@ -98,9 +209,15 @@ class DiscussHubRoutingManager(models.TransientModel):
         self.ensure_one()  # Only one wizard record should be active
 
         selected_agent = self.agent.partner_id
+        selected_team = self.team
         selected_note = self.note
         for channel in self.channel_ids:
-            channel.add_members([selected_agent.id])
+            if selected_agent:
+                channel.add_members([selected_agent.id])
+            if selected_team:
+                selected_member = selected_team.get_next_team_member(channel=channel)
+                if selected_member:
+                    channel.add_members([selected_member.partner_id.id])
             # add note
             if selected_note:
                 # run with sudo

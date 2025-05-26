@@ -8,6 +8,7 @@
                 <group>
                     <field name="channel_ids" readonly="1" />
                     <field name="agent" />
+                    <field name="team" />
                     <field name="note" />
                 </group>
                 <footer>

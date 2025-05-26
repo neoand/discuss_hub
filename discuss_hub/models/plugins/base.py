@@ -93,7 +93,6 @@ class Plugin:
             order="create_date desc",
             limit=1,
         )
-        # Return existing channel if found and active
         if membership:
             channel = membership.channel_id
             if membership.channel_id.active:
@@ -107,15 +106,16 @@ class Plugin:
             else:
                 if self.connector.reopen_last_archived_channel:
                     channel.action_unarchive()
+                    partners_to_add = self.connector.get_initial_routed_partners(
+                        connector=self.connector
+                    )
                     _logger.info(
                         f"action:process_payload event:message.upsert({message_id}) "
                         + f"reactivated channel {channel} for connector "
                         + "REOPENING CHANNEL"
                     )
-                    # make sure we add the automatic partners
-                    partners_to_add = [p.id for p in self.automatic_added_partners]
                     channel.add_members(
-                        partner_ids=partners_to_add,
+                        partner_ids=[p.id for p in partners_to_add],
                         open_chat_window=True,
                     )
                     # broadcast as new channel
@@ -128,13 +128,13 @@ class Plugin:
             + f"active channel membership not found for connector {self.connector} "
             + "CREATING CHANNEL!"
         )
-        # define parters to auto add
-        # TODO: here we can add some logic for agent distribution
-        partners_to_add = [
-            Command.link(p.id) for p in self.connector.automatic_added_partners
-        ]
+        partners_to_add = self.connector.get_initial_routed_partners(
+            connector=self.connector
+        )
+        # add default partners
+        partners_to_add = [Command.link(p.id) for p in partners_to_add]
+        # add visitor partner
         partners_to_add.append(Command.link(partner.parent_id.id))
-
         channel_name = self.get_channel_name(payload=payload)
         # Create channel
         channel = self.connector.env["discuss.channel"].create(
@@ -151,7 +151,7 @@ class Plugin:
         )
         # alert bus of new group
         channel._broadcast(channel.channel_member_ids.partner_id.ids)
-        # unfold the chat for members
+        # open the chat for members
         # TODO: Make it optional
         for member in channel.channel_member_ids:
             member._channel_fold("open", 1)
