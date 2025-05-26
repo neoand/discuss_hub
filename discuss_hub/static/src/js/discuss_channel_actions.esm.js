@@ -1,4 +1,3 @@
-import {ConfirmationDialog} from "@web/core/confirmation_dialog/confirmation_dialog";
 import {_t} from "@web/core/l10n/translation";
 import {threadActionsRegistry} from "@mail/core/common/thread_actions";
 import {useComponent} from "@odoo/owl";
@@ -23,26 +22,13 @@ threadActionsRegistry.add("archive-channel", {
     },
     async open(component) {
         const thread = component.thread;
-        component.dialogService.add(ConfirmationDialog, {
-            body: _t(`Do you want to archive ${thread?.name} ?`),
-            title: _t("Archive Channel"),
-            confirm: async () => {
-                // TODO: remove all partners that has user
-                // otherwise, if user A archives, User B will still see the channel
-                // on their listing
-                await component.store.env.services.orm.call(
-                    "discuss.channel",
-                    "action_unfollow",
-                    [thread?.id]
-                );
-                await component.store.env.services.orm.call(
-                    "discuss.channel",
-                    "action_archive",
-                    [thread?.id]
-                );
-            },
-            cancel: () => {
-                return true;
+        component.actionService.doAction({
+            type: "ir.actions.act_window",
+            res_model: "discuss_hub.archive_manager",
+            views: [[false, "form"]],
+            target: "new",
+            context: {
+                default_channel_ids: [thread?.id],
             },
         });
     },
@@ -67,7 +53,7 @@ threadActionsRegistry.add("forward-channel", {
     },
     async open(component) {
         const thread = component.thread;
-        await component.actionService.doAction({
+        component.actionService.doAction({
             type: "ir.actions.act_window",
             res_model: "discuss_hub.routing_manager",
             views: [[false, "form"]],
@@ -76,9 +62,8 @@ threadActionsRegistry.add("forward-channel", {
                 default_channel_ids: [thread?.id],
             },
         });
-        // TODO: wait action to close the component
-        // that may be a chat popup
-        // here if the user cancel, the popup is gone.
+        //
+        // component.props.chatWindow.close();
         // component.close();
     },
 });

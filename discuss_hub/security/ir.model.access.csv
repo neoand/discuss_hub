@@ -1,6 +1,9 @@
 id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
-access_discuss_hub_social_network_type,Evodoo Social Network Type Acess,model_discuss_hub_social_network_type,base.group_user,1,1,1,1
-access_discuss_hub.connector,Evodoo Connector Access,discuss_hub.model_discuss_hub_connector,base.group_system,1,1,1,1
-access_discuss_hub.connector_public,Evodoo Connector Public Read,discuss_hub.model_discuss_hub_connector,base.group_public,1,0,0,0
+access_discuss_hub_social_network_type,discuss_hub Social Network Type Acess,model_discuss_hub_social_network_type,base.group_user,1,1,1,1
+access_discuss_hub.connector,discuss_hub Connector Access,discuss_hub.model_discuss_hub_connector,base.group_system,1,1,1,1
+access_discuss_hub.connector_public,discuss_hub Connector Public Read,discuss_hub.model_discuss_hub_connector,base.group_public,1,0,0,0
 acess_discuss_hub.connector_status_modal,discuss_hub Start / Status Modal,discuss_hub.model_discuss_hub_connector_status,base.group_system,1,1,1,1
 acess_discuss_hub.routing_manager,discuss_hub Routing Manager / Forward,discuss_hub.model_discuss_hub_routing_manager,base.group_system,1,1,1,1
+acess_discuss_hub.archive_manager,discuss_hub Archive Manager / Forward,discuss_hub.model_discuss_hub_archive_manager,base.group_system,1,1,1,1
+acess_discuss_hub.routing_team,discuss_hub Routing Team,discuss_hub.model_discuss_hub_routing_team,base.group_system,1,1,1,1
+acess_discuss_hub.routing_team_member,discuss_hub Routing Team Member,discuss_hub.model_discuss_hub_routing_team_member,base.group_system,1,1,1,1

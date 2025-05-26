@@ -5,6 +5,74 @@ from odoo import api, fields, models
 _logger = logging.getLogger(__name__)
 
 
+class DiscussHubRoutingTeam(models.Model):
+    _name = "discuss_hub.routing_team"
+    _description = "Discuss Hub Routing Team"
+
+    name = fields.Char(
+        required=True,
+        help="Name of the team to be used for routing.",
+    )
+    # TODO: not sure if this is needed
+    connector_id = fields.Many2one(
+        comodel_name="discuss_hub.connector",
+        required=False,
+        help="Select the connector to use for routing.",
+    )
+    routing_strategy = fields.Selection(
+        selection=[
+            ("least_busy", "Least Busy"),
+            ("round_robin", "Round Robin"),
+            ("random", "random"),
+        ],
+        required=True,
+        default="least_busy",
+        help="Select the routing strategy to be used.",
+    )
+    limit_routing_strategy_to_team = fields.Boolean(
+        help="Limit the routing strategy to the team members only or apply globally",
+        default=True,
+    )
+    limit_routing_strategy_to_online_users = fields.Boolean(
+        help="Limit the routing strategy to online users only", default=True
+    )
+    team_member_ids = fields.One2many(
+        comodel_name="discuss_hub.routing_team_member",
+        inverse_name="team_id",
+        string="Team Members",
+        help="Users that are part of this routing team.",
+    )
+
+
+class DiscussHubRoutingTeamMember(models.Model):
+    _name = "discuss_hub.routing_team_member"
+    _description = "Discuss Hub Routing Team Member"
+
+    team_id = fields.Many2one(
+        comodel_name="discuss_hub.routing_team",
+        required=True,
+        help="Select the team to which the user belongs.",
+        inverse_name="member_ids",
+    )
+
+    user_id = fields.Many2one(
+        comodel_name="res.users",
+        required=True,
+        help="Select the user to be added to the team.",
+        domain="[('partner_id', '!=', False)]",
+        inverse_name="team_ids",
+    )
+    order = fields.Integer(
+        help="Order of the user in the team.",
+    )
+    count = fields.Integer(
+        help="Number of active chats for the user.",
+    )
+
+
+# TRANSIENT MODEL TO FORWARD CHANNELS
+
+
 class DiscussHubRoutingManager(models.TransientModel):
     _name = "discuss_hub.routing_manager"
     _description = "Discuss Hub Routing Manager"
@@ -41,8 +109,17 @@ class DiscussHubRoutingManager(models.TransientModel):
                     message_type="notification",
                     partner_ids=[selected_agent.id],
                 )
+            # close the UI
+            channel_member = self.env["discuss.channel.member"].search(
+                [
+                    ("partner_id", "=", self.env.user.partner_id.id),
+                    ("channel_id", "=", channel.id),
+                ],
+                limit=1,
+            )
+            channel_member._channel_fold("closed", 10000000)
+            # leave the channel
             channel.action_unfollow()
-            # close the channel on UI
 
         return {"type": "ir.actions.act_window_close"}
 
@@ -95,3 +172,37 @@ class DiscussHubRoutingManager(models.TransientModel):
                 "active_chats": min_chats,
             }
         return None
+
+
+class DiscussHubArchiveManager(models.TransientModel):
+    _name = "discuss_hub.archive_manager"
+    _description = "Discuss Hub Archive Manager"
+
+    channel_ids = fields.Many2many(
+        comodel_name="discuss.channel",
+        string="Channels",
+        readonly=True,
+    )
+
+    close_message = fields.Text(
+        help="Message to be sent when archiving the channel.",
+    )
+    send_close_message = fields.Boolean(
+        help="Send the close message when archiving the channel.",
+        default=True,
+    )
+
+    def action_archive(self):
+        self.ensure_one()  # Only one wizard record should be active
+        for channel in self.channel_ids:
+            channel_member = self.env["discuss.channel.member"].search(
+                [
+                    ("partner_id", "=", self.env.user.partner_id.id),
+                    ("channel_id", "=", channel.id),
+                ],
+                limit=1,
+            )
+            channel_member._channel_fold("closed", 10000000)
+            channel.action_unfollow()
+
+        return {"type": "ir.actions.act_window_close"}

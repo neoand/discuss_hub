@@ -203,4 +203,48 @@
         parent="discuss_hub.menu_root"
         action="action_window_list_channels"
     />
+
+    <!-- team list view definition-->
+    <record model="ir.actions.act_window" id="action_window_list_team">
+        <field name="name">List Teams</field>
+        <field name="res_model">discuss_hub.routing_team</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+
+    <record model="ir.ui.view" id="discuss_hub_list_team">
+        <field name="name">discuss_hub Team List</field>
+        <field name="model">discuss_hub.routing_team</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name" />
+                <field name="team_member_ids" />
+            </list>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="discuss_hub_list_team_member">
+        <field name="name">discuss_hub Team List</field>
+        <field name="model">discuss_hub.routing_team_member</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="user_id" />
+                <field name="order" />
+                <field name="count" />
+            </list>
+        </field>
+    </record>
+
+    <record id="discuss_hub_action_view_list_team" model="ir.actions.act_window.view">
+        <field name="act_window_id" ref="action_window_list_team" />
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="discuss_hub_list_team" />
+        <field name="sequence" eval="1" />
+    </record>
+
+    <menuitem
+        name="Teams"
+        id="discuss_hub.routing_team"
+        parent="discuss_hub.menu_root"
+        action="action_window_list_team"
+    />
 </odoo>

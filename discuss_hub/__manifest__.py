@@ -21,6 +21,7 @@
         "datas/base_automation.xml",
         # wizards
         "wizard/mail_discuss_channel_forward.xml",
+        "wizard/mail_discuss_channel_archive.xml",
     ],
     "assets": {
         "web.assets_backend": [

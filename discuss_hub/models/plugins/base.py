@@ -151,6 +151,10 @@ class Plugin:
         )
         # alert bus of new group
         channel._broadcast(channel.channel_member_ids.partner_id.ids)
+        # unfold the chat for members
+        # TODO: Make it optional
+        for member in channel.channel_member_ids:
+            member._channel_fold("open", 1)
         return channel
 
     def get_or_create_partner(
