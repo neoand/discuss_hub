@@ -971,7 +971,8 @@ class Plugin(PluginBase):
                 ],
                 limit=1,
             )
-            channel_member._mark_as_read(message.id, sync=True)
+            if channel_member and message:
+                channel_member._mark_as_read(message.id, sync=True)
 
             _logger.info(
                 "action:process_payload"

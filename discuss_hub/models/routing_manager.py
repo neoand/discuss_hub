@@ -203,6 +203,14 @@ class DiscussHubArchiveManager(models.TransientModel):
                 limit=1,
             )
             channel_member._channel_fold("closed", 10000000)
+            if self.send_close_message and self.close_message:
+                channel.message_post(
+                    author_id=self.env.user.partner_id.id,
+                    body=self.close_message,
+                    message_type="comment",
+                    subtype_xmlid="mail.mt_comment",
+                )
             channel.action_unfollow()
+            channel.action_archive()
 
         return {"type": "ir.actions.act_window_close"}
