@@ -14,6 +14,12 @@ class ResPartner(models.Model):
         compute="_compute_discuss_hub_count",
     )
 
+    bot = fields.Many2one(
+        comodel_name="discuss_hub.bot_manager",
+        string="Bot Manager",
+        help="Bot manager for this partner.",
+    )
+
     def _compute_discuss_hub_count(self):
         for rec in self:
             rec.discuss_hub_channel_count = 0

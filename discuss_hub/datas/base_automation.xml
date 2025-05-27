@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
     <!-- Messages -->
-    <record model="base.automation" id="rule_evo_outgo_message">
-        <field name="name">evo message outgo</field>
+    <record model="base.automation" id="rule_discuss_hub_outgo_message">
+        <field name="name">discuss_hub message outgo</field>
         <field name="model_id" ref="mail.model_discuss_channel" />
         <field name="active">1</field>
         <field name="trigger">on_message_sent</field>
-        <field name="filter_domain">[("discuss_hub.connector", "!=", False)]</field>
+        <field name="filter_domain">[("discuss_hub_connector", "!=", False)]</field>
     </record>
-    <record model="ir.actions.server" id="evo_outgo_message">
-        <field name="name">evo outgo message</field>
+    <record model="ir.actions.server" id="discuss_hub_outgo_message">
+        <field name="name">discuss_hub outgo message</field>
         <field name="model_id" ref="mail.model_discuss_channel" />
         <field name="sequence">1</field>
         <field name="type">ir.actions.server</field>
@@ -19,11 +19,11 @@ last_message = record.message_ids[0]
 _logger.info(f"automation_base: running outgo message ({last_message}) to {record}")
 record.discuss_hub_connector.outgo_message(channel=record, message=last_message)
         </field>
-        <field name="base_automation_id" ref="rule_evo_outgo_message" />
+        <field name="base_automation_id" ref="rule_discuss_hub_outgo_message" />
     </record>
     <!-- Reactions -->
-    <record model="base.automation" id="rule_evo_outgo_reaction">
-        <field name="name">evo reaction outgo</field>
+    <record model="base.automation" id="rule_discuss_hub_outgo_reaction">
+        <field name="name">discuss_hub reaction outgo</field>
         <field name="model_id" ref="mail.model_mail_message_reaction" />
         <field name="active">1</field>
         <field name="trigger">on_create_or_write</field>
@@ -31,8 +31,8 @@ record.discuss_hub_connector.outgo_message(channel=record, message=last_message)
             name="filter_domain"
         >[("message_id.discuss_hub_message_id", "!=", "")]</field>
     </record>
-    <record model="ir.actions.server" id="evo_outgo_reaction">
-        <field name="name">evo reaction outgo</field>
+    <record model="ir.actions.server" id="discuss_hub_outgo_reaction">
+        <field name="name">discuss_hub reaction outgo</field>
         <field name="model_id" ref="mail.model_mail_message_reaction" />
         <field name="sequence">1</field>
         <field name="type">ir.actions.server</field>
@@ -42,6 +42,6 @@ channel = env['discuss.channel'].search([('id', '=', record.message_id.res_id)])
 channel.discuss_hub_connector.outgo_reaction(channel, record.message_id, record)
 _logger.info(f"automation_base: connector:{channel.discuss_hub_connector} channel:{channel} reaction {record} to message {record.message_id}")
         </field>
-        <field name="base_automation_id" ref="rule_evo_outgo_reaction" />
+        <field name="base_automation_id" ref="rule_discuss_hub_outgo_reaction" />
     </record>
 </odoo>
