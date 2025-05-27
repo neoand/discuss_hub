@@ -42,7 +42,7 @@ class TestBasePlugin(HttpCase):
             ]
         )
         # add users to the team
-        first_user = users[0]
+        first_partner = users[0].partner_id
         self.env["discuss_hub.routing_team_member"].create(
             {
                 "team_id": team.id,
@@ -52,7 +52,7 @@ class TestBasePlugin(HttpCase):
             }
         )
         # add second user to team
-        second_user = users[1]
+        second_partner = users[1].partner_id
         self.env["discuss_hub.routing_team_member"].create(
             {
                 "team_id": team.id,
@@ -62,7 +62,7 @@ class TestBasePlugin(HttpCase):
             }
         )
         # add third user to team
-        third_user = users[2]
+        third_partner = users[2].partner_id
         self.env["discuss_hub.routing_team_member"].create(
             {
                 "team_id": team.id,
@@ -74,20 +74,20 @@ class TestBasePlugin(HttpCase):
         # first run, first user
         first_run = team.get_next_team_member()
         assert (
-            first_run == first_user
-        ), f"Expected {first_user.name}, got {first_run.name}"
+            first_run == first_partner
+        ), f"Expected {first_partner.name}, got {first_run.name}"
         # second run, second user
         second_run = team.get_next_team_member()
         assert (
-            second_run == second_user
-        ), f"Expected {second_user.name}, got {second_run.name}"
+            second_run == second_partner
+        ), f"Expected {second_partner.name}, got {second_run.name}"
         # third run, third user
         third_run = team.get_next_team_member()
         assert (
-            third_run == third_user
-        ), f"Expected {third_user.name}, got {third_run.name}"
+            third_run == third_partner
+        ), f"Expected {third_partner.name}, got {third_run.name}"
         # fourth run, first user again
         fourth_run = team.get_next_team_member()
         assert (
-            fourth_run == first_user
-        ), f"Expected {first_user.name}, got {fourth_run.name}"
+            fourth_run == first_partner
+        ), f"Expected {first_partner.name}, got {fourth_run.name}"
