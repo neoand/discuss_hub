@@ -44,6 +44,11 @@ class DiscussHubBotManager(models.Model):
         required=True,
         help="URL of the bot.",
     )
+    on_error_message = fields.Text(
+        default="An error occurred while processing your request. Please try again later.",
+        help="Message to send when an error occurs while processing a request.",
+    )
+    
 
     def outgo(self, channel, partner):
         """

@@ -418,8 +418,7 @@ class Plugin(PluginBase):
         """Get message ID from payload"""
         message_id = payload.get("data", {}).get("keyId")
         if not message_id:
-            return False
-
+            return payload.get("data", {}).get("key", {}).get("id")
         # Check if the message ID is a list
         if isinstance(message_id, list):
             message_id = message_id[0]
@@ -430,7 +429,7 @@ class Plugin(PluginBase):
         """Process new incoming messages"""
         data = payload.get("data", {})
         remote_jid = data.get("key", {}).get("remoteJid")
-        message_id = data.get("key", {}).get("id")
+        message_id = self.get_message_id(payload)
 
         if not remote_jid:
             return {
@@ -478,7 +477,6 @@ class Plugin(PluginBase):
 
         # Find or create channel
         channel = self.get_or_create_channel(partner, payload)
-        message_id = self.get_message_id(payload)
         if not channel:
             return {
                 "success": False,
@@ -501,7 +499,7 @@ class Plugin(PluginBase):
         # Process different message types
         message = data.get("message", {})
         if message.get("conversation"):
-            response = self.handle_text_message(data, channel, partner, message_id)
+            response = self.handle_text_message(payload, channel, partner)
 
         elif message.get("reactionMessage"):
             response = self.handle_reaction_message(data, channel, partner, message_id)
@@ -562,10 +560,12 @@ class Plugin(PluginBase):
         return image_base64
 
     def handle_text_message(
-        self, data, channel, partner, message_id, parent_message_id=None
+        self, payload, channel, partner, parent_message_id=None
     ):
         """Handle text messages"""
+        data = payload.get("data", {})
         body = data.get("message", {}).get("conversation")
+        message_id = self.get_message_id(payload)
 
         # if the channel is a group, prepend the name of the participant
         if data.get("key", {}).get("remoteJid").endswith("@g.us"):
@@ -607,9 +607,9 @@ class Plugin(PluginBase):
         message.write({"discuss_hub_message_id": message_id})
 
         _logger.info(
-            f"action:process_payload event:message.upsert({message_id}) new message at"
+            f"action:process_payload event:message.upsert.text({message_id})  "
             + f"{channel} for connector {self} and "
-            + f"remote_jid:{data.get('key', {}).get('remoteJid')}: {message}"
+            + f"contact_identifier:{self.get_contact_identifier(payload)}: {message}"
         )
 
         return {
@@ -698,7 +698,7 @@ class Plugin(PluginBase):
         message.write({"discuss_hub_message_id": message_id})
 
         _logger.info(
-            f"action:process_payload event:message.upsert({message_id}) "
+            f"action:process_payload event:message.upsert.image({message_id}) "
             + f"image message at {channel}"
         )
 
@@ -737,7 +737,7 @@ class Plugin(PluginBase):
         message.write({"discuss_hub_message_id": message_id})
 
         _logger.info(
-            f"action:process_payload event:message.upsert({message_id}) "
+            f"action:process_payload event:message.upsert.video({message_id}) "
             + f"videoMessage at {channel}"
         )
 
@@ -773,7 +773,7 @@ class Plugin(PluginBase):
         message.write({"discuss_hub_message_id": message_id})
 
         _logger.info(
-            f"action:process_payload event:message.upsert({message_id}) "
+            f"action:process_payload event:message.upsert.audio({message_id}) "
             + "audioMessage at {channel}"
         )
 
@@ -811,7 +811,7 @@ class Plugin(PluginBase):
         message.write({"discuss_hub_message_id": message_id})
 
         _logger.info(
-            f"action:process_payload event:message.upsert({message_id}) "
+            f"action:process_payload event:message.upsert.location({message_id}) "
             + f"locationMessage at {channel}"
         )
 
@@ -845,7 +845,7 @@ class Plugin(PluginBase):
         message.write({"discuss_hub_message_id": message_id})
 
         _logger.info(
-            f"action:process_payload event:message.upsert({message_id})"
+            f"action:process_payload event:message.upsert.document({message_id})"
             + f"documentMessage at {channel}"
         )
 
@@ -903,7 +903,7 @@ class Plugin(PluginBase):
         message.write({"discuss_hub_message_id": message_id})
 
         _logger.info(
-            f"action:process_payload event:message.upsert({message_id}) new message"
+            f"action:process_payload event:message.upsert.contact({message_id}) new message"
             + f" at {channel} for connector {self} "
             + f"and remote_jid:{data.get('key', {}).get('remoteJid')}: {message}"
         )
@@ -988,7 +988,7 @@ class Plugin(PluginBase):
                 "read_message": message.id,
                 "read_partner": partner.parent_id.id,
             }
-        elif not payload.get("data", {}).get("status"):
+        elif payload.get("data", {}).get("status") == "DELETED":
             # TODO: NOT WORKING.
             # CHECK HERE: https://github.com/EvolutionAPI/evolution-api/issues/1266
             # message was edited
@@ -1053,6 +1053,7 @@ class Plugin(PluginBase):
         channel = self.connector.env["discuss.channel"].browse(channel_id)
         # create a new message, using message as parent,
         # saying this message was deleted
+        # TODO: make this configurable
         body = "This message was deleted by the user"
         new_message = channel.message_post(
             author_id=self.connector.default_admin_partner_id.id,

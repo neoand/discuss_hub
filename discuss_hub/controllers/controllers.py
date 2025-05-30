@@ -55,7 +55,7 @@ class Evo(http.Controller):
             return response
         _logger.info(
             f"action incoming_payload connector {connector.id}:"
-            + f" payload {incoming_payload}"
+            + f" payload {json.dumps(incoming_payload)}"
         )
         response = connector.process_payload(incoming_payload)
         return Response(
