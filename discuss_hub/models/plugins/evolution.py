@@ -499,28 +499,29 @@ class Plugin(PluginBase):
             partner = self.connector.default_admin_partner_id
 
         # Process different message types
-        if data.get("message", {}).get("conversation"):
+        message = data.get("message", {})
+        if message.get("conversation"):
             response = self.handle_text_message(data, channel, partner, message_id)
 
-        elif data.get("message", {}).get("reactionMessage"):
+        elif message.get("reactionMessage"):
             response = self.handle_reaction_message(data, channel, partner, message_id)
 
-        elif data.get("message", {}).get("imageMessage"):
+        elif message.get("imageMessage") or message.get("stickerMessage"):
             response = self.handle_image_message(data, channel, partner, message_id)
 
-        elif data.get("message", {}).get("videoMessage"):
+        elif message.get("videoMessage"):
             response = self.handle_video_message(data, channel, partner, message_id)
 
-        elif data.get("message", {}).get("audioMessage"):
+        elif message.get("audioMessage"):
             response = self.handle_audio_message(data, channel, partner, message_id)
 
-        elif data.get("message", {}).get("locationMessage"):
+        elif message.get("locationMessage"):
             response = self.handle_location_message(data, channel, partner, message_id)
 
-        elif data.get("message", {}).get("documentMessage"):
+        elif message.get("documentMessage"):
             response = self.handle_document_message(data, channel, partner, message_id)
 
-        elif data.get("message", {}).get("contactMessage"):
+        elif message.get("contactMessage"):
             response = self.handle_contact_message(data, channel, partner, message_id)
 
         return response
