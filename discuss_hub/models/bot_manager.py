@@ -44,6 +44,11 @@ class DiscussHubBotManager(models.Model):
         required=True,
         help="URL of the bot.",
     )
+    bot_url_timeout = fields.Integer(
+        default=360,
+        help="Timeout for the bot URL in seconds.",
+        required=True
+    )
     on_error_message = fields.Text(
         default="An error occurred while processing your request. "
         + "Please try again later.",
@@ -60,7 +65,14 @@ class DiscussHubBotManager(models.Model):
         # Simulate sending a message to the bot
         _logger.info(f"Sending message to bot {self.bot_url}: {message} at {channel}")
         timed_out = False
+        message_audio_base64 = None
+        attachment_id = None
         if self.bot_type == "generic":
+            if message.attachment_ids and "audio" in message.attachment_ids[0].mimetype:
+                    attachment_id = message.attachment_ids[0].id
+                    message_audio_base64 = message.attachment_ids[0].datas.decode(
+                        "utf-8"
+                    )
             try:
                 request_data = requests.post(
                     self.bot_url,
@@ -68,9 +80,10 @@ class DiscussHubBotManager(models.Model):
                         "message_body": message.body,
                         "message_author_name": message.author_id.name,
                         "message_author_id": message.author_id.id,
+                        "message_audio_base64": message_audio_base64,
+                        "attachment_id": attachment_id,
                     },
-                    # TODO: make this configurable
-                    timeout=10,  # Set a timeout for the request
+                    timeout=self.bot_url_timeout,  # Set a timeout for the request
                 )
             except requests.Timeout as e:
                 _logger.error(

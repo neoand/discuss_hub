@@ -183,6 +183,7 @@ class Plugin(PluginBase):
         with the below filter and code:
             the code is available as a data import
         """
+        sent_message_id = None
         # Send text message
         if message.body:
             sent_message = self.send_text_message(channel, message)
@@ -192,7 +193,8 @@ class Plugin(PluginBase):
         if message.attachment_ids:
             sent_message = self.send_attachments(channel, message)
             sent_message_id = sent_message.json().get("key", {}).get("id")
-        message.write({"discuss_hub_message_id": sent_message_id})
+        if sent_message_id:
+            message.write({"discuss_hub_message_id": sent_message_id})
 
     def outgo_reaction(self, channel, message, reaction):
         """
