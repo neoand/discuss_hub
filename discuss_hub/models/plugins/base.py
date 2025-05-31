@@ -174,7 +174,8 @@ class Plugin:
             limit=1,
         )
         _logger.info(
-            f"action:get_or_create_partner for message_id ({self.get_message_id(payload)}) "
+            "action:get_or_create_partner"
+            + f"for message_id ({self.get_message_id(payload)}) "
             + f"found partner {partner} for connector {self.connector} "
             + f"and contact identifier :{contact_identifier}"
         )

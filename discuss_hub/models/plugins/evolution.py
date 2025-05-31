@@ -559,9 +559,7 @@ class Plugin(PluginBase):
 
         return image_base64
 
-    def handle_text_message(
-        self, payload, channel, partner, parent_message_id=None
-    ):
+    def handle_text_message(self, payload, channel, partner, parent_message_id=None):
         """Handle text messages"""
         data = payload.get("data", {})
         body = data.get("message", {}).get("conversation")
@@ -903,9 +901,10 @@ class Plugin(PluginBase):
         message.write({"discuss_hub_message_id": message_id})
 
         _logger.info(
-            f"action:process_payload event:message.upsert.contact({message_id}) new message"
-            + f" at {channel} for connector {self} "
-            + f"and remote_jid:{data.get('key', {}).get('remoteJid')}: {message}"
+            f"action:process_payload"
+            f" event:message.upsert.contact({message_id}) new message"
+            + f" at {channel} for connector {self}"
+            + f" and remote_jid:{data.get('key', {}).get('remoteJid')}: {message}"
         )
 
         return {
