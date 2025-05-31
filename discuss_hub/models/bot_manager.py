@@ -59,7 +59,7 @@ class DiscussHubBotManager(models.Model):
         message = channel.message_ids[0]
         # Simulate sending a message to the bot
         _logger.info(f"Sending message to bot {self.bot_url}: {message} at {channel}")
-
+        timed_out = False
         if self.bot_type == "generic":
             try:
                 request_data = requests.post(
@@ -76,12 +76,20 @@ class DiscussHubBotManager(models.Model):
                 _logger.error(
                     f"Timeout while sending message to bot {self.bot_url}: {e}"
                 )
-                return False
-            if request_data.status_code != 200:
+                timed_out = True
+            if request_data.status_code != 200 or timed_out or not request_data.content:
                 _logger.error(
                     f"Failed to send message to bot {self}: {request_data.text}"
                 )
-                return False
+                # sending default error message
+                error_message = channel.message_post(
+                    body=self.on_error_message,
+                    author_id=partner.id,
+                    message_type="comment",
+                    subtype_xmlid="mail.mt_comment",
+                )
+                channel.discuss_hub_connector.outgo_message(channel, error_message)
+                return True
 
             for received_message in request_data.json():
                 new_message = channel.message_post(
