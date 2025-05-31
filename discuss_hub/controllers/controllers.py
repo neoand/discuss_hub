@@ -42,6 +42,7 @@ class Evo(http.Controller):
             else:
                 # For form-encoded data
                 incoming_payload = http.request.params
+                incoming_payload["identifier"] = str(identifier)
         except json.decoder.JSONDecodeError:
             _logger.error(
                 f"action:json_decode_error identifier:{identifier},"

@@ -4,7 +4,7 @@ from odoo.tests import tagged
 from odoo.tests.common import HttpCase
 
 
-@tagged("discuss_hub", "controller")
+@tagged("discuss_hub", "discuss_hub_controller")
 class TestControllerActiveInactive(HttpCase):
     @classmethod
     def setUpClass(self):
