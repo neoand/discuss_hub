@@ -45,9 +45,7 @@ class DiscussHubBotManager(models.Model):
         help="URL of the bot.",
     )
     bot_url_timeout = fields.Integer(
-        default=360,
-        help="Timeout for the bot URL in seconds.",
-        required=True
+        default=360, help="Timeout for the bot URL in seconds.", required=True
     )
     on_error_message = fields.Text(
         default="An error occurred while processing your request. "
@@ -69,10 +67,8 @@ class DiscussHubBotManager(models.Model):
         attachment_id = None
         if self.bot_type == "generic":
             if message.attachment_ids and "audio" in message.attachment_ids[0].mimetype:
-                    attachment_id = message.attachment_ids[0].id
-                    message_audio_base64 = message.attachment_ids[0].datas.decode(
-                        "utf-8"
-                    )
+                attachment_id = message.attachment_ids[0].id
+                message_audio_base64 = message.attachment_ids[0].datas.decode("utf-8")
             try:
                 request_data = requests.post(
                     self.bot_url,

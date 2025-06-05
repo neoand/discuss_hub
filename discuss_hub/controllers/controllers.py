@@ -14,7 +14,7 @@ class Evo(http.Controller):
         "/discuss_hub/connector/<uuid:identifier>",
         auth="public",
         csrf=False,
-        methods=["POST"],
+        methods=["POST", "GET"],
         type="http",
     )
     def index(self, identifier: uuid.UUID, **kw):
@@ -59,6 +59,12 @@ class Evo(http.Controller):
             + f" payload {json.dumps(incoming_payload)}"
         )
         response = connector.process_payload(incoming_payload)
-        return Response(
-            json.dumps(response), headers={"Content-Type": "application/json"}
-        )
+        if isinstance(response, Response):
+            # If the response is already a Response object, return it directly
+            return response
+        else:
+            # If the response is a dictionary, convert it to JSON
+            return Response(
+                json.dumps(response),
+                headers={"Content-Type": "application/json"},
+            )

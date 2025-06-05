@@ -40,9 +40,10 @@ class DiscussHubConnector(models.Model):
     type = fields.Selection(
         [
             ("base", "Base Plugin"),
-            ("example", "Exmample Plugin"),
+            ("example", "Example Plugin"),
             ("evolution", "Evolution"),
             ("notificame", "NotificaMe"),
+            ("whatsapp_cloud", "Whatsapp Cloud"),
         ],
         default="evolution",
         required=True,
@@ -74,6 +75,12 @@ class DiscussHubConnector(models.Model):
     channels_total = fields.Integer(
         string="Total Channels", compute="_compute_channels_total", store=False
     )
+    # TODO: implement ignore partners
+    ignore_partners = fields.Many2many(
+        comodel_name="res.partner",
+        help="Partners to ignore in the connector",
+        relation="discuss_hub_connector_ignore_partners",
+    )
     status = fields.Selection(
         [
             ("open", "Open"),
@@ -87,6 +94,11 @@ class DiscussHubConnector(models.Model):
         required=False,
         store=False,
     )
+    # WHATSAPP CLOUD SPECIFIC PROPERTIES
+    verify_token = fields.Char(
+        help="The challenge code for WhatsApp Cloud verification",
+    )
+    # QR CODE BASE CONNECTORS
     qr_code_base64 = fields.Text(compute="_compute_status", store=False)
 
     def action_send_msg(self):
@@ -226,11 +238,11 @@ class DiscussHubConnector(models.Model):
         from the channel base automation and pass it over to the connector
         """
         if not self.enabled:
-            # improve log saying channel and message
-            _logger.warning(f"action:outgo_message connector {self} is not active")
-            return
-        if not channel or not message:
-            _logger.error("Missing channel or message in outgo_message")
+            _logger.warning(
+                f"action:outgo_message connector {self} is not active or not found "
+                f"for channel {channel.name if channel else 'None'} and message "
+                f"{message.id if message else 'None'}"
+            )
             return
         plugin = self.get_plugin()
         return plugin.outgo_message(channel, message)
@@ -243,8 +255,11 @@ class DiscussHubConnector(models.Model):
         the code is available as a data import
         """
         if not self.enabled:
-            # improve log saying channel and message
-            _logger.warning(f"action:outgo_message connector {self} is not active")
+            _logger.warning(
+                f"action:outgo_message.reaction connector {self} inactive or not found "
+                f"for channel {channel.name if channel else 'None'} and message "
+                f"{message.id if message else 'None'}"
+            )
             return
         if not channel or not message or not reaction:
             _logger.error("Missing channel, message or reaction in outgo_reaction")
