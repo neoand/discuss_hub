@@ -90,3 +90,5 @@ curl --request POST \
      }
 }'
 ```
+
+Thanks to: [ngrok](https://ngrok.com/), [Comunidade Mundo Automatik](https://www.youtube.com/@mundoautomatik)
