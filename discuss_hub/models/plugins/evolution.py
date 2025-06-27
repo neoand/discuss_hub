@@ -2,10 +2,12 @@ import base64
 import json
 import logging
 import time
+import os
 
 import requests
 from jinja2 import Template
 from markupsafe import Markup
+from urllib.parse import urljoin
 
 from .base import Plugin as PluginBase
 
@@ -22,20 +24,94 @@ class Plugin(PluginBase):
         # Save custom parameter
         self.connector = connector
         self.session = self.get_requests_session()
+        self.evolution_url = self.get_evolution_url()
 
     # MANAGEMENT / HELPERS
 
     def get_status(self):
         """Get the status of the connector"""
-        url = f"{self.connector.url}/instance/connect/{self.connector.name}"
+        url = f"{self.evolution_url}/instance/connect/{self.connector.name}"
         qrcode = None
         try:
             query = self.session.get(url, timeout=10)
             if query.status_code == 404:
                 status = "not_found"
+                # try to create
+                # define the base_url if not provided
+                if not os.getenv("DISCUSS_HUB_INTERNAL_HOST"):
+                    base_url = self.connector.env['ir.config_parameter'].sudo(
+                        ).get_param('web.base.url')
+                else:
+                    # if DISCUSS_HUB_INTERNAL_HOST is set, use it
+                    # this way, it will use the provided URL to add as the webhook
+                    base_url = os.getenv("DISCUSS_HUB_INTERNAL_HOST")
+                connector_url = urljoin(
+                    base_url,
+                    f"discuss_hub/connector/{self.connector.uuid}",
+                )
+                create_instance_url = f"{self.evolution_url}/instance/create"
+                payload = {
+                    "instanceName": self.connector.name,
+                    "qrcode": True,
+                    "rejectCall": False,
+                    "msgCall": "",
+                    "groupsIgnore": False,
+                    "alwaysOnline": True,
+                    "readMessages": False,
+                    "readStatus": True,
+                    "syncFullHistory": True,                    
+                    "integration": "WHATSAPP-BAILEYS",
+                    "webhook": {
+                            "url": connector_url,
+                            "base64": True,
+                        "events": [
+                            "APPLICATION_STARTUP",
+                            "CALL",
+                            "CHATS_DELETE",
+                            "CHATS_SET",
+                            "CHATS_UPDATE",
+                            "CHATS_UPSERT",
+                            "CONNECTION_UPDATE",
+                            "CONTACTS_SET",
+                            "CONTACTS_UPDATE",
+                            "CONTACTS_UPSERT",
+                            "GROUP_PARTICIPANTS_UPDATE",
+                            "GROUP_UPDATE",
+                            "GROUPS_UPSERT",
+                            "LABELS_ASSOCIATION",
+                            "LABELS_EDIT",
+                            "LOGOUT_INSTANCE",
+                            "MESSAGES_DELETE",
+                            "MESSAGES_SET",
+                            "MESSAGES_UPDATE",
+                            "MESSAGES_UPSERT",
+                            "PRESENCE_UPDATE",
+                            "QRCODE_UPDATED",
+                            "REMOVE_INSTANCE",
+                            "SEND_MESSAGE",
+                            "TYPEBOT_CHANGE_STATUS",
+                            "TYPEBOT_START",
+                            "TYPEBOT_STOP",
+                        ]
+                    }
+                }
+                create_query = self.session.post(create_instance_url, json=payload, timeout=10)
+                # retry the query
+                if create_query.status_code == 200:
+                    logging.info(
+                       f"EVOLUTION: Created instance after not found response: {create_query.status_code} - {create_query.json()}"
+                    )
+                    return self.get_status()
+                else:
+                    logging.warning(
+                        f"EVOLUTION: Failed to create instance after not found response: {create_query.status_code} - {create_query.text}" +
+                        f" Payload: {json.dumps(payload)}"
+                    )
+                
             elif query.status_code == 401:
                 status = "unauthorized"
-            else:
+            
+            if query.status_code == 200:
                 qrcode_base64 = query.json().get("base64", None)
                 if qrcode_base64:
                     status = "qr_code"
@@ -119,8 +195,19 @@ class Plugin(PluginBase):
     def get_requests_session(self):
         """Get a requests session with the connector's API key"""
         session = requests.Session()
-        session.headers.update({"apikey": self.connector.api_key})
+        apikey = os.getenv("DISCUSS_HUB_EVOLUTION_APIKEY")
+        if self.connector.api_key:
+            apikey = self.connector.api_key
+        session.headers.update({"apikey": apikey})
         return session
+
+    def get_evolution_url(self):
+        """Get the evolution URL"""
+        if self.connector.url:
+            evolution_url = self.connector.url
+        else:
+            evolution_url = os.getenv("DISCUSS_HUB_EVOLUTION_URL", "http://evolution:8080")
+        return evolution_url
 
     def get_message_by_id(self, payload):
         """Get message by ID"""
@@ -128,7 +215,7 @@ class Plugin(PluginBase):
         if not message_id:
             return False
 
-        image_url_api = f"{self.connector.url}/chat/findMessages/{self.connector.name}"
+        image_url_api = f"{self.evolution_url}/chat/findMessages/{self.connector.name}"
         payload_to_send = {"where": {"key": {"id": message_id}}}
         response = self.session.post(
             image_url_api,
@@ -146,7 +233,7 @@ class Plugin(PluginBase):
 
     def restart_instance(self):
         """restart connector"""
-        url = f"{self.connector.url}/instance/restart/{self.connector.name}"
+        url = f"{self.evolution_url}/instance/restart/{self.connector.name}"
         try:
             query = self.session.post(url, timeout=10)
             if query.status_code == 404:
@@ -162,7 +249,7 @@ class Plugin(PluginBase):
 
     def logout_instance(self):
         """Get the status of the connector"""
-        url = f"{self.connector.url}/instance/logout/{self.connector.name}"
+        url = f"{self.evolution_url}/instance/logout/{self.connector.name}"
         try:
             query = self.session.delete(url, timeout=10)
             if query.status_code == 404:
@@ -214,7 +301,7 @@ class Plugin(PluginBase):
             "reaction": reaction.content,
         }
         name = channel.discuss_hub_connector.name
-        url = f"{self.connector.url}/message/sendReaction/{name}"
+        url = f"{self.evolution_url}/message/sendReaction/{name}"
 
         try:
             response = self.session.post(url, json=payload, timeout=10)
@@ -227,7 +314,12 @@ class Plugin(PluginBase):
 
     def get_contact_name(self, payload):
         """Get the contact name from the payload"""
-        return payload.get("data", {}).get("pushName", False)
+        pushname =  payload.get("data", {}).get("pushName", False)
+        if not pushname:
+            pushname =  payload.get("pushName", False)
+            if not pushname:
+                pushname = self.get_contact_identifier(payload)
+        return pushname
 
     def get_contact_identifier(self, payload):
         """Get the contact identifier from the payload"""
@@ -235,7 +327,9 @@ class Plugin(PluginBase):
         if not remote_jid:
             remote_jid = payload.get("data", {}).get("remoteJid")
             if not remote_jid:
-                return False
+                # this could be contacts upsert
+                remote_jid = payload.get("remoteJid")
+
 
         whatsapp_number = remote_jid.split("@")[0].split(":")[0]
 
@@ -301,7 +395,7 @@ class Plugin(PluginBase):
                     "key": {"id": quoted_message.discuss_hub_message_id},
                 }
                 payload["quoted"] = quoted
-        base_url = self.connector.url
+        base_url = self.evolution_url
         url = f"{base_url}/message/sendText/{channel.discuss_hub_connector.name}"
 
         try:
@@ -327,7 +421,7 @@ class Plugin(PluginBase):
 
     def send_attachments(self, channel, message):
         """Send message attachments to WhatsApp"""
-        base_url = self.connector.url
+        base_url = self.evolution_url
         url = f"{base_url}/message/sendMedia/{channel.discuss_hub_connector.name}"
 
         for attachment in message.attachment_ids:
@@ -531,13 +625,12 @@ class Plugin(PluginBase):
         image_base64 = None
         # First try to get profile URL from contact data
         image_url = payload.get("data", {}).get("profilePicUrl")
-        instance = payload.get("instance")
         contact_identifier = self.get_contact_identifier(payload)
         # If not available, fetch from API
-        if not image_url and instance:
+        if not image_url:
             try:
                 image_url_api = (
-                    f"{self.connector.url}/chat/fetchProfilePictureUrl/{instance}"
+                    f"{self.evolution_url}/chat/fetchProfilePictureUrl/{self.connector.name}"
                 )
                 response = self.session.post(
                     image_url_api,
@@ -551,6 +644,7 @@ class Plugin(PluginBase):
                 _logger.error(f"Error fetching profile picture URL: {str(e)}")
 
         # Download and save profile picture
+        _logger.debug(f"Getting profile picture base64 for {contact_identifier} at {image_url}")
         if image_url:
             try:
                 response = requests.get(image_url, timeout=5)

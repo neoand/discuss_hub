@@ -174,7 +174,7 @@ class Plugin:
             limit=1,
         )
         _logger.info(
-            "action:get_or_create_partner"
+            "action:get_or_create_partner "
             + f"for message_id ({self.get_message_id(payload)}) "
             + f"found partner {partner} for connector {self.connector} "
             + f"and contact identifier :{contact_identifier}"
@@ -212,6 +212,8 @@ class Plugin:
             # We already have the partner
             partner_contact = partner[0]
             parent_partner = partner_contact.parent_id
+        
+        # TODO: Update contact name if changed
 
         # Update profile picture if enabled
         if update_profile_picture and (
