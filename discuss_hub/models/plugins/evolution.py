@@ -1,13 +1,13 @@
 import base64
 import json
 import logging
-import time
 import os
+import time
+from urllib.parse import urljoin
 
 import requests
 from jinja2 import Template
 from markupsafe import Markup
-from urllib.parse import urljoin
 
 from .base import Plugin as PluginBase
 
@@ -39,8 +39,11 @@ class Plugin(PluginBase):
                 # try to create
                 # define the base_url if not provided
                 if not os.getenv("DISCUSS_HUB_INTERNAL_HOST"):
-                    base_url = self.connector.env['ir.config_parameter'].sudo(
-                        ).get_param('web.base.url')
+                    base_url = (
+                        self.connector.env["ir.config_parameter"]
+                        .sudo()
+                        .get_param("web.base.url")
+                    )
                 else:
                     # if DISCUSS_HUB_INTERNAL_HOST is set, use it
                     # this way, it will use the provided URL to add as the webhook
@@ -59,11 +62,11 @@ class Plugin(PluginBase):
                     "alwaysOnline": True,
                     "readMessages": False,
                     "readStatus": True,
-                    "syncFullHistory": True,                    
+                    "syncFullHistory": True,
                     "integration": "WHATSAPP-BAILEYS",
                     "webhook": {
-                            "url": connector_url,
-                            "base64": True,
+                        "url": connector_url,
+                        "base64": True,
                         "events": [
                             "APPLICATION_STARTUP",
                             "CALL",
@@ -92,25 +95,29 @@ class Plugin(PluginBase):
                             "TYPEBOT_CHANGE_STATUS",
                             "TYPEBOT_START",
                             "TYPEBOT_STOP",
-                        ]
-                    }
+                        ],
+                    },
                 }
-                create_query = self.session.post(create_instance_url, json=payload, timeout=10)
+                create_query = self.session.post(
+                    create_instance_url, json=payload, timeout=10
+                )
                 # retry the query
                 if create_query.status_code == 200:
                     logging.info(
-                       f"EVOLUTION: Created instance after not found response: {create_query.status_code} - {create_query.json()}"
+                        "EVOLUTION: Created instance after not found response:"
+                        + f"{create_query.status_code} - {create_query.json()}"
                     )
                     return self.get_status()
                 else:
                     logging.warning(
-                        f"EVOLUTION: Failed to create instance after not found response: {create_query.status_code} - {create_query.text}" +
-                        f" Payload: {json.dumps(payload)}"
+                        "EVOLUTION: Failed to create instance after not found "
+                        + "f response: {create_query.status_code} - {create_query.text}"
+                        + f" Payload: {json.dumps(payload)}"
                     )
-                
+
             elif query.status_code == 401:
                 status = "unauthorized"
-            
+
             if query.status_code == 200:
                 qrcode_base64 = query.json().get("base64", None)
                 if qrcode_base64:
@@ -206,7 +213,9 @@ class Plugin(PluginBase):
         if self.connector.url:
             evolution_url = self.connector.url
         else:
-            evolution_url = os.getenv("DISCUSS_HUB_EVOLUTION_URL", "http://evolution:8080")
+            evolution_url = os.getenv(
+                "DISCUSS_HUB_EVOLUTION_URL", "http://evolution:8080"
+            )
         return evolution_url
 
     def get_message_by_id(self, payload):
@@ -314,9 +323,9 @@ class Plugin(PluginBase):
 
     def get_contact_name(self, payload):
         """Get the contact name from the payload"""
-        pushname =  payload.get("data", {}).get("pushName", False)
+        pushname = payload.get("data", {}).get("pushName", False)
         if not pushname:
-            pushname =  payload.get("pushName", False)
+            pushname = payload.get("pushName", False)
             if not pushname:
                 pushname = self.get_contact_identifier(payload)
         return pushname
@@ -329,7 +338,6 @@ class Plugin(PluginBase):
             if not remote_jid:
                 # this could be contacts upsert
                 remote_jid = payload.get("remoteJid")
-
 
         whatsapp_number = remote_jid.split("@")[0].split(":")[0]
 
@@ -629,9 +637,8 @@ class Plugin(PluginBase):
         # If not available, fetch from API
         if not image_url:
             try:
-                image_url_api = (
-                    f"{self.evolution_url}/chat/fetchProfilePictureUrl/{self.connector.name}"
-                )
+                image_url_api = f"{self.evolution_url}/chat/fetchProfilePictureUrl/"
+                image_url_api += self.connector.name
                 response = self.session.post(
                     image_url_api,
                     json={"number": contact_identifier},
@@ -644,7 +651,9 @@ class Plugin(PluginBase):
                 _logger.error(f"Error fetching profile picture URL: {str(e)}")
 
         # Download and save profile picture
-        _logger.debug(f"Getting profile picture base64 for {contact_identifier} at {image_url}")
+        _logger.debug(
+            f"Getting profile picture base64 for {contact_identifier} at {image_url}"
+        )
         if image_url:
             try:
                 response = requests.get(image_url, timeout=5)

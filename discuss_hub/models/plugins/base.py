@@ -212,7 +212,7 @@ class Plugin:
             # We already have the partner
             partner_contact = partner[0]
             parent_partner = partner_contact.parent_id
-        
+
         # TODO: Update contact name if changed
 
         # Update profile picture if enabled

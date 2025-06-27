@@ -1,16 +1,14 @@
-import logging
-import requests
-from werkzeug.wrappers import Response
 import base64
 import io
-from .base import Plugin as PluginBase
+import logging
+
+import requests
 from markupsafe import Markup
+from werkzeug.wrappers import Response
+
+from .base import Plugin as PluginBase
+
 _logger = logging.getLogger(__name__)
-
-
-# response when window is closed
-#{"messaging_product":"whatsapp","contacts":[{"input":"553199851271","wa_id":"553199851271"}],"messages":[{"id":"wamid.HBgMNTUzMTk5ODUxMjcxFQIAERgSNjgyQkMzRkQ5NDcwOUI3RENGAA=="}]}
-
 
 
 class Plugin(PluginBase):
@@ -27,17 +25,18 @@ class Plugin(PluginBase):
     def get_requests_session(self):
         """Get a requests session with the connector's API key"""
         session = requests.Session()
-        session.headers.update(
-            {"Authorization": f"Bearer {self.connector.api_key}"})
+        session.headers.update({"Authorization": f"Bearer {self.connector.api_key}"})
         return session
 
     def process_administrative_payload(self, payload):
         """
-        Process administrative payloads, such as status updates or re-engagement messages.
-        This method can be overridden by the plugin to handle specific administrative tasks.
+        Process administrative payloads, such as status updates
+        or re-engagement messages.
+        This method can be overridden by the plugin
+        to handle specific administrative tasks.
         """
         _logger.info(
-            f"action:process_administrative_payload event:administrative "
+            "action:process_administrative_payload event:administrative "
             + f"payload: {payload}"
         )
         if not self.connector.manager_channel:
@@ -58,7 +57,7 @@ class Plugin(PluginBase):
                     message_type="comment",
                     subtype_xmlid="mail.mt_comment",
                     attachments=attachments,
-            )
+                )
         # Default response
         return {
             "success": True,
@@ -89,7 +88,7 @@ class Plugin(PluginBase):
                     if change.get("field") == "message_template_status_update":
                         # this can be for example approval or rejection of a template
                         return self.process_administrative_payload(payload)
-                        
+
                     # set the payload as the change
                     payload = change
                     # get the message id
@@ -142,11 +141,15 @@ class Plugin(PluginBase):
                         # Post message
                         quoted_message_id = None
                         body = (
-                            change.get("value").get("messages")[0].get(
-                                "text", {}).get("body", None)
+                            change.get("value")
+                            .get("messages")[0]
+                            .get("text", {})
+                            .get("body", None)
                         )
 
-                        author = partner.parent_id.id if partner.parent_id else partner.id
+                        author = (
+                            partner.parent_id.id if partner.parent_id else partner.id
+                        )
                         new_message = channel.message_post(
                             parent_id=quoted_message_id,  # this can be used for replies
                             author_id=author,
@@ -157,18 +160,19 @@ class Plugin(PluginBase):
                         )
                         response["new_message_id"] = new_message.id
                         response["event"] = "messages.text.create"
-                        # now we need to register the discuss_hub_message_id on that message
-                        # Update message with reference
-                        new_message.write(
-                            {"discuss_hub_message_id": message_id})
+                        # now we need to register the discuss_hub_message_id
+                        # on that message Update message with reference
+                        new_message.write({"discuss_hub_message_id": message_id})
 
                     elif change.get("value").get("statuses"):
                         for status in change.get("value").get("statuses"):
                             if status.get("status") == "read":
                                 # This is a read receipt
                                 _logger.info(
-                                    f"action:process_payload event:messages.update.mark_read "
-                                    + f"message_id: {message_id} for channel {channel_name}"
+                                    "action:process_payload "
+                                    + "event:messages.update.mark_read "
+                                    + f"message_id: {
+                                        message_id} for channel {channel_name}"
                                 )
                                 # Mark message as read
                                 return self.mark_last_read(change)
@@ -176,11 +180,14 @@ class Plugin(PluginBase):
                                 # failed message. ex: re-engagement
                                 for error in status.get("errors", []):
                                     # This is an error status
-                                    #TODO: here we only except one error per request
+                                    # TODO: here we only except one error per request
                                     _logger.error(
-                                        f"action:process_payload event:messages.update.error "
-                                        + f"message_id: {message_id} for channel {channel_name} "
-                                        + f"error: {error.get('code')} - {error.get('title')}"
+                                        "action:process_payload "
+                                        + "event:messages.update.error"
+                                        + +f"message_id: {message_id} for channel {
+                                            channel_name}"
+                                        + f"error: {
+                                            error.get('code')} - {error.get('title')}"
                                     )
                                     return {
                                         "success": False,
@@ -190,16 +197,19 @@ class Plugin(PluginBase):
                                         "error_code": error.get("code"),
                                     }
                                 _logger.warning(
-                                    f"action:process_payload event:messages.update.error ")
+                                    "action:process_payload event:messages.update.error"
+                                )
                     else:
                         # Handle other message types
                         _logger.warning(
-                            f"Unknown message type: {payload.get('message_type')}")
+                            f"Unknown message type: {payload.get('message_type')}"
+                        )
+                        error_m = f"Unknown message type: {payload.get('message_type')}"
                         return {
                             "success": False,
                             "action": "process_payload",
                             "event": "uknown / not handled",
-                            "error": f"Unknown message type: {payload.get('message_type')}",
+                            "error": error_m,
                         }
 
         return response
@@ -218,21 +228,17 @@ class Plugin(PluginBase):
 
     def get_contact_name(self, payload=None):
         # Extract contact name from payload
-        contact_info = (
-            payload.get("value", {}).get("contacts", [])
-        )
+        contact_info = payload.get("value", {}).get("contacts", [])
         if contact_info:
             return contact_info[0].get("profile", {}).get("name", "Unknown Contact")
         return "Unknown Contact"
 
     def get_contact_identifier(self, payload=None):
         # Extract unique identifier from payload
-        waid = payload.get("value").get("contacts", [{}])[
-            0].get("wa_id", False)
+        waid = payload.get("value").get("contacts", [{}])[0].get("wa_id", False)
         if not waid:
             # Fallback to phone number if wa_id is not available
-            waid = payload.get("value").get("statuses")[
-                0].get("recipient_id", False)
+            waid = payload.get("value").get("statuses")[0].get("recipient_id", False)
         return waid
 
     def get_profile_picture(self, payload=None):
@@ -333,8 +339,7 @@ class Plugin(PluginBase):
         if message.body:
             sent_message = self.send_text_message(channel, message)
             if sent_message:
-                sent_message_id = sent_message.json().get("messages")[
-                    0].get("id")
+                sent_message_id = sent_message.json().get("messages")[0].get("id")
             else:
                 return False
 
@@ -343,7 +348,7 @@ class Plugin(PluginBase):
             sent_message = self.send_attachments(channel, message)
             if sent_message:
                 sent_message_id = sent_message.json().get("messages", [{}])[0].get("id")
-            else: 
+            else:
                 return False
 
         if sent_message_id:
@@ -366,7 +371,7 @@ class Plugin(PluginBase):
             "text": {
                 # "preview_url": <ENABLE_LINK_PREVIEW>,
                 "body": body
-            }
+            },
         }
         # if message.parent_id:
         #     quoted_message = self.connector.env["mail.message"].search(
@@ -384,11 +389,7 @@ class Plugin(PluginBase):
             base_url += "/"
         url = f"{base_url}messages/"
         try:
-            response = self.session.post(
-                url,
-                json=payload,
-                timeout=10
-            )
+            response = self.session.post(url, json=payload, timeout=10)
             if response.status_code == 200:
                 sent_message_id = response.json().get("messages")[0].get("id")
                 message.write({"discuss_hub_message_id": sent_message_id})
@@ -420,12 +421,8 @@ class Plugin(PluginBase):
             file_like_object = io.BytesIO(decoded_bytes)
             mediatype = attachment.index_content
             filename = "audio.ogg" if mediatype == "audio" else attachment.name
-            files = {
-                "file": (filename, file_like_object, attachment.mimetype)
-            }
-            data = {
-                'messaging_product': 'whatsapp'
-            }
+            files = {"file": (filename, file_like_object, attachment.mimetype)}
+            data = {"messaging_product": "whatsapp"}
             send_media_response = None
             send_text_response = None
             try:
@@ -445,7 +442,9 @@ class Plugin(PluginBase):
                 _logger.error(
                     f"Error sending media: {str(e)} "
                     + f"for attachment {attachment.id} in connector {self.connector} "
-                    + f"response: {send_media_response.text if send_media_response else 'N/A'}"
+                    + f"response: {
+                        send_media_response.text if send_media_response else 'N/A'
+                    }"
                 )
                 return False
             try:
@@ -455,20 +454,22 @@ class Plugin(PluginBase):
                     "to": channel.discuss_hub_outgoing_destination,
                     "type": "image",
                     "image": {
-                            "id": media_id,
-                            # "caption": attachment.name
-                    }
+                        "id": media_id,
+                        # "caption": attachment.name
+                    },
                 }
                 messages_url = f"{base_url}messages/"
                 send_attachment_response = self.session.post(
-                    messages_url,
-                    json=send_message_payload,
-                    timeout=10
+                    messages_url, json=send_message_payload, timeout=10
                 )
                 if send_attachment_response.status_code != 200:
                     _logger.error(
-                        f"Failed to send attachment: {send_attachment_response.status_code} - "
-                        + f"{send_attachment_response.text}; Payload: {send_message_payload}"
+                        f"Failed to send attachment: {
+                            send_attachment_response.status_code
+                        } - "
+                        + f"{
+                            send_attachment_response.text
+                        }; Payload: {send_message_payload}"
                         + f"messages url: {messages_url}"
                     )
                     return False
@@ -477,7 +478,9 @@ class Plugin(PluginBase):
                 _logger.error(
                     f"Error sending attachment: {str(e)} "
                     + f"for attachment {message.id} in connector {self.connector} "
-                    + f"responses: {send_media_response.text if send_media_response else 'N/A'}, "
+                    + f"responses: {
+                        send_media_response.text if send_media_response else 'N/A'
+                    }, "
                     + f"{send_text_response.text if send_text_response else 'N/A'} "
                     + f"media_id: {media_id}"
                 )
@@ -492,5 +495,3 @@ class Plugin(PluginBase):
         :param payload: The payload received from the webhook
         :return: A response dictionary with the status of the operation
         """
-        print("AQUI! REENGAGE!")
-        
