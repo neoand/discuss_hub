@@ -48,8 +48,8 @@ class DiscussHubConnector(models.Model):
         default="evolution",
         required=True,
     )
-    url = fields.Char(required=True)
-    api_key = fields.Char(required=True)
+    url = fields.Char(required=False)
+    api_key = fields.Char(required=False)
     manager_channel = fields.Many2many(comodel_name="discuss.channel")
     automatic_added_partners = fields.Many2many(comodel_name="res.partner")
     automatic_added_teams = fields.Many2many(comodel_name="discuss_hub.routing_team")
@@ -97,6 +97,9 @@ class DiscussHubConnector(models.Model):
     # WHATSAPP CLOUD SPECIFIC PROPERTIES
     verify_token = fields.Char(
         help="The challenge code for WhatsApp Cloud verification",
+    )
+    whatsapp_cloud_reengage_template = fields.Char(
+        help="Template to use for re-engaging with users on after chat window",
     )
     # QR CODE BASE CONNECTORS
     qr_code_base64 = fields.Text(compute="_compute_status", store=False)
