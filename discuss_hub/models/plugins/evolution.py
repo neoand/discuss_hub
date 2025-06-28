@@ -705,7 +705,7 @@ class Plugin(PluginBase):
         author = partner.parent_id.id if partner.parent_id else partner.id
 
         # Check if message is a reply
-        if data:
+        if data.get("contextInfo", False):
             quote = data.get("contextInfo", {}).get("quotedMessage")
         else:
             quote = None
