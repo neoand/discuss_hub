@@ -31,9 +31,9 @@ services:
       - ADMIN_PASSWORD=admin
       - SMTP_SERVER=mailpit
       - SMTP_PORT=1025
-      - EVOLUTION_URL=http://evolution:8080
-      - EVOLUTION_API_KEY=1369429683C4C977415CAAFCCE10F7D57E11
-      - EVOLUTION_ODOO_URL=http://odoo:8069
+      - DISCUSS_HUB_INTERNAL_HOST=http://odoo:8069
+      - DISCUSS_HUB_EVOLUTION_URL=http://evolution:8080
+      - DISCUSS_HUB_EVOLUTION_APIKEY=1369429683C4C977415CAAFCCE10F7D57E11
     volumes:
       - odoo_conf:/etc/odoo
       - odoo_data:/var/lib/odoo
