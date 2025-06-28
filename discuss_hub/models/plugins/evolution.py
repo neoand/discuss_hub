@@ -57,7 +57,6 @@ class Plugin(PluginBase):
                     "instanceName": self.connector.name,
                     "qrcode": True,
                     "rejectCall": False,
-                    "msgCall": "",
                     "groupsIgnore": False,
                     "alwaysOnline": True,
                     "readMessages": False,
@@ -81,20 +80,19 @@ class Plugin(PluginBase):
                             "GROUP_PARTICIPANTS_UPDATE",
                             "GROUP_UPDATE",
                             "GROUPS_UPSERT",
-                            "LABELS_ASSOCIATION",
-                            "LABELS_EDIT",
+                            # "LABELS_ASSOCIATION",
+                            # "LABELS_EDIT",
                             "LOGOUT_INSTANCE",
                             "MESSAGES_DELETE",
                             "MESSAGES_SET",
                             "MESSAGES_UPDATE",
                             "MESSAGES_UPSERT",
-                            "PRESENCE_UPDATE",
+                            # "PRESENCE_UPDATE",
                             "QRCODE_UPDATED",
                             "REMOVE_INSTANCE",
                             "SEND_MESSAGE",
-                            "TYPEBOT_CHANGE_STATUS",
-                            "TYPEBOT_START",
-                            "TYPEBOT_STOP",
+                            # "TYPEBOT_CHANGE_STATUS",
+                            # "TYPEBOT_START"
                         ],
                     },
                 }
@@ -111,7 +109,7 @@ class Plugin(PluginBase):
                 else:
                     logging.warning(
                         "EVOLUTION: Failed to create instance after not found "
-                        + "f response: {create_query.status_code} - {create_query.text}"
+                        + f" response: {create_query.status_code} - {create_query.text}"
                         + f" Payload: {json.dumps(payload)}"
                     )
 
@@ -358,6 +356,31 @@ class Plugin(PluginBase):
             name = f"Whatsapp: {contact_name} <{contact_identifier}>"
         return name
 
+    def sync_contacts(self, update_profile_picture=True):
+        """Sync contacts from Evolution API"""
+        # if json_storage evolution_contacts_upsert is empty, set it:
+        if not self.connector.evolution_contact_queue:
+            url = urljoin(
+                self.evolution_url, f"/chat/findContacts/{self.connector.name}"
+            )
+            contacts_request = self.session.post(url)
+            if contacts_request.status_code == 200:
+                self.connector.evolution_contact_queue = contacts_request.json()
+                self.connector.env.cr.commit()
+
+        for contact in self.connector.evolution_contact_queue:
+            # get or create partner
+            self.get_or_create_partner(
+                payload=contact, update_profile_picture=update_profile_picture
+            )
+            # remove from storage
+            current_state = self.connector.evolution_contact_queue
+            current_state.remove(contact)
+            self.connector.evolution_contact_queue = current_state
+            # force commit
+            self.connector.env.cr.commit()
+        return True
+
     # OUTCOMING
 
     def format_message_before_send(self, message):
@@ -497,14 +520,16 @@ class Plugin(PluginBase):
             response = self.process_messages_delete(payload)
 
         # Contacts Upsert after connection
-        elif event in ["contacts.upsert"] and self.connector.import_contacts:
-            response = self.process_contacts_upsert(payload)
+        elif event in ["contacts.upsert"]:
+            if self.connector.import_contacts:
+                response = self.process_contacts_upsert(payload)
 
         return response
 
     def process_contacts_upsert(self, payload):
         """Process contacts upsert events"""
         # Optimize by processing contacts in batches
+
         contacts = payload.get("data", [])
         processed_count = 0
 
@@ -545,7 +570,7 @@ class Plugin(PluginBase):
 
         # Handle Status Broadcast
         if remote_jid == "status@broadcast":
-            if not self.connector.allow_broadcast_messages:
+            if not self.connector.evolution_allow_broadcast_messages:
                 return {
                     "success": False,
                     "action": "process_payload",
@@ -680,7 +705,10 @@ class Plugin(PluginBase):
         author = partner.parent_id.id if partner.parent_id else partner.id
 
         # Check if message is a reply
-        quote = data.get("contextInfo", {}).get("quotedMessage")
+        if data:
+            quote = data.get("contextInfo", {}).get("quotedMessage")
+        else:
+            quote = None
         quoted_message = None
 
         if quote:

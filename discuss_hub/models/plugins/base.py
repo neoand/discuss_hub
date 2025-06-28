@@ -203,7 +203,7 @@ class Plugin:
             )
             partner = partner_contact
             _logger.info(
-                "action:created partner for payload"
+                f"action:created partner for payload {payload}"
                 + f"created partner {partner_contact} for connector {self.connector} "
                 + f"and contact identifier :{contact_identifier}"
                 + f" with parent {parent_partner}"

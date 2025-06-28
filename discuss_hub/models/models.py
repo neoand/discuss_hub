@@ -56,9 +56,6 @@ class DiscussHubConnector(models.Model):
     # Configuration options
     partner_contact_name = fields.Char(required=True, default="whatsapp")
     partner_contact_field = fields.Char(required=True, default="phone")
-    allow_broadcast_messages = fields.Boolean(
-        default=True, string="Allow Status Broadcast Messages"
-    )
     reopen_last_archived_channel = fields.Boolean(default=False)
     always_update_profile_picture = fields.Boolean(default=False)
     show_read_receipts = fields.Boolean(default=True)
@@ -93,6 +90,16 @@ class DiscussHubConnector(models.Model):
         default="closed",
         required=False,
         store=False,
+    )
+    # EVOLUTION SPECIFIC PROPERTIES
+    evolution_allow_broadcast_messages = fields.Boolean(
+        default=True, string="Allow Status Broadcast Messages"
+    )
+    evolution_contact_queue = fields.Json()
+    evolution_contacts_storage_count = fields.Integer(
+        string="Contacts Storage Count",
+        help="Number of contacts stored to sync in the connector",
+        compute="_compute_evolution_sync_queue",
     )
     # WHATSAPP CLOUD SPECIFIC PROPERTIES
     verify_token = fields.Char(
@@ -179,6 +186,19 @@ class DiscussHubConnector(models.Model):
             connector.last_message_date = (
                 last_message.write_date if last_message else None
             )
+
+    def _compute_evolution_sync_queue(self):
+        """Compute the number of contacts to sync in the evolution connector"""
+        for connector in self:
+            if connector.type == "evolution":
+                # Get the count of contacts to sync
+                connector.evolution_contacts_storage_count = len(
+                    self.evolution_contact_queue
+                    if connector.evolution_contact_queue
+                    else []
+                )
+            else:
+                connector.evolution_contacts_storage_count = 0
 
     def _compute_channels_total(self):
         for connector in self:
@@ -269,6 +289,10 @@ class DiscussHubConnector(models.Model):
             return
         plugin = self.get_plugin()
         return plugin.outgo_reaction(channel, message, reaction)
+
+    def sync_contacts(self):
+        plugin = self.get_plugin()
+        plugin.sync_contacts()
 
     # Routing
 

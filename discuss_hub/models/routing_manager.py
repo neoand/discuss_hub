@@ -27,12 +27,12 @@ class DiscussHubRoutingTeam(models.Model):
     )
     routing_strategy = fields.Selection(
         selection=[
-            ("least_busy", "Least Busy"),
+            # ("least_busy", "Least Busy"),
             ("round_robin", "Round Robin"),
             ("random", "random"),
         ],
         required=True,
-        default="least_busy",
+        default="round_robin",
         help="Select the routing strategy to be used.",
     )
     online_users_only = fields.Boolean(

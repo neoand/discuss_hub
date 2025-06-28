@@ -19,7 +19,7 @@
     </record>
 
     <!-- explicit kanban definition -->
-    <record id="test_model_view_kanban" model="ir.ui.view">
+    <record id="connector_model_view_kanban" model="ir.ui.view">
         <field name="name">discuss_hub.connector.view.kanban</field>
         <field name="model">discuss_hub.connector</field>
         <field name="arch" type="xml">
@@ -124,6 +124,82 @@
                     </t>
                 </templates>
             </kanban>
+        </field>
+    </record>
+
+    <!-- connector form -->
+
+    <record id="connector_model_view_form" model="ir.ui.view">
+        <field name="name">discuss_hub.connector.view.form</field>
+        <field name="model">discuss_hub.connector</field>
+        <field name="arch" type="xml">
+            <form string="Discuss Hub Connector">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="enabled" />
+                            <field name="name" />
+                            <field name="description" />
+                            <field name="type" />
+                            <field name="uuid" />
+                            <field name="url" />
+                            <field name="api_key" />
+                            <field name="text_message_template" />
+                            <field name="reopen_last_archived_channel" />
+                            <field name="always_update_profile_picture" />
+                            <field name="show_read_receipts" />
+                            <field name="notify_reactions" />
+                            <field name="import_contacts" />
+                        </group>
+                        <group>
+                            <field name="status" />
+
+                            <field name="manager_channel" widget="many2many_tags" />
+
+                            <field
+                                name="automatic_added_partners"
+                                widget="many2many_tags"
+                            />
+                            <field
+                                name="automatic_added_teams"
+                                widget="many2many_tags"
+                            />
+                            <field name="default_admin_partner_id" widget="many2one" />
+                            <field name="partner_contact_name" />
+                            <field name="partner_contact_field" />
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <!-- add a page for Evolution -->
+                        <page string="Evolution">
+                            <group>
+                                <field name="evolution_allow_broadcast_messages" />
+                                <button
+                                    type="object"
+                                    name="sync_contacts"
+                                    string="Sync Contacts"
+                                    class="btn btn-primary"
+                                />
+                                <field
+                                    name="evolution_contacts_storage_count"
+                                    string="Number of Contacts in Queue to Sync"
+                                />
+                            </group>
+                        </page>
+                        <!-- add a page for WhatsApp Cloud -->
+                        <page string="WhatsApp Cloud">
+                            <group>
+                                <field
+                                    name="verify_token"
+                                    string="Verify Token to WhatsApp"
+                                />
+                                <field name="whatsapp_cloud_reengage_template" />
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
         </field>
     </record>
 
