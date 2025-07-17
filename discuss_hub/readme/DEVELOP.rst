@@ -16,3 +16,15 @@ SKIP="oca-gen-addon-readme" pre-commit run --all-files --show-diff-on-failure --
 ```bash
 docker compose run --rm odoo odoo shell -d odoo
 ```
+
+# N8N
+
+to export N8N Flows:
+```
+docker compose exec -u node -it n8n sh -c "n8n export:workflow --all > /n8n-workflows.yaml"
+```
+
+and to import:
+```
+docker compose exec -u node -it n8n sh -c "n8n import:workflow --input=/n8n-workflows.yaml"
+```
