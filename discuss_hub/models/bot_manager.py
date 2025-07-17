@@ -1,5 +1,6 @@
-import logging
 import base64
+import logging
+
 import requests
 
 from odoo import fields, models
@@ -113,19 +114,21 @@ class DiscussHubBotManager(models.Model):
                             type = "video.mp4"
                         elif type == "pdf":
                             type = "application.pdf"
-                        try: 
+                        try:
                             decoded_data = base64.b64decode(content)
                             attachments.append((type, decoded_data))
                         except ValueError as e:
-                            _logger.warning(f"Failed to decode base64 content for {type}: {e}. IGNORING")
+                            _logger.warning(
+                                f"Failed to decode base64 content {type}: {e}. IGNORING"
+                            )
                             pass
-                        
+
                 new_message = channel.message_post(
                     body=received_message.get("text", ""),
                     author_id=partner.id,
                     message_type="comment",
                     subtype_xmlid="mail.mt_comment",
-                    attachments=attachments
+                    attachments=attachments,
                 )
                 channel.discuss_hub_connector.outgo_message(channel, new_message)
         return True

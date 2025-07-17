@@ -22,10 +22,10 @@
     <record id="view_partner_form_inherit_bot" model="ir.ui.view">
         <field name="name">res.partner.form.inherit.bot</field>
         <field name="model">res.partner</field>
-        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="inherit_id" ref="base.view_partner_form" />
         <field name="arch" type="xml">
             <xpath expr="//field[@name='category_id']" position="after">
-                <field name="bot"/>
+                <field name="bot" />
             </xpath>
         </field>
     </record>

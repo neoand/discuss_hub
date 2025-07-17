@@ -1,1 +1,408 @@
-[{"createdAt":"2025-07-17T21:04:34.685Z","updatedAt":"2025-07-17T22:35:23.000Z","id":"wmCwqcMIcf2j6plH","name":"ODOO_DISCUSS_HUB_N8N","active":true,"isArchived":false,"nodes":[{"parameters":{"method":"POST","url":"=http://botpress.dudanogueira.com.br/api/v1/bots/consultorio_bot/converse/author-demo","sendBody":true,"specifyBody":"json","jsonBody":"={   \"type\": \"text\",   \"text\": \"{{ $json.text }}\" }","options":{}},"id":"82fceae6-84e9-4e57-8ebd-d7ebd554893f","name":"ENVIA BOTPRESS","type":"n8n-nodes-base.httpRequest","typeVersion":4.1,"position":[544,272]},{"parameters":{"language":"python","pythonCode":"# Loop over input items and add a new field called 'myNewField' to the JSON of each one\nr = []\nfor item in _input.all():\n  for i in item.json[\"responses\"]:\n    r.append({i.get(\"type\"): i.get(\"text\")})\nreturn r"},"type":"n8n-nodes-base.code","typeVersion":2,"position":[832,272],"id":"60b9ba6c-b741-4d77-a588-0aafff87167f","name":"Code"},{"parameters":{"mode":"raw","jsonOutput":"={   \"type\": \"text\",   \"text\": \"{{ $json.body.message_body || 'attachment' }}\" }","options":{}},"type":"n8n-nodes-base.set","typeVersion":3.4,"position":[304,272],"id":"4fbd8053-d15a-4942-af4d-75ebf62f8128","name":"Edit Fields"},{"parameters":{"httpMethod":"POST","path":"discuss_hub/incoming/botpress","responseMode":"responseNode","options":{}},"type":"n8n-nodes-base.webhook","typeVersion":2,"position":[32,272],"id":"1f223bd2-8344-436e-83fc-e63d5c85fecd","name":"ENTRADA BOTPRESS","webhookId":"a5079071-6769-43f3-b9aa-8b2e911f707e"},{"parameters":{"respondWith":"allIncomingItems","options":{}},"type":"n8n-nodes-base.respondToWebhook","typeVersion":1.2,"position":[1024,272],"id":"4a0a55f3-1764-454a-963b-726a9c417efd","name":"Respond to Webhook"},{"parameters":{"content":"```\ncurl --request POST \\\n  --url http://localhost:5678/webhook-test/discuss_hub/incoming/botpress \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n  \"message_body\": \"\",\n  \"message_author_name\": \"Duda\",\n  \"message_author_id\": 7,\n  \"message_audio_base64\": null,\n  \"attachment_id\": null\n}'\n```","height":220,"width":780},"type":"n8n-nodes-base.stickyNote","typeVersion":1,"position":[0,0],"id":"febec40b-277c-4036-b641-fbc5e9ee462a","name":"Sticky Note"},{"parameters":{"httpMethod":"POST","path":"discuss_hub/incoming/debug","responseMode":"responseNode","options":{}},"type":"n8n-nodes-base.webhook","typeVersion":2,"position":[32,1088],"id":"65e80c15-acc0-40e4-8904-d29a03e7ffc9","name":"ENTRADA DEBUG","webhookId":"a5079071-6769-43f3-b9aa-8b2e911f707e"},{"parameters":{"operation":"binaryToPropery","options":{}},"type":"n8n-nodes-base.extractFromFile","typeVersion":1,"position":[704,944],"id":"534b5750-cbb8-428e-8761-77677e821792","name":"Extract from File"},{"parameters":{"url":"https://picsum.photos/200","options":{}},"type":"n8n-nodes-base.httpRequest","typeVersion":4.2,"position":[480,944],"id":"cf703c5c-c5b5-410e-a1d0-3ffbdb95ebe5","name":"HTTP Request FOR IMAGE"},{"parameters":{"content":"```\ncurl --request POST \\\n  --url http://localhost:5678/webhook-test/discuss_hub/incoming/debug \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n  \"message_body\": \"\",\n  \"message_author_name\": \"Duda\",\n  \"message_author_id\": 7,\n  \"message_audio_base64\": null,\n  \"attachment_id\": null\n}'\n```","height":220,"width":780},"type":"n8n-nodes-base.stickyNote","typeVersion":1,"position":[-48,688],"id":"0314d6e3-59a3-44dd-b828-d3cba4df0c47","name":"Sticky Note1"},{"parameters":{"respondWith":"allIncomingItems","options":{}},"type":"n8n-nodes-base.respondToWebhook","typeVersion":1.2,"position":[1424,1168],"id":"2edc3d98-1b3b-4d76-b705-ea0b3363fd7f","name":"Respond to Webhook1"},{"parameters":{"numberInputs":3},"type":"n8n-nodes-base.merge","typeVersion":3.1,"position":[1136,1168],"id":"78dbbc17-efa8-4368-be11-272ac2ba7d82","name":"Merge"},{"parameters":{"assignments":{"assignments":[{"id":"47f34e49-935d-40f3-94bc-4c8445164303","name":"image","value":"={{ $json.data }}","type":"string"}]},"options":{}},"type":"n8n-nodes-base.set","typeVersion":3.4,"position":[912,944],"id":"1687f830-0969-4856-bda4-bf9dabbeb4d0","name":"Edit Fields2"},{"parameters":{"assignments":{"assignments":[{"id":"93f21b43-b350-447b-bc58-c0bcc21702fe","name":"text","value":"={{ $json.value }}","type":"string"}]},"options":{}},"type":"n8n-nodes-base.set","typeVersion":3.4,"position":[704,1184],"id":"aa156bb5-6a20-42ea-a4cf-0be1fdb3ca83","name":"Edit Fields3"},{"parameters":{"operation":"binaryToPropery","options":{}},"type":"n8n-nodes-base.extractFromFile","typeVersion":1,"position":[736,1456],"id":"b5e9a9bb-7133-45d2-8fe0-a8e7acd6fc24","name":"Extract from File1"},{"parameters":{"assignments":{"assignments":[{"id":"f98bac23-9c7c-4a42-8f12-9035f422597a","name":"audio","value":"={{ $json.data }}","type":"string"}]},"options":{}},"type":"n8n-nodes-base.set","typeVersion":3.4,"position":[944,1456],"id":"1f1e7bdf-a8b3-4a17-ad50-5441081ff7bb","name":"Edit Fields1"},{"parameters":{"url":"https://api.chucknorris.io/jokes/random","options":{}},"type":"n8n-nodes-base.httpRequest","typeVersion":4.2,"position":[480,1184],"id":"72dcfc0f-fce1-4556-812e-7ad39ebaf01e","name":"HTTP Request FOR TEXT"},{"parameters":{"url":"https://download.samplelib.com/mp3/sample-15s.mp3","options":{}},"type":"n8n-nodes-base.httpRequest","typeVersion":4.2,"position":[448,1456],"id":"d4a70424-a5c4-4d14-9d86-518f2c1ad13f","name":"HTTP Request FOR AUDIO"}],"connections":{"ENVIA BOTPRESS":{"main":[[{"node":"Code","type":"main","index":0}]]},"Edit Fields":{"main":[[{"node":"ENVIA BOTPRESS","type":"main","index":0}]]},"ENTRADA BOTPRESS":{"main":[[{"node":"Edit Fields","type":"main","index":0}]]},"Code":{"main":[[{"node":"Respond to Webhook","type":"main","index":0}]]},"ENTRADA DEBUG":{"main":[[{"node":"HTTP Request FOR IMAGE","type":"main","index":0},{"node":"HTTP Request FOR TEXT","type":"main","index":0},{"node":"HTTP Request FOR AUDIO","type":"main","index":0}]]},"Extract from File":{"main":[[{"node":"Edit Fields2","type":"main","index":0}]]},"HTTP Request FOR IMAGE":{"main":[[{"node":"Extract from File","type":"main","index":0}]]},"Edit Fields2":{"main":[[{"node":"Merge","type":"main","index":0}]]},"Edit Fields3":{"main":[[{"node":"Merge","type":"main","index":1}]]},"Merge":{"main":[[{"node":"Respond to Webhook1","type":"main","index":0}]]},"Extract from File1":{"main":[[{"node":"Edit Fields1","type":"main","index":0}]]},"Edit Fields1":{"main":[[{"node":"Merge","type":"main","index":2}]]},"HTTP Request FOR TEXT":{"main":[[{"node":"Edit Fields3","type":"main","index":0}]]},"HTTP Request FOR AUDIO":{"main":[[{"node":"Extract from File1","type":"main","index":0}]]},"Respond to Webhook1":{"main":[[]]}},"settings":{"executionOrder":"v1"},"staticData":null,"meta":{"templateCredsSetupCompleted":true},"pinData":{},"versionId":"561d8d6d-94a4-43d5-8696-a75a4c716fb8","triggerCount":2,"tags":[]}]
+[
+  {
+    "createdAt": "2025-07-17T21:04:34.685Z",
+    "updatedAt": "2025-07-17T23:45:49.000Z",
+    "id": "wmCwqcMIcf2j6plH",
+    "name": "ODOO_DISCUSS_HUB_N8N",
+    "active": true,
+    "isArchived": false,
+    "nodes":
+      [
+        {
+          "parameters":
+            {
+              "method": "POST",
+              "url": "=http://botpress.dudanogueira.com.br/api/v1/bots/consultorio_bot/converse/author-demo",
+              "sendBody": true,
+              "specifyBody": "json",
+              "jsonBody": '={   "type": "text",   "text": "{{ $json.text }}" }',
+              "options": {},
+            },
+          "id": "82fceae6-84e9-4e57-8ebd-d7ebd554893f",
+          "name": "ENVIA BOTPRESS",
+          "type": "n8n-nodes-base.httpRequest",
+          "typeVersion": 4.1,
+          "position": [544, 272],
+        },
+        {
+          "parameters":
+            {
+              "language": "python",
+              "pythonCode":
+                "# Loop over input items and add a new field called 'myNewField' to the
+                JSON of each one\nr = []\nfor item in _input.all():\n  for i in
+                item.json[\"responses\"]:\n    r.append({i.get(\"type\"):
+                i.get(\"text\")})\nreturn r",
+            },
+          "type": "n8n-nodes-base.code",
+          "typeVersion": 2,
+          "position": [832, 272],
+          "id": "60b9ba6c-b741-4d77-a588-0aafff87167f",
+          "name": "Code",
+        },
+        {
+          "parameters":
+            {
+              "mode": "raw",
+              "jsonOutput":
+                '={   "type": "text",   "text": "{{ $json.body.message_body ||
+                ''attachment'' }}" }',
+              "options": {},
+            },
+          "type": "n8n-nodes-base.set",
+          "typeVersion": 3.4,
+          "position": [304, 272],
+          "id": "4fbd8053-d15a-4942-af4d-75ebf62f8128",
+          "name": "Edit Fields",
+        },
+        {
+          "parameters":
+            {
+              "httpMethod": "POST",
+              "path": "discuss_hub/incoming/botpress",
+              "responseMode": "responseNode",
+              "options": {},
+            },
+          "type": "n8n-nodes-base.webhook",
+          "typeVersion": 2,
+          "position": [32, 272],
+          "id": "1f223bd2-8344-436e-83fc-e63d5c85fecd",
+          "name": "ENTRADA BOTPRESS",
+          "webhookId": "a5079071-6769-43f3-b9aa-8b2e911f707e",
+        },
+        {
+          "parameters": {"respondWith": "allIncomingItems", "options": {}},
+          "type": "n8n-nodes-base.respondToWebhook",
+          "typeVersion": 1.2,
+          "position": [1024, 272],
+          "id": "4a0a55f3-1764-454a-963b-726a9c417efd",
+          "name": "Respond to Webhook",
+        },
+        {
+          "parameters":
+            {
+              "content":
+                "```\ncurl --request POST \\\n  --url
+                http://localhost:5678/webhook-test/discuss_hub/incoming/botpress
+                \\\n  --header 'Content-Type: application/json' \\\n  --data
+                '{\n  \"message_body\": \"\",\n  \"message_author_name\":
+                \"Duda\",\n  \"message_author_id\": 7,\n  \"message_audio_base64\":
+                null,\n  \"attachment_id\": null\n}'\n```",
+              "height": 220,
+              "width": 780,
+            },
+          "type": "n8n-nodes-base.stickyNote",
+          "typeVersion": 1,
+          "position": [0, 0],
+          "id": "febec40b-277c-4036-b641-fbc5e9ee462a",
+          "name": "Sticky Note",
+        },
+        {
+          "parameters":
+            {
+              "httpMethod": "POST",
+              "path": "discuss_hub/incoming/debug",
+              "responseMode": "responseNode",
+              "options": {},
+            },
+          "type": "n8n-nodes-base.webhook",
+          "typeVersion": 2,
+          "position": [32, 1088],
+          "id": "65e80c15-acc0-40e4-8904-d29a03e7ffc9",
+          "name": "ENTRADA DEBUG",
+          "webhookId": "a5079071-6769-43f3-b9aa-8b2e911f707e",
+        },
+        {
+          "parameters": {"operation": "binaryToPropery", "options": {}},
+          "type": "n8n-nodes-base.extractFromFile",
+          "typeVersion": 1,
+          "position": [704, 944],
+          "id": "534b5750-cbb8-428e-8761-77677e821792",
+          "name": "Extract from File",
+        },
+        {
+          "parameters": {"url": "https://picsum.photos/200", "options": {}},
+          "type": "n8n-nodes-base.httpRequest",
+          "typeVersion": 4.2,
+          "position": [480, 944],
+          "id": "cf703c5c-c5b5-410e-a1d0-3ffbdb95ebe5",
+          "name": "HTTP Request FOR IMAGE",
+        },
+        {
+          "parameters":
+            {
+              "content":
+                "```\ncurl --request POST \\\n  --url
+                http://localhost:5678/webhook-test/discuss_hub/incoming/debug
+                \\\n  --header 'Content-Type: application/json' \\\n  --data
+                '{\n  \"message_body\": \"\",\n  \"message_author_name\":
+                \"Duda\",\n  \"message_author_id\": 7,\n  \"message_audio_base64\":
+                null,\n  \"attachment_id\": null\n}'\n```",
+              "height": 220,
+              "width": 780,
+            },
+          "type": "n8n-nodes-base.stickyNote",
+          "typeVersion": 1,
+          "position": [-48, 688],
+          "id": "0314d6e3-59a3-44dd-b828-d3cba4df0c47",
+          "name": "Sticky Note1",
+        },
+        {
+          "parameters": {"respondWith": "allIncomingItems", "options": {}},
+          "type": "n8n-nodes-base.respondToWebhook",
+          "typeVersion": 1.2,
+          "position": [1424, 1168],
+          "id": "2edc3d98-1b3b-4d76-b705-ea0b3363fd7f",
+          "name": "Respond to Webhook1",
+        },
+        {
+          "parameters": {"numberInputs": 5},
+          "type": "n8n-nodes-base.merge",
+          "typeVersion": 3.1,
+          "position": [1248, 1168],
+          "id": "78dbbc17-efa8-4368-be11-272ac2ba7d82",
+          "name": "Merge",
+        },
+        {
+          "parameters":
+            {
+              "assignments":
+                {
+                  "assignments":
+                    [
+                      {
+                        "id": "47f34e49-935d-40f3-94bc-4c8445164303",
+                        "name": "image",
+                        "value": "={{ $json.data }}",
+                        "type": "string",
+                      },
+                    ],
+                },
+              "options": {},
+            },
+          "type": "n8n-nodes-base.set",
+          "typeVersion": 3.4,
+          "position": [912, 944],
+          "id": "1687f830-0969-4856-bda4-bf9dabbeb4d0",
+          "name": "Edit Fields2",
+        },
+        {
+          "parameters":
+            {
+              "assignments":
+                {
+                  "assignments":
+                    [
+                      {
+                        "id": "93f21b43-b350-447b-bc58-c0bcc21702fe",
+                        "name": "text",
+                        "value": "={{ $json.value }}",
+                        "type": "string",
+                      },
+                      {
+                        "id": "52c73809-e7f6-437b-a5c9-09cc41c04915",
+                        "name": "something_arbitrary",
+                        "value": "asdasdasd",
+                        "type": "string",
+                      },
+                    ],
+                },
+              "options": {},
+            },
+          "type": "n8n-nodes-base.set",
+          "typeVersion": 3.4,
+          "position": [736, 1184],
+          "id": "aa156bb5-6a20-42ea-a4cf-0be1fdb3ca83",
+          "name": "Edit Fields3",
+        },
+        {
+          "parameters": {"operation": "binaryToPropery", "options": {}},
+          "type": "n8n-nodes-base.extractFromFile",
+          "typeVersion": 1,
+          "position": [736, 1456],
+          "id": "b5e9a9bb-7133-45d2-8fe0-a8e7acd6fc24",
+          "name": "Extract from File1",
+        },
+        {
+          "parameters":
+            {
+              "assignments":
+                {
+                  "assignments":
+                    [
+                      {
+                        "id": "f98bac23-9c7c-4a42-8f12-9035f422597a",
+                        "name": "audio",
+                        "value": "={{ $json.data }}",
+                        "type": "string",
+                      },
+                    ],
+                },
+              "options": {},
+            },
+          "type": "n8n-nodes-base.set",
+          "typeVersion": 3.4,
+          "position": [944, 1456],
+          "id": "1f1e7bdf-a8b3-4a17-ad50-5441081ff7bb",
+          "name": "Edit Fields1",
+        },
+        {
+          "parameters":
+            {"url": "https://api.chucknorris.io/jokes/random", "options": {}},
+          "type": "n8n-nodes-base.httpRequest",
+          "typeVersion": 4.2,
+          "position": [480, 1184],
+          "id": "72dcfc0f-fce1-4556-812e-7ad39ebaf01e",
+          "name": "HTTP Request FOR TEXT",
+        },
+        {
+          "parameters":
+            {"url": "https://download.samplelib.com/mp3/sample-15s.mp3", "options": {}},
+          "type": "n8n-nodes-base.httpRequest",
+          "typeVersion": 4.2,
+          "position": [448, 1456],
+          "id": "d4a70424-a5c4-4d14-9d86-518f2c1ad13f",
+          "name": "HTTP Request FOR AUDIO",
+        },
+        {
+          "parameters": {"operation": "binaryToPropery", "options": {}},
+          "type": "n8n-nodes-base.extractFromFile",
+          "typeVersion": 1,
+          "position": [752, 1680],
+          "id": "8838b004-f8db-459e-9205-2172f028d61a",
+          "name": "Extract from File2",
+        },
+        {
+          "parameters":
+            {
+              "assignments":
+                {
+                  "assignments":
+                    [
+                      {
+                        "id": "f98bac23-9c7c-4a42-8f12-9035f422597a",
+                        "name": "video",
+                        "value": "={{ $json.data }}",
+                        "type": "string",
+                      },
+                    ],
+                },
+              "options": {},
+            },
+          "type": "n8n-nodes-base.set",
+          "typeVersion": 3.4,
+          "position": [960, 1680],
+          "id": "486e3f40-5131-4bde-9014-6a61fd890479",
+          "name": "Edit Fields4",
+        },
+        {
+          "parameters":
+            {"url": "https://download.samplelib.com/mp4/sample-5s.mp4", "options": {}},
+          "type": "n8n-nodes-base.httpRequest",
+          "typeVersion": 4.2,
+          "position": [464, 1680],
+          "id": "5e31f1b7-50a7-4068-a04f-8b703a97055e",
+          "name": "HTTP Request FOR VIDEO",
+        },
+        {
+          "parameters": {"operation": "binaryToPropery", "options": {}},
+          "type": "n8n-nodes-base.extractFromFile",
+          "typeVersion": 1,
+          "position": [800, 1920],
+          "id": "c33a9044-e1d7-4696-8ae9-fd965b6c071a",
+          "name": "Extract from File3",
+        },
+        {
+          "parameters":
+            {
+              "assignments":
+                {
+                  "assignments":
+                    [
+                      {
+                        "id": "f98bac23-9c7c-4a42-8f12-9035f422597a",
+                        "name": "pdf",
+                        "value": "={{ $json.data }}",
+                        "type": "string",
+                      },
+                    ],
+                },
+              "options": {},
+            },
+          "type": "n8n-nodes-base.set",
+          "typeVersion": 3.4,
+          "position": [1056, 1920],
+          "id": "d6507b79-8b12-4da5-9da5-5bf0d0386f9b",
+          "name": "Edit Fields5",
+        },
+        {
+          "parameters":
+            {
+              "url": "https://ontheline.trincoll.edu/images/bookdown/sample-local-pdf.pdf",
+              "options": {},
+            },
+          "type": "n8n-nodes-base.httpRequest",
+          "typeVersion": 4.2,
+          "position": [512, 1920],
+          "id": "c9c993c0-a3a5-4421-b2eb-b73facdeee90",
+          "name": "HTTP Request FOR PDF",
+        },
+      ],
+    "connections":
+      {
+        "ENVIA BOTPRESS": {"main": [[{"node": "Code", "type": "main", "index": 0}]]},
+        "Edit Fields":
+          {"main": [[{"node": "ENVIA BOTPRESS", "type": "main", "index": 0}]]},
+        "ENTRADA BOTPRESS":
+          {"main": [[{"node": "Edit Fields", "type": "main", "index": 0}]]},
+        "Code":
+          {"main": [[{"node": "Respond to Webhook", "type": "main", "index": 0}]]},
+        "ENTRADA DEBUG":
+          {
+            "main":
+              [
+                [
+                  {"node": "HTTP Request FOR IMAGE", "type": "main", "index": 0},
+                  {"node": "HTTP Request FOR TEXT", "type": "main", "index": 0},
+                  {"node": "HTTP Request FOR AUDIO", "type": "main", "index": 0},
+                  {"node": "HTTP Request FOR VIDEO", "type": "main", "index": 0},
+                  {"node": "HTTP Request FOR PDF", "type": "main", "index": 0},
+                ],
+              ],
+          },
+        "Extract from File":
+          {"main": [[{"node": "Edit Fields2", "type": "main", "index": 0}]]},
+        "HTTP Request FOR IMAGE":
+          {"main": [[{"node": "Extract from File", "type": "main", "index": 0}]]},
+        "Edit Fields2": {"main": [[{"node": "Merge", "type": "main", "index": 0}]]},
+        "Edit Fields3": {"main": [[{"node": "Merge", "type": "main", "index": 1}]]},
+        "Merge":
+          {"main": [[{"node": "Respond to Webhook1", "type": "main", "index": 0}]]},
+        "Extract from File1":
+          {"main": [[{"node": "Edit Fields1", "type": "main", "index": 0}]]},
+        "Edit Fields1": {"main": [[{"node": "Merge", "type": "main", "index": 2}]]},
+        "HTTP Request FOR TEXT":
+          {"main": [[{"node": "Edit Fields3", "type": "main", "index": 0}]]},
+        "HTTP Request FOR AUDIO":
+          {"main": [[{"node": "Extract from File1", "type": "main", "index": 0}]]},
+        "Respond to Webhook1": {"main": [[]]},
+        "Extract from File2":
+          {"main": [[{"node": "Edit Fields4", "type": "main", "index": 0}]]},
+        "Edit Fields4": {"main": [[{"node": "Merge", "type": "main", "index": 3}]]},
+        "HTTP Request FOR VIDEO":
+          {"main": [[{"node": "Extract from File2", "type": "main", "index": 0}]]},
+        "Extract from File3":
+          {"main": [[{"node": "Edit Fields5", "type": "main", "index": 0}]]},
+        "HTTP Request FOR PDF":
+          {"main": [[{"node": "Extract from File3", "type": "main", "index": 0}]]},
+        "Edit Fields5": {"main": [[{"node": "Merge", "type": "main", "index": 4}]]},
+      },
+    "settings": {"executionOrder": "v1"},
+    "staticData": null,
+    "meta": {"templateCredsSetupCompleted": true},
+    "pinData": {},
+    "versionId": "23b048ed-81bd-45e6-bb53-b43066857220",
+    "triggerCount": 2,
+    "tags": [],
+  },
+]
