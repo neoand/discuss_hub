@@ -29,7 +29,7 @@ services:
     tty: true
     command:
       odoo -d odoo -i discuss_hub,cloud_platform -u discuss_hub
-      --load=base,web,logging_json,session_redis --log-handler :DEBUG
+      --load=base,web,discuss_hub,logging_json,session_redis --log-handler :DEBUG
     environment:
       - RUNNING_ENV=prod
       - ODOO_RC=/etc/odoo/odoo.conf
@@ -130,9 +130,22 @@ services:
       - "8025:8025"
       - "1025:1025"
 
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    restart: always
+    ports:
+      - "127.0.0.1:5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n-workflows.yaml:/n8n-workflows.yaml
+    environment:
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false
+      - N8N_RUNNERS_ENABLED=true
+
 volumes:
   db_data:
   odoo_data:
   odoo_conf:
   evolution_instances:
   redis_data:
+  n8n_data:
