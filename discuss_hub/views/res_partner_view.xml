@@ -19,8 +19,19 @@
         </field>
     </record>
 
+    <record id="view_partner_form_inherit_bot" model="ir.ui.view">
+        <field name="name">res.partner.form.inherit.bot</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="bot"/>
+            </xpath>
+        </field>
+    </record>
+
     <!-- Partner kanban view inherit -->
-    <record id="discuss_hub_partner_kanban_view" model="ir.ui.view">
+    <!-- <record id="discuss_hub_partner_kanban_view" model="ir.ui.view">
         <field name="name">res.partner.kanban.inherit</field>
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.res_partner_kanban_view" />
@@ -44,7 +55,7 @@
                 </a>
             </xpath>
         </field>
-    </record>
+    </record> -->
 
     <!-- Add contextual button on partner form view -->
     <record id="view_partners_form_discuss_hub" model="ir.ui.view">
