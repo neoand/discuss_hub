@@ -1,5 +1,5 @@
 import logging
-
+import base64
 import requests
 
 from odoo import fields, models
@@ -78,6 +78,7 @@ class DiscussHubBotManager(models.Model):
                         "message_author_id": message.author_id.id,
                         "message_audio_base64": message_audio_base64,
                         "attachment_id": attachment_id,
+                        "channel_id": channel.id,
                     },
                     timeout=self.bot_url_timeout,  # Set a timeout for the request
                 )
@@ -101,11 +102,23 @@ class DiscussHubBotManager(models.Model):
                 return True
 
             for received_message in request_data.json():
+                attachments = []
+                if received_message.get("image"):
+                    image_base64 = received_message.get("image", None)
+                    # Process image
+                    decoded_data = base64.b64decode(image_base64)
+                    attachments = [("image", decoded_data)]
+                if received_message.get("audio"):
+                    audio_base64 = received_message.get("audio", None)
+                    # Process audio
+                    decoded_data = base64.b64decode(audio_base64)
+                    attachments = [("audio.mp3", decoded_data)]
                 new_message = channel.message_post(
                     body=received_message.get("text", ""),
                     author_id=partner.id,
                     message_type="comment",
                     subtype_xmlid="mail.mt_comment",
+                    attachments=attachments
                 )
                 channel.discuss_hub_connector.outgo_message(channel, new_message)
 
