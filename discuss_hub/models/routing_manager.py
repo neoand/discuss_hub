@@ -150,7 +150,6 @@ class DiscussHubRoutingTeamMember(models.Model):
         comodel_name="discuss_hub.routing_team",
         required=True,
         help="Select the team to which the user belongs.",
-        inverse_name="member_ids",
     )
 
     user_id = fields.Many2one(
@@ -158,7 +157,6 @@ class DiscussHubRoutingTeamMember(models.Model):
         required=True,
         help="Select the user to be added to the team.",
         domain="[('partner_id', '!=', False)]",
-        inverse_name="team_ids",
     )
     order = fields.Integer(
         help="Order of the user in the team.",
