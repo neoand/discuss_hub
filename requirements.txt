@@ -1,0 +1,4 @@
+redis==6.2.0
+python-json-logger==3.3.0
+statsd==4.0.1
+boto==2.49.0

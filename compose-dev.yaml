@@ -19,6 +19,7 @@ services:
 
   odoo:
     # FOR BUILDING THE IMAGE USE THIS
+    # image: dudanogueira/discuss_hub_cloud
     build:
       context: .
       dockerfile: Dockerfile
@@ -26,8 +27,9 @@ services:
     depends_on:
       - db
     tty: true
-    command: odoo -d odoo -i discuss_hub -u discuss_hub
+    command: odoo -d odoo -i discuss_hub,cloud_platform -u discuss_hub --load=base,web,logging_json,session_redis --log-handler :DEBUG
     environment:
+      - RUNNING_ENV=prod
       - ODOO_RC=/etc/odoo/odoo.conf
       - HOST=db
       - USER=admin
@@ -38,6 +40,14 @@ services:
       - DISCUSS_HUB_INTERNAL_HOST=http://odoo:8069
       - DISCUSS_HUB_EVOLUTION_URL=http://evolution:8080
       - DISCUSS_HUB_EVOLUTION_APIKEY=1369429683C4C977415CAAFCCE10F7D57E11
+      - ODOO_LOGGING_JSON=1
+      # store session data in database
+      # - SESSION_DB_URI=postgresql://admin:admin@db:5432/odoo
+      - ODOO_SESSION_REDIS=1
+      - ODOO_SESSION_REDIS_HOST=redis
+      #- ODOO_SESSION_REDIS_PASSWORD
+      - ODOO_SESSION_REDIS_PREFIX=discusshub-odoo-prod
+      - ODOO_SESSION_REDIS_SSL=false
     volumes:
       - ./discuss_hub/:/mnt/extra-addons/discuss_hub
       - odoo_conf:/etc/odoo
@@ -104,7 +114,7 @@ services:
     volumes:
       - redis_data:/data
     ports:
-      - 6379
+      - 6379:6379
     restart: unless-stopped
     logging:
       driver: "json-file"
