@@ -46,11 +46,10 @@ RUN mkdir -p ${ADDONS_DIR}
 COPY --from=build /mnt/extra-addons/ ${ADDONS_DIR}/
 
 # Install Python dependencies
-COPY requirements.txt ${ADDONS_DIR}/requirements.txt
 
 USER root
 RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ADDONS_DIR} \
- && pip3 install --no-cache-dir --break-system-packages -r ${ADDONS_DIR}/requirements.txt
+ && pip3 install --no-cache-dir --break-system-packages redis python-json-logger statsd boto
 
 USER ${ODOO_USER}
 
