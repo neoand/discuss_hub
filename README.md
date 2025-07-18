@@ -13,6 +13,26 @@ Integrate third party message channels into Odoo's discuss
 
 [Deepwiki tech docs](https://deepwiki.com/discusshub/discuss_hub)
 
+## QUICK START ##
+```
+git clone https://github.com/discusshub/discuss_hub my-project
+cd my-project
+docker compose -f compose-dev.yaml up -d
+# wait....
+sleep 30
+# load workflows
+docker compose -f compose-dev.yaml exec -u node -it n8n sh -c "n8n import:workflow --input=/n8n-workflows.yaml"
+# activate workflows
+docker compose -f compose-dev.yaml exec -u node -it n8n sh -c "n8n update:workflow --all --active=true"
+# so or new workflow get registered
+docker compose -f compose-dev.yaml restart n8n
+# access odoo: http://localhost:8069/?debug=1
+# Navigate to Discuss Hub, Connector. Click start
+# Scan your whatsapp
+```
+
+Enjoy!
+
 <!-- /!\ do not modify below this line -->
 
 <!-- prettier-ignore-start -->
