@@ -27,9 +27,7 @@ services:
     depends_on:
       - db
     tty: true
-    command:
-      odoo -d odoo -i discuss_hub,cloud_platform -u discuss_hub
-      --load=base,web,discuss_hub,logging_json,session_redis --log-handler :DEBUG
+    command: odoo -d odoo -u discuss_hub #--log-handler :DEBUG
     environment:
       - RUNNING_ENV=prod
       - ODOO_RC=/etc/odoo/odoo.conf

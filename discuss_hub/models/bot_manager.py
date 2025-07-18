@@ -106,20 +106,21 @@ class DiscussHubBotManager(models.Model):
             for received_message in request_data.json():
                 attachments = []
                 # go thru each type, except text
-                for type, content in received_message.items():
-                    if type != "text":
-                        if type == "audio":
-                            type = "audio.mp3"
-                        elif type == "video":
-                            type = "video.mp4"
-                        elif type == "pdf":
-                            type = "application.pdf"
+                for content_type, content in received_message.items():
+                    if content_type != "text":
+                        if content_type == "audio":
+                            content_type = "audio.mp3"
+                        elif content_type == "video":
+                            content_type = "video.mp4"
+                        elif content_type == "pdf":
+                            content_type = "application.pdf"
                         try:
                             decoded_data = base64.b64decode(content)
-                            attachments.append((type, decoded_data))
+                            attachments.append((content_type, decoded_data))
                         except ValueError as e:
                             _logger.warning(
-                                f"Failed to decode base64 content {type}: {e}. IGNORING"
+                                f"""Failed to decode base64 content
+                                {content_type}: {e}."""
                             )
                             pass
 

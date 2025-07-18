@@ -24,7 +24,8 @@ to export N8N Flows:
 docker compose exec -u node -it n8n sh -c "n8n export:workflow --all > /n8n-workflows.yaml"
 ```
 
-and to import:
+and to import and enable all workflows:
 ```
 docker compose exec -u node -it n8n sh -c "n8n import:workflow --input=/n8n-workflows.yaml"
+docker compose exec -u node -it n8n sh -c "n8n update:workflow --all --active=true"
 ```
