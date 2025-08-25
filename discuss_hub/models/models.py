@@ -262,7 +262,7 @@ class DiscussHubConnector(models.Model):
         """
         if not self.enabled:
             _logger.warning(
-                f"action:outgo_message connector {self} is not active or not found "
+                f"action:outgo_message connector {self.name} ID {self.id} is not active or not found "
                 f"for channel {channel.name if channel else 'None'} and message "
                 f"{message.id if message else 'None'}"
             )
