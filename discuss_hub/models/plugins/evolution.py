@@ -286,9 +286,10 @@ class Plugin(PluginBase):
         # Send attachments
         if message.attachment_ids:
             sent_message = self.send_attachments(channel, message)
-            sent_message_id = sent_message.json().get("key", {}).get("id")
-        if sent_message_id:
-            message.write({"discuss_hub_message_id": sent_message_id})
+            if sent_message:
+                sent_message_id = sent_message.json().get("key", {}).get("id")
+                if sent_message_id:
+                    message.write({"discuss_hub_message_id": sent_message_id})
 
     def outgo_reaction(self, channel, message, reaction):
         """
