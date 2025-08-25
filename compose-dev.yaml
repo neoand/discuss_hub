@@ -155,12 +155,11 @@ services:
       - db
       - redis
     volumes:
-      - botpress_data:/botpress/data  
+      - botpress_data:/botpress/data
 
-
-#
-# TYPEBOT
-#
+  #
+  # TYPEBOT
+  #
 
   typebot-builder:
     environment:
@@ -182,7 +181,7 @@ services:
       S3_SSL: false
     image: baptistearno/typebot-builder:latest
     extra_hosts:
-      - 'host.docker.internal:host-gateway'    
+      - "host.docker.internal:host-gateway"
     ports:
       - "8082:3000"
 
@@ -208,9 +207,9 @@ services:
     ports:
       - "8081:3000"
 
-#
-# MINIO
-#
+  #
+  # MINIO
+  #
 
   minio:
     image: minio/minio
@@ -222,7 +221,7 @@ services:
       MINIO_USERNAME: minio
       MINIO_PASSWORD: minio123
       MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: minio123      
+      MINIO_ROOT_PASSWORD: minio123
       MINIO_ACCESS_KEY: minio-access-key
       MINIO_SECRET_KEY: minio-secret-key
     volumes:

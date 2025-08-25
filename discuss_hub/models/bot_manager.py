@@ -1,8 +1,8 @@
 import base64
 import logging
+from urllib.parse import urljoin, urlparse
 
 import requests
-from urllib.parse import urljoin, urlparse
 
 from odoo import fields, models
 from odoo.tools import html2plaintext
@@ -61,39 +61,46 @@ class DiscussHubBotManager(models.Model):
     )
 
     def typebot_get_latest_session(self, channel):
-        latest_session = self.env["discuss_hub.bot_manager.session"].search([
-            ("bot_manager_id", "=", self.id),
-            ("channel_id", "=", channel.id),
-            ("expired", "=", False)
-        ], order="id desc", limit=1)
+        latest_session = self.env["discuss_hub.bot_manager.session"].search(
+            [
+                ("bot_manager_id", "=", self.id),
+                ("channel_id", "=", channel.id),
+                ("expired", "=", False),
+            ],
+            order="id desc",
+            limit=1,
+        )
         return latest_session
 
     def typebot_start_chat(self, channel, payload):
         # add the necessary sub path
         # bot_url should be like: http://localhost:8081/api/v1/typebots/odoo/
         logging.info(
-            f"BOTMANAGER - Starting chat with bot {self.id} and payload {payload}")
-        url = urljoin(self.bot_url, 'startChat')
+            f"BOTMANAGER - Starting chat with bot {self.id} and payload {payload}"
+        )
+        url = urljoin(self.bot_url, "startChat")
         request_data = requests.post(
-            url,
-            headers={f"Authorization": "Bearer {self.bot_api_key}"},
-            json=payload
+            url, headers={"Authorization": "Bearer {self.bot_api_key}"}, json=payload
         )
         return request_data
 
     def typebot_register_new_session(self, channel, session_id):
         # update all active sessions for the channel to expired
-        self.env["discuss_hub.bot_manager.session"].search([
-            ("bot_manager_id", "=", self.id),
-            ("channel_id", "=", channel.id),
-            ("expired", "=", False)
-        ]).write({"expired": True})
+        self.env["discuss_hub.bot_manager.session"].search(
+            [
+                ("bot_manager_id", "=", self.id),
+                ("channel_id", "=", channel.id),
+                ("expired", "=", False),
+            ]
+        ).write({"expired": True})
         # create a new session
-        new_session = self.env["discuss_hub.bot_manager.session"].create({
-            "bot_manager_id": self.id,
-            "channel_id": channel.id,
-            "session_id": session_id
-        })
+        new_session = self.env["discuss_hub.bot_manager.session"].create(
+            {
+                "bot_manager_id": self.id,
+                "channel_id": channel.id,
+                "session_id": session_id,
+            }
+        )
         return new_session
 
     def typebot_continue_chat(self, channel, session_id, payload):
@@ -113,10 +120,12 @@ class DiscussHubBotManager(models.Model):
         new_url = f"{parsed.scheme}://{parsed.netloc}/{new_path}"
         request_data = requests.post(
             new_url,
-            headers={f"Authorization": "Bearer {self.bot_api_key}"},
-            json=payload
+            headers={"Authorization": "Bearer {self.bot_api_key}"},
+            json=payload,
         )
-        logging.info(f"CONTINUING CHAT FOR {channel.id} bot {self.id} session: {session_id} with payload {payload}. Got response: {request_data.json()}")
+        logging.info(
+            f"CONTINUING CHAT FOR {channel.id} bot {self.id} session: {session_id} with payload {payload}. Got response: {request_data.json()}"
+        )
         return request_data
 
     def outgo(self, channel, partner):
@@ -127,18 +136,15 @@ class DiscussHubBotManager(models.Model):
         """
         message = channel.message_ids[0]
         # Simulate sending a message to the bot
-        _logger.info(
-            f"Sending message to bot {self.bot_url}: {message} at {channel}")
+        _logger.info(f"Sending message to bot {self.bot_url}: {message} at {channel}")
         timed_out = False
         message_audio_base64 = None
         attachment_id = None
         if message.attachment_ids and "audio" in message.attachment_ids[0].mimetype:
             attachment_id = message.attachment_ids[0].id
-            message_audio_base64 = message.attachment_ids[0].datas.decode(
-                "utf-8")
+            message_audio_base64 = message.attachment_ids[0].datas.decode("utf-8")
 
         if self.bot_type == "generic":
-
             try:
                 request_data = requests.post(
                     self.bot_url,
@@ -168,8 +174,7 @@ class DiscussHubBotManager(models.Model):
                     message_type="comment",
                     subtype_xmlid="mail.mt_comment",
                 )
-                channel.discuss_hub_connector.outgo_message(
-                    channel, error_message)
+                channel.discuss_hub_connector.outgo_message(channel, error_message)
                 return True
 
             # for each message
@@ -201,8 +206,7 @@ class DiscussHubBotManager(models.Model):
                     subtype_xmlid="mail.mt_comment",
                     attachments=attachments,
                 )
-                channel.discuss_hub_connector.outgo_message(
-                    channel, new_message)
+                channel.discuss_hub_connector.outgo_message(channel, new_message)
 
         if self.bot_type == "typebot":
             # Handle typebot specific logic here
@@ -210,10 +214,7 @@ class DiscussHubBotManager(models.Model):
             # for this bot, and not expired
             session_id = None
             payload = {
-                "message": {
-                    "type": "text",
-                    "text": html2plaintext(str(message.body))
-                },
+                "message": {"type": "text", "text": html2plaintext(str(message.body))},
                 "prefilledVariables": {
                     "message_body": html2plaintext(str(message.body)),
                     "message_author_name": message.author_id.name,
@@ -222,39 +223,44 @@ class DiscussHubBotManager(models.Model):
                     "attachment_id": attachment_id,
                     "channel_id": channel.id,
                 },
-                "textBubbleContentFormat": "markdown"
+                "textBubbleContentFormat": "markdown",
             }
             logging.info(
-                f"Getting Latest session for bot {self} at channel {channel.id}...")
+                f"Getting Latest session for bot {self} at channel {channel.id}..."
+            )
             latest_session = self.typebot_get_latest_session(channel)
             new_session = None
             messages = []
             # no last session
             if not latest_session:
                 logging.info(
-                    f"BOTMANAGER: Session for {self} not found, creating with payload {payload}")
+                    f"BOTMANAGER: Session for {self} not found, creating with payload {payload}"
+                )
                 try:
                     new_session = self.typebot_start_chat(channel, payload)
                     if new_session.status_code != 200 or not new_session.content:
                         logging.warning(
-                            f"BOTMANAGER: Failed to create session for {self}: {new_session.json()}")
+                            f"BOTMANAGER: Failed to create session for {self}: {new_session.json()}"
+                        )
                         return False
                     else:
                         logging.info(
-                            f"BOTMANAGER:  Created new session for {self}: {new_session.json()}")
+                            f"BOTMANAGER:  Created new session for {self}: {new_session.json()}"
+                        )
                         session_id = new_session.json().get("sessionId")
                         messages = new_session.json().get("messages", [])
                         self.typebot_register_new_session(channel, session_id)
                 except Exception as e:
                     logging.error(
-                        f"BOTMANAGER: Failed to create session for {self}: {e}")
+                        f"BOTMANAGER: Failed to create session for {self}: {e}"
+                    )
             else:
                 logging.info(
-                    f"BOTMANAGER: Found existing session for bot {self.id}: {latest_session.session_id}. Continuing chat")
+                    f"BOTMANAGER: Found existing session for bot {self.id}: {latest_session.session_id}. Continuing chat"
+                )
                 session_id = latest_session.session_id
                 # previous session found, try to continue chat
-                continue_chat = self.typebot_continue_chat(
-                    channel, session_id, payload)
+                continue_chat = self.typebot_continue_chat(channel, session_id, payload)
                 if continue_chat.ok:
                     messages = continue_chat.json().get("messages", [])
                 # session is invalid, create new one
@@ -265,12 +271,15 @@ class DiscussHubBotManager(models.Model):
                     self.typebot_register_new_session(channel, session_id)
                 else:
                     logging.warning(
-                        f"BOTMANAGER: Failed to continue chat for {self}: {continue_chat.json()}")
+                        f"BOTMANAGER: Failed to continue chat for {self}: {continue_chat.json()}"
+                    )
 
             for message in messages:
-                body = ''
+                body = ""
                 attachments = []
-                logging.info(f"BOTMANAGER {self.id}, session_id:{session_id}, Message from bot: {message}")
+                logging.info(
+                    f"BOTMANAGER {self.id}, session_id:{session_id}, Message from bot: {message}"
+                )
                 if message.get("type") == "text":
                     body = message.get("content", {}).get("markdown")
                 # TODO: try to cache those files as they will be repeating
@@ -278,14 +287,16 @@ class DiscussHubBotManager(models.Model):
                     url = message.get("content", {}).get("url")
                     query = requests.get(url)
                     if query.ok:
-                        content_type = query.headers['Content-Type']
+                        content_type = query.headers["Content-Type"]
                         if message.get("type") == "audio":
                             content_type = "audio.mp3"
                         if message.get("type") == "video":
-                            content_type = "video.mp4"                            
+                            content_type = "video.mp4"
                         attachments.append((content_type, query.content))
                     else:
-                        logging.warning(f"BOTMANAGER {self.id}, session_id:{session_id}, Failed to download media: {query.status_code}")
+                        logging.warning(
+                            f"BOTMANAGER {self.id}, session_id:{session_id}, Failed to download media: {query.status_code}"
+                        )
 
                 new_message = channel.message_post(
                     body=body,
@@ -294,16 +305,16 @@ class DiscussHubBotManager(models.Model):
                     subtype_xmlid="mail.mt_comment",
                     attachments=attachments,
                 )
-                channel.discuss_hub_connector.outgo_message(
-                    channel, new_message)
+                channel.discuss_hub_connector.outgo_message(channel, new_message)
         return True
 
 
 class DiscussHubBotManagerSession(models.Model):
-    '''
+    """
     This model will host the session information for bot session.
     Some bot integrations will first get a bot session, and will use it.
-    '''
+    """
+
     _name = "discuss_hub.bot_manager.session"
     _description = "Discuss Hub Bot Manager Session"
 
