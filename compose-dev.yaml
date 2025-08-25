@@ -27,7 +27,7 @@ services:
     depends_on:
       - db
     tty: true
-    command: odoo -d odoo -u discuss_hub #--log-handler :DEBUG
+    command: odoo -d odoo -u discuss_hub -i discuss_hub #--log-handler :DEBUG
     environment:
       - RUNNING_ENV=prod
       - ODOO_RC=/etc/odoo/odoo.conf
@@ -140,10 +140,114 @@ services:
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false
       - N8N_RUNNERS_ENABLED=true
 
+  botpress:
+    image: botpress/server
+    restart: unless-stopped
+    command: /botpress/bp
+    ports:
+      - 3000:3000
+    environment:
+      - DATABASE_URL=postgres://admin:admin@db:5432/botpress
+      - REDIS_URL=redis://redis:6379
+      - BP_PRODUCTION=true
+      - BPFS_STORAGE=database
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - botpress_data:/botpress/data  
+
+
+#
+# TYPEBOT
+#
+
+  typebot-builder:
+    environment:
+      DEBUG: true
+      REDIS_URL: redis://redis:6379
+      ENCRYPTION_SECRET: do+UspMmB/rewbX2K/rskFmtgGSSZ8Ta
+      DATABASE_URL: postgresql://admin:admin@db:5432/typebot
+      NODE_OPTIONS: --no-node-snapshot
+      NEXTAUTH_URL: http://localhost:8082
+      NEXT_PUBLIC_VIEWER_URL: http://localhost:8081
+      ADMIN_EMAIL: dudanogueira@gmail.com
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      NEXT_PUBLIC_SMTP_FROM: notifications@typebot.domain.com
+      S3_ACCESS_KEY: minio-access-key
+      S3_SECRET_KEY: minio-secret-key
+      S3_BUCKET: typebot
+      S3_ENDPOINT: minio
+      S3_SSL: false
+    image: baptistearno/typebot-builder:latest
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'    
+    ports:
+      - "8082:3000"
+
+  typebot-viewer:
+    environment:
+      DEBUG: true
+      REDIS_URL: redis://redis:6379
+      ENCRYPTION_SECRET: do+UspMmB/rewbX2K/rskFmtgGSSZ8Ta
+      DATABASE_URL: postgresql://admin:admin@db:5432/typebot
+      NODE_OPTIONS: --no-node-snapshot
+      NEXTAUTH_URL: "http://localhost:8081"
+      NEXT_PUBLIC_VIEWER_URL: "http://localhost:8082"
+      ADMIN_EMAIL: dudanogueira@gmail.com
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      NEXT_PUBLIC_SMTP_FROM: notifications@typebot.domain.com
+      S3_ACCESS_KEY: minio-access-key
+      S3_SECRET_KEY: minio-secret-key
+      S3_BUCKET: typebot
+      S3_ENDPOINT: minio
+      S3_SSL: false
+    image: baptistearno/typebot-viewer:latest
+    ports:
+      - "8081:3000"
+
+#
+# MINIO
+#
+
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_USERNAME: minio
+      MINIO_PASSWORD: minio123
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123      
+      MINIO_ACCESS_KEY: minio-access-key
+      MINIO_SECRET_KEY: minio-secret-key
+    volumes:
+      - minio_data:/data
+
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: |
+      /bin/sh -c "
+        sleep 10;
+        /usr/bin/mc alias set minio http://minio:9000 minio minio123;
+        /usr/bin/mc mb --ignore-existing minio/typebot;
+        /usr/bin/mc anonymous set public minio/typebot/public;
+        exit 0;
+      "
+
 volumes:
   db_data:
   odoo_data:
   odoo_conf:
+  minio_data:
   evolution_instances:
   redis_data:
   n8n_data:
+  botpress_data:
+  typebot_data:
