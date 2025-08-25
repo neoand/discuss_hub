@@ -60,6 +60,69 @@ class DiscussHubBotManager(models.Model):
         help="Message to send when an error occurs while processing a request.",
     )
 
+    def generic_handle(self, message, channel, partner):
+        timed_out = False
+        message_audio_base64 = None
+        attachment_id = None
+        try:
+            request_data = requests.post(
+                self.bot_url,
+                json={
+                    "message_body": message.body,
+                    "message_author_name": message.author_id.name,
+                    "message_author_id": message.author_id.id,
+                    "message_audio_base64": message_audio_base64,
+                    "attachment_id": attachment_id,
+                    "channel_id": channel.id,
+                },
+                timeout=self.bot_url_timeout,  # Set a timeout for the request
+            )
+        except requests.Timeout as e:
+            _logger.error(f"Timeout while sending message to bot {self.bot_url}: {e}")
+            timed_out = True
+        if request_data.status_code != 200 or timed_out or not request_data.content:
+            _logger.error(f"Failed to send message to bot {self}: {request_data.text}")
+            # sending default error message
+            error_message = channel.message_post(
+                body=self.on_error_message,
+                author_id=partner.id,
+                message_type="comment",
+                subtype_xmlid="mail.mt_comment",
+            )
+            channel.discuss_hub_connector.outgo_message(channel, error_message)
+            return True
+
+        # for each message
+        for received_message in request_data.json():
+            attachments = []
+            # go thru each type, except text
+            for content_type, content in received_message.items():
+                if content_type != "text":
+                    if content_type == "audio":
+                        content_type = "audio.mp3"
+                    elif content_type == "video":
+                        content_type = "video.mp4"
+                    elif content_type == "pdf":
+                        content_type = "application.pdf"
+                    try:
+                        decoded_data = base64.b64decode(content)
+                        attachments.append((content_type, decoded_data))
+                    except ValueError as e:
+                        _logger.warning(
+                            f"""Failed to decode base64 content
+                            {content_type}: {e}."""
+                        )
+                        pass
+
+            new_message = channel.message_post(
+                body=received_message.get("text", ""),
+                author_id=partner.id,
+                message_type="comment",
+                subtype_xmlid="mail.mt_comment",
+                attachments=attachments,
+            )
+            channel.discuss_hub_connector.outgo_message(channel, new_message)
+
     def typebot_get_latest_session(self, channel):
         latest_session = self.env["discuss_hub.bot_manager.session"].search(
             [
@@ -80,7 +143,10 @@ class DiscussHubBotManager(models.Model):
         )
         url = urljoin(self.bot_url, "startChat")
         request_data = requests.post(
-            url, headers={"Authorization": "Bearer {self.bot_api_key}"}, json=payload
+            url,
+            headers={"Authorization": "Bearer {self.bot_api_key}"},
+            json=payload,
+            timeout=self.bot_url_timeout,
         )
         return request_data
 
@@ -122,9 +188,11 @@ class DiscussHubBotManager(models.Model):
             new_url,
             headers={"Authorization": "Bearer {self.bot_api_key}"},
             json=payload,
+            timeout=self.bot_url_timeout,
         )
         logging.info(
-            f"CONTINUING CHAT FOR {channel.id} bot {self.id} session: {session_id} with payload {payload}. Got response: {request_data.json()}"
+            f"CONTINUING CHAT FOR {channel.id} bot {self.id} session: {session_id}"
+            + f" with payload {payload}. Got response: {request_data.json()}"
         )
         return request_data
 
@@ -137,7 +205,6 @@ class DiscussHubBotManager(models.Model):
         message = channel.message_ids[0]
         # Simulate sending a message to the bot
         _logger.info(f"Sending message to bot {self.bot_url}: {message} at {channel}")
-        timed_out = False
         message_audio_base64 = None
         attachment_id = None
         if message.attachment_ids and "audio" in message.attachment_ids[0].mimetype:
@@ -145,68 +212,7 @@ class DiscussHubBotManager(models.Model):
             message_audio_base64 = message.attachment_ids[0].datas.decode("utf-8")
 
         if self.bot_type == "generic":
-            try:
-                request_data = requests.post(
-                    self.bot_url,
-                    json={
-                        "message_body": message.body,
-                        "message_author_name": message.author_id.name,
-                        "message_author_id": message.author_id.id,
-                        "message_audio_base64": message_audio_base64,
-                        "attachment_id": attachment_id,
-                        "channel_id": channel.id,
-                    },
-                    timeout=self.bot_url_timeout,  # Set a timeout for the request
-                )
-            except requests.Timeout as e:
-                _logger.error(
-                    f"Timeout while sending message to bot {self.bot_url}: {e}"
-                )
-                timed_out = True
-            if request_data.status_code != 200 or timed_out or not request_data.content:
-                _logger.error(
-                    f"Failed to send message to bot {self}: {request_data.text}"
-                )
-                # sending default error message
-                error_message = channel.message_post(
-                    body=self.on_error_message,
-                    author_id=partner.id,
-                    message_type="comment",
-                    subtype_xmlid="mail.mt_comment",
-                )
-                channel.discuss_hub_connector.outgo_message(channel, error_message)
-                return True
-
-            # for each message
-            for received_message in request_data.json():
-                attachments = []
-                # go thru each type, except text
-                for content_type, content in received_message.items():
-                    if content_type != "text":
-                        if content_type == "audio":
-                            content_type = "audio.mp3"
-                        elif content_type == "video":
-                            content_type = "video.mp4"
-                        elif content_type == "pdf":
-                            content_type = "application.pdf"
-                        try:
-                            decoded_data = base64.b64decode(content)
-                            attachments.append((content_type, decoded_data))
-                        except ValueError as e:
-                            _logger.warning(
-                                f"""Failed to decode base64 content
-                                {content_type}: {e}."""
-                            )
-                            pass
-
-                new_message = channel.message_post(
-                    body=received_message.get("text", ""),
-                    author_id=partner.id,
-                    message_type="comment",
-                    subtype_xmlid="mail.mt_comment",
-                    attachments=attachments,
-                )
-                channel.discuss_hub_connector.outgo_message(channel, new_message)
+            self.generic_handle(message, channel, partner)
 
         if self.bot_type == "typebot":
             # Handle typebot specific logic here
@@ -234,18 +240,20 @@ class DiscussHubBotManager(models.Model):
             # no last session
             if not latest_session:
                 logging.info(
-                    f"BOTMANAGER: Session for {self} not found, creating with payload {payload}"
+                    f"BOTMANAGER: Session for {self} not found, "
+                    + f"creating with payload {payload}"
                 )
                 try:
                     new_session = self.typebot_start_chat(channel, payload)
                     if new_session.status_code != 200 or not new_session.content:
                         logging.warning(
-                            f"BOTMANAGER: Failed to create session for {self}: {new_session.json()}"
+                            "BOTMANAGER: Failed to create "
+                            + f"session for {self}: {new_session.json()}"
                         )
                         return False
                     else:
                         logging.info(
-                            f"BOTMANAGER:  Created new session for {self}: {new_session.json()}"
+                            f"BOTMANAGER: new session for {self}: {new_session.json()}"
                         )
                         session_id = new_session.json().get("sessionId")
                         messages = new_session.json().get("messages", [])
@@ -256,7 +264,8 @@ class DiscussHubBotManager(models.Model):
                     )
             else:
                 logging.info(
-                    f"BOTMANAGER: Found existing session for bot {self.id}: {latest_session.session_id}. Continuing chat"
+                    "BOTMANAGER: Found existing session for bot "
+                    + f"{self.id}: {latest_session.session_id}. Continuing chat"
                 )
                 session_id = latest_session.session_id
                 # previous session found, try to continue chat
@@ -271,21 +280,24 @@ class DiscussHubBotManager(models.Model):
                     self.typebot_register_new_session(channel, session_id)
                 else:
                     logging.warning(
-                        f"BOTMANAGER: Failed to continue chat for {self}: {continue_chat.json()}"
+                        f"BOTMANAGER: Failed to continue {self}: {continue_chat.json()}"
                     )
 
             for message in messages:
                 body = ""
                 attachments = []
                 logging.info(
-                    f"BOTMANAGER {self.id}, session_id:{session_id}, Message from bot: {message}"
+                    f"BOTMANAGER {self.id}, session_id:{session_id}, "
+                    + f"Message from bot: {message}"
                 )
                 if message.get("type") == "text":
-                    body = message.get("content", {}).get("markdown")
+                    body = message.get("content", {}, timeout=self.bot_url_timeout).get(
+                        "markdown"
+                    )
                 # TODO: try to cache those files as they will be repeating
                 if message.get("type") in ["image", "audio", "video", "file"]:
                     url = message.get("content", {}).get("url")
-                    query = requests.get(url)
+                    query = requests.get(url, timeout=self.bot_url_timeout)
                     if query.ok:
                         content_type = query.headers["Content-Type"]
                         if message.get("type") == "audio":
@@ -295,7 +307,8 @@ class DiscussHubBotManager(models.Model):
                         attachments.append((content_type, query.content))
                     else:
                         logging.warning(
-                            f"BOTMANAGER {self.id}, session_id:{session_id}, Failed to download media: {query.status_code}"
+                            f"BOTMANAGER {self.id}, session_id:{session_id}, "
+                            + f"Failed to download media: {query.status_code}"
                         )
 
                 new_message = channel.message_post(
@@ -339,7 +352,7 @@ class DiscussHubBotManagerSession(models.Model):
         help="Unique identifier for the session.",
     )
     expired = fields.Boolean(
-        string="Expired",
+        string="Expired or Inactive",
         default=False,
         help="Indicates if the session has expired.",
     )
