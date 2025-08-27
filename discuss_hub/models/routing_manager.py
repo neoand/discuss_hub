@@ -201,7 +201,7 @@ class DiscussHubRoutingManager(models.TransientModel):
             if not record.agent and not record.team:
                 raise ValidationError(_("You must select either an agent or a team."))
 
-    def action_forward(self):
+    def action_forward(self, from_partner=None):
         """Forward the channel to the selected agent"""
 
         self.ensure_one()  # Only one wizard record should be active
@@ -210,21 +210,27 @@ class DiscussHubRoutingManager(models.TransientModel):
         selected_team = self.team
         selected_note = self.note
         selected_actor = None
+        user = self.env.user
+        if from_partner and from_partner.user_ids:
+            user = from_partner.user_ids[0]
         for channel in self.channel_ids:
             if selected_agent:
                 selected_actor = selected_agent
-                channel.add_members([selected_actor.id])
+                channel.with_user(user).add_members([selected_actor.id])
             if selected_team:
                 selected_member = selected_team.get_next_team_member(
                     connector=channel.discuss_hub_connector
                 )
                 if selected_member:
                     selected_actor = selected_member.partner_id
-                    channel.add_members([selected_actor.id])
+
+                    # add the member as user
+                    channel.with_user(user).add_members([selected_actor.id])
             # add note
             if selected_note:
                 # run with sudo
                 channel.sudo().message_post(
+                    author_id=from_partner.id,
                     body=selected_note,
                     message_type="notification",
                     partner_ids=[selected_actor.id],

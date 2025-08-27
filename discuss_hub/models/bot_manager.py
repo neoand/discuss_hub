@@ -379,7 +379,7 @@ class DiscussHubBotManager(models.Model):
                 )
 
                 # Execute the forward action
-                result = routing_manager.action_forward()
+                result = routing_manager.action_forward(from_partner=self.partner)
 
                 return {
                     "success": True,
