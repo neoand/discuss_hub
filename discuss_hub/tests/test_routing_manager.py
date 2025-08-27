@@ -74,20 +74,20 @@ class TestBasePlugin(HttpCase):
         # first run, first user
         first_run = team.get_next_team_member()
         assert (
-            first_run == first_partner
-        ), f"Expected {first_partner.name}, got {first_run.name}"
+            first_run.partner_id.id == first_partner.id
+        ), f"Expected {first_run.partner_id.id}, got {first_partner.id}"
         # second run, second user
         second_run = team.get_next_team_member()
         assert (
-            second_run == second_partner
-        ), f"Expected {second_partner.name}, got {second_run.name}"
+            second_run.partner_id.id == second_partner.id
+        ), f"Expected {second_run.partner_id.id}, got {second_partner.id}"
         # third run, third user
         third_run = team.get_next_team_member()
         assert (
-            third_run == third_partner
-        ), f"Expected {third_partner.name}, got {third_run.name}"
+            third_run.partner_id.id == third_partner.id
+        ), f"Expected {third_partner.partner_id.id}, got {third_run.id}"
         # fourth run, first user again
         fourth_run = team.get_next_team_member()
         assert (
-            fourth_run == first_partner
-        ), f"Expected {first_partner.name}, got {fourth_run.name}"
+            fourth_run.partner_id.id == first_partner.id
+        ), f"Expected {first_partner.id}, got {fourth_run.id}"
