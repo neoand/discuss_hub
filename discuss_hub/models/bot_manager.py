@@ -1,4 +1,5 @@
 import base64
+import uuid
 import logging
 from urllib.parse import urljoin, urlparse
 
@@ -27,6 +28,11 @@ class DiscussHubBotManager(models.Model):
         default=True,
         help="Indicates whether the routing team is active.",
     )
+    uuid = fields.Char(
+        required=True,
+        # Fixed: Use function call to avoid evaluation at import time
+        default=lambda self: str(uuid.uuid4()),
+    )    
     partner = fields.One2many(
         comodel_name="res.partner",
         string="partner",
@@ -291,7 +297,7 @@ class DiscussHubBotManager(models.Model):
                     + f"Message from bot: {message}"
                 )
                 if message.get("type") == "text":
-                    body = message.get("content", {}, timeout=self.bot_url_timeout).get(
+                    body = message.get("content", {}).get(
                         "markdown"
                     )
                 # TODO: try to cache those files as they will be repeating
@@ -321,6 +327,70 @@ class DiscussHubBotManager(models.Model):
                 channel.discuss_hub_connector.outgo_message(channel, new_message)
         return True
 
+    # def process_payload(self, payload):
+    #     """
+    #     Process an incoming payload from the bot.
+    #     :param payload: The payload to process.
+    #     :return: A response indicating the result of the processing.
+    #     """
+    #     _logger.info(f"Processing payload for bot manager {self.id}: {payload}")
+    #     if payload.get("action") == "forward" and payload.get("channel_id"):
+    #         # forward action at specific channel_id
+    #         if payload.get("agent"):
+    #             # Handle agent-specific logic here
+    #             pass
+    #     return {"status": "success", "detail": "Payload processed successfully.", "received": payload}
+
+
+    def process_payload(self, incoming_payload):  
+        """Process routing payload using DiscussHubRoutingManager"""  
+        try:  
+            # Extract required fields from payload  
+            action = incoming_payload.get('action')  
+            channel_id = incoming_payload.get('channel_id')  
+            team_id = incoming_payload.get('team_id')  
+            agent_id = incoming_payload.get('agent_id')  
+            note = incoming_payload.get('note')  
+            
+            # Validate required fields  
+            if not action or not channel_id:  
+                return {"error": "Missing required fields: action, channel_id"}  
+            
+            if action == 'forward':  
+                # Get the channel  
+                channel = self.env['discuss.channel'].browse(channel_id)  
+                if not channel.exists():  
+                    return {"error": f"Channel {channel_id} not found"}
+
+                # check if team is active
+                if team_id:
+                    team = self.env['discuss_hub.routing_team'].browse(team_id)
+                    if not team.exists() or not team.active:
+                        return {"error": f"Team {team_id} is not active or not found"}
+
+                # Create transient routing manager record
+                routing_manager = self.env['discuss_hub.routing_manager'].create({
+                    'channel_ids': [(6, 0, [channel_id])],
+                    'team': team_id if team_id else False,
+                    'agent': agent_id if agent_id else False,  
+                    'note': note or None,  
+                })  
+                
+                # Execute the forward action  
+                result = routing_manager.action_forward()  
+                
+                return {  
+                    "success": True,  
+                    "action": action,  
+                    "channel_id": channel_id,  
+                    "result": result  
+                }  
+            else:
+                return {"error": f"Unknown action: {action}"}  
+                
+        except Exception as e:
+            raise
+            return {"error": str(e)}
 
 class DiscussHubBotManagerSession(models.Model):
     """

@@ -101,7 +101,7 @@ class DiscussHubRoutingTeam(models.Model):
             return None
         # increment the team member count
         next_team_member.write({"count": next_team_member.count + 1})
-        return next_team_member.user_id.partner_id
+        return next_team_member.user_id
 
     def _get_random_user(self):
         """Returns a random user from the team"""
@@ -209,20 +209,25 @@ class DiscussHubRoutingManager(models.TransientModel):
         selected_agent = self.agent.partner_id
         selected_team = self.team
         selected_note = self.note
+        selected_actor = None
         for channel in self.channel_ids:
             if selected_agent:
-                channel.add_members([selected_agent.id])
+                selected_actor = selected_agent
+                print("AQUI AGENT ACTOR:", selected_agent)
+                channel.add_members([selected_actor.id])
             if selected_team:
-                selected_member = selected_team.get_next_team_member(channel=channel)
+                selected_member = selected_team.get_next_team_member(connector=channel.discuss_hub_connector)
                 if selected_member:
-                    channel.add_members([selected_member.partner_id.id])
+                    selected_actor = selected_member.partner_id
+                    print("AQUI TEAM MEMBER ACTOR:", selected_actor)
+                    channel.add_members([selected_actor.id])
             # add note
             if selected_note:
                 # run with sudo
                 channel.sudo().message_post(
                     body=selected_note,
                     message_type="notification",
-                    partner_ids=[selected_agent.id],
+                    partner_ids=[selected_actor.id],
                 )
             # close the UI
             channel_member = self.env["discuss.channel.member"].search(
@@ -232,7 +237,8 @@ class DiscussHubRoutingManager(models.TransientModel):
                 ],
                 limit=1,
             )
-            channel_member._channel_fold("closed", 10000000)
+            if channel_member:
+                channel_member._channel_fold("closed", 10000000)
             # leave the channel
             channel.action_unfollow()
 

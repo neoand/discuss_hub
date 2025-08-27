@@ -68,3 +68,57 @@ class Evo(http.Controller):
                 json.dumps(response),
                 headers={"Content-Type": "application/json"},
             )
+
+    @http.route(
+        "/discuss_hub/routing/<uuid:identifier>",
+        auth="public",
+        csrf=False,
+        methods=["POST", "GET"],
+        type="http",
+    )
+    def botmanager_routing(self, identifier: uuid.UUID, **kw):
+        botmanager = (
+            http.request.env["discuss_hub.bot_manager"]
+            .sudo(flag=True)
+            .search(
+                [("active", "=", True), ("uuid", "=", str(identifier))],
+                limit=1
+            )
+        )
+        if not len(botmanager):
+            _logger.warning(f"action:botmanager_not_found identifier:{identifier}")
+            response = Response(
+                json.dumps({"message": "Bot Manager Not Found"}),
+                status=404,
+                content_type="application/json",
+            )
+            return response
+        try:
+            if http.request.httprequest.mimetype == "application/json":
+                incoming_payload = json.loads(http.request.httprequest.data)
+            else:
+                incoming_payload = http.request.params
+                incoming_payload["identifier"] = str(identifier)
+        except json.decoder.JSONDecodeError:
+            _logger.error(
+                f"action:json_decode_error identifier:{identifier},"
+                + f" payload:{http.request.httprequest.data}"
+            )
+            response = Response(
+                json.dumps({"message": "Invalid JSON Payload"}),
+                status=400,
+                content_type="application/json",
+            )
+            return response
+        _logger.info(
+            f"action incoming_payload botmanager {botmanager.id}:"
+            + f" payload {json.dumps(incoming_payload)}"
+        )
+        response = botmanager.process_payload(incoming_payload)
+        if isinstance(response, Response):
+            return response
+        else:
+            return Response(
+                json.dumps(response),
+                headers={"Content-Type": "application/json"},
+            )
