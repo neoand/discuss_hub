@@ -4,6 +4,7 @@
         <field name="bot_type">generic</field>
         <field name="bot_url">http://n8n:5678/webhook/discuss_hub/incoming/debug</field>
         <field name="bot_url_timeout">360</field>
+        <field name="bot_api_key">some_api</field>
         <field
             name="on_error_message"
         >An error occurred while processing your request. Please try again later.</field>
