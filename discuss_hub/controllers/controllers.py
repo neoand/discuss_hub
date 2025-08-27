@@ -80,10 +80,7 @@ class Evo(http.Controller):
         botmanager = (
             http.request.env["discuss_hub.bot_manager"]
             .sudo(flag=True)
-            .search(
-                [("active", "=", True), ("uuid", "=", str(identifier))],
-                limit=1
-            )
+            .search([("active", "=", True), ("uuid", "=", str(identifier))], limit=1)
         )
         if not len(botmanager):
             _logger.warning(f"action:botmanager_not_found identifier:{identifier}")

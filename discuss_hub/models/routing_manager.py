@@ -213,13 +213,13 @@ class DiscussHubRoutingManager(models.TransientModel):
         for channel in self.channel_ids:
             if selected_agent:
                 selected_actor = selected_agent
-                print("AQUI AGENT ACTOR:", selected_agent)
                 channel.add_members([selected_actor.id])
             if selected_team:
-                selected_member = selected_team.get_next_team_member(connector=channel.discuss_hub_connector)
+                selected_member = selected_team.get_next_team_member(
+                    connector=channel.discuss_hub_connector
+                )
                 if selected_member:
                     selected_actor = selected_member.partner_id
-                    print("AQUI TEAM MEMBER ACTOR:", selected_actor)
                     channel.add_members([selected_actor.id])
             # add note
             if selected_note:
