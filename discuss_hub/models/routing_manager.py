@@ -230,7 +230,7 @@ class DiscussHubRoutingManager(models.TransientModel):
             if selected_note:
                 # run with sudo
                 channel.sudo().message_post(
-                    author_id=from_partner.id,
+                    author_id=from_partner.id if from_partner else None,
                     body=selected_note,
                     message_type="notification",
                     partner_ids=[selected_actor.id],
@@ -246,7 +246,7 @@ class DiscussHubRoutingManager(models.TransientModel):
             if channel_member:
                 channel_member._channel_fold("closed", 10000000)
             # leave the channel
-            channel.action_unfollow()
+            channel.with_user(user).action_unfollow()
 
         return {"type": "ir.actions.act_window_close"}
 
