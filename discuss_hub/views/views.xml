@@ -287,6 +287,33 @@
         <field name="view_mode">kanban,list,form</field>
     </record>
 
+    <record model="ir.ui.view" id="discuss_hub_form_team">  
+        <field name="name">discuss_hub Team Form</field>  
+        <field name="model">discuss_hub.routing_team</field>  
+        <field name="arch" type="xml">  
+            <form string="Routing Team">  
+                <sheet>  
+                    <group>  
+                        <field name="name" />  
+                        <field name="routing_strategy" />  
+                        <field name="online_users_only" />  
+                    </group>  
+                    <notebook>  
+                        <page string="Team Members" invisible="not id">  
+                            <field name="team_member_ids" context="{'default_team_id': id}">  
+                                <list>  
+                                    <field name="user_id" />  
+                                    <field name="order" />  
+                                    <field name="count" />  
+                                </list>  
+                            </field>  
+                        </page>  
+                    </notebook>  
+                </sheet>  
+            </form>  
+        </field>  
+    </record>
+
     <record model="ir.ui.view" id="discuss_hub_list_team">
         <field name="name">discuss_hub Team List</field>
         <field name="model">discuss_hub.routing_team</field>
