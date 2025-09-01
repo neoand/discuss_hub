@@ -4,6 +4,7 @@ import uuid
 from urllib.parse import urljoin, urlparse
 
 import requests
+from markupsafe import Markup
 
 from odoo import fields, models
 from odoo.tools import html2plaintext
@@ -316,7 +317,6 @@ class DiscussHubBotManager(models.Model):
                         )
                 # handle typebot markdown. first, replace \n to <br>
                 body = body.replace("\n", "<br>")
-                from markupsafe import Markup  
                 new_message = channel.message_post(
                     body=Markup(body),
                     author_id=partner.id,
