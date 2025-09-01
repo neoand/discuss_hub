@@ -314,9 +314,11 @@ class DiscussHubBotManager(models.Model):
                             f"BOTMANAGER {self.id}, session_id:{session_id}, "
                             + f"Failed to download media: {query.status_code}"
                         )
-
+                # handle typebot markdown. first, replace \n to <br>
+                body = body.replace("\n", "<br>")
+                from markupsafe import Markup  
                 new_message = channel.message_post(
-                    body=body,
+                    body=Markup(body),
                     author_id=partner.id,
                     message_type="comment",
                     subtype_xmlid="mail.mt_comment",
