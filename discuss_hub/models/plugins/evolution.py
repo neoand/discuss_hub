@@ -29,7 +29,25 @@ class Plugin(PluginBase):
     # MANAGEMENT / HELPERS
 
     def get_status(self):
-        """Get the status of the connector"""
+        """Get the status of the Evolution API connector instance.
+        
+        This method queries the Evolution API to check the current status of the 
+        WhatsApp connection. It handles various response scenarios including:
+        - Instance not found (404): Attempts to create a new instance automatically
+        - Authentication failure (401): Returns unauthorized status
+        - Success (200): Processes response including potential QR code for authentication
+        
+        Returns:
+            dict: A status dictionary containing:
+                - status (str): Current connection state ('open', 'closed', 'not_found', etc.)
+                - qrcode (str, optional): Base64 QR code for WhatsApp authentication if needed
+                - success (bool): Whether the status request was successful
+                - plugin_name (str): Name of the plugin ('evolution')
+                - connector (str): String representation of the connector
+        
+        Raises:
+            No exceptions are raised as they're caught internally, but errors are logged.
+        """
         url = f"{self.evolution_url}/instance/connect/{self.connector.name}"
         qrcode = None
         try:
@@ -117,7 +135,7 @@ class Plugin(PluginBase):
                 status = "unauthorized"
 
             if query.status_code == 200:
-                qrcode_base64 = query.json().get("base64", None)
+                qrcode_base64 = query.json().get("base64")
                 if qrcode_base64:
                     status = "qr_code"
                     qrcode = qrcode_base64
