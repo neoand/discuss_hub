@@ -402,7 +402,8 @@ class Plugin(PluginBase):
             contacts_request = self.session.post(url)
             if contacts_request.status_code == 200:
                 self.connector.evolution_contact_queue = contacts_request.json()
-                self.connector.env.cr.commit()
+                # Não usar commit direto - o Odoo gerencia as transações automaticamente
+                # self.connector.env.cr.commit()
 
         for contact in self.connector.evolution_contact_queue:
             # get or create partner
@@ -413,8 +414,8 @@ class Plugin(PluginBase):
             current_state = self.connector.evolution_contact_queue
             current_state.remove(contact)
             self.connector.evolution_contact_queue = current_state
-            # force commit
-            self.connector.env.cr.commit()
+            # Não usar commit direto - o Odoo gerencia as transações automaticamente
+            # self.connector.env.cr.commit()
         return True
 
     # OUTCOMING
