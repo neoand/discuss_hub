@@ -141,12 +141,29 @@ class Plugin(PluginBase):
                     qrcode = qrcode_base64
                 status = query.json().get("instance", {}).get("state", "closed")
         except requests.RequestException as e:
-            _logger.error(f"Error getting status: {str(e)} connector {self}")
+            # Log specific error type for better troubleshooting
+            error_type = type(e).__name__
+            _logger.error(
+                f"Error getting status: {error_type}: {str(e)} for connector {self.connector.name}"
+            )
             status = "error"
+        except ValueError as e:
+            # Handle JSON parsing errors separately
+            _logger.error(
+                f"Invalid JSON response from Evolution API: {str(e)} for connector {self.connector.name}"
+            )
+            status = "error"
+        except Exception as e:
+            # Catch-all for unexpected errors
+            _logger.error(
+                f"Unexpected error in get_status: {type(e).__name__}: {str(e)} for connector {self.connector.name}"
+            )
+            status = "error"
+            
         return {
             "status": status,
             "qrcode": qrcode,
-            "sucess": True,
+            "success": True,  # Fixed typo: 'sucess' -> 'success'
             "plugin_name": self.plugin_name,
             "connector": str(self.connector),
         }
