@@ -11,6 +11,19 @@
 
 Integrate third party message channels into Odoo's discuss
 
+## 📚 Documentation
+
+**Complete documentation is available in multiple languages:**
+
+- 🇧🇷 **[Documentação em Português](docs/pt-br/README.md)** - Documentação completa em português brasileiro
+- 🇺🇸 **[English Documentation](docs/en/README.md)** - Complete English documentation
+- 📊 **[Architecture & Diagrams](docs/assets/diagrams.md)** - Technical architecture diagrams
+
+**Quick Access:**
+- [🔥 Evolution Plugin Guide](docs/pt-br/Evolution%20Plugin.md) | [English](docs/en/Evolution%20Plugin.md)
+- [🛠️ Plugin Development](docs/pt-br/Plugin%20Development.md) | [English](docs/en/Plugin%20Development.md)
+- [🔧 Troubleshooting](docs/pt-br/Troubleshooting.md)
+
 [Deepwiki tech docs](https://deepwiki.com/discusshub/discuss_hub)
 
 ## QUICK START ##
