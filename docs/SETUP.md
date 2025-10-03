@@ -43,16 +43,19 @@ docs/
 ## Convenções
 
 ### Links Internos
+
 - Use `[[Nome do Arquivo]]` para links entre documentos
 - Use `[[Nome do Arquivo#Seção]]` para links para seções específicas
 - Use `[[Nome do Arquivo|Texto do Link]]` para texto customizado
 
 ### Idiomas
+
 - Arquivos em português: pasta `pt-br/`
 - Arquivos em inglês: pasta `en/`
 - Recursos compartilhados: pasta `assets/`
 
 ### Emojis e Icons
+
 - 📚 Documentação
 - 🔥 Recursos principais/populares
 - 🛠️ Desenvolvimento/Técnico
@@ -62,7 +65,9 @@ docs/
 - 🌐 Links externos/Web
 
 ### Tags
+
 Use tags para categorizar conteúdo:
+
 - `#DiscussHub` - Tag principal do projeto
 - `#Plugin` - Relacionado a plugins
 - `#Development` - Desenvolvimento
@@ -72,17 +77,20 @@ Use tags para categorizar conteúdo:
 ## Manutenção
 
 ### Atualizações
+
 - **Sempre** atualize ambos os idiomas (PT-BR e EN)
 - **Verifique** links internos após renomear arquivos
 - **Teste** diagramas Mermaid após mudanças
 - **Mantenha** consistência na estrutura
 
 ### Versionamento
+
 - Inclua data de atualização no final de cada documento
 - Use versionamento semântico para mudanças importantes
 - Documente breaking changes claramente
 
 ### Contribuições
+
 1. Crie branch para documentação: `docs/nova-feature`
 2. Atualize ambos os idiomas
 3. Teste no Obsidian antes do PR
@@ -91,6 +99,7 @@ Use tags para categorizar conteúdo:
 ## Configurações Recomendadas do Obsidian
 
 ### Plugins Essenciais
+
 - **Mermaid**: Renderização de diagramas
 - **Table Editor**: Edição de tabelas
 - **Tag Wrangler**: Gerenciamento de tags
@@ -98,12 +107,14 @@ Use tags para categorizar conteúdo:
 - **Templater**: Templates para novos documentos
 
 ### Configurações de Aparência
+
 - **Theme**: Default ou Minimal
 - **Line Numbers**: Habilitado para código
 - **Readable Line Length**: Habilitado
 - **Spell Check**: Habilitado (EN + PT-BR)
 
 ### Atalhos Úteis
+
 - `Ctrl+O`: Quick Switcher (abrir arquivo)
 - `Ctrl+Shift+F`: Busca global
 - `Ctrl+G`: Abrir graph view
@@ -112,15 +123,17 @@ Use tags para categorizar conteúdo:
 ## Backup e Sincronização
 
 ### Git
+
 - **Sempre** fazer commit das mudanças na documentação
 - **Usar** mensagens de commit descritivas
 - **Incluir** arquivos `.obsidian/` no controle de versão
 
 ### Obsidian Sync (Opcional)
+
 - Configure Obsidian Sync para sincronizar entre dispositivos
 - Exclua arquivos temporários do sync
 - Mantenha backup local regular
 
 ---
 
-*Configuração criada em: 24 de Setembro de 2025*
+_Configuração criada em: 24 de Setembro de 2025_

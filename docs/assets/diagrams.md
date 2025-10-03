@@ -8,16 +8,16 @@ Esta página contém diagramas explicativos da arquitetura e fluxos do Discuss H
 graph TB
     subgraph "External Services"
         WA[WhatsApp]
-        TG[Telegram] 
+        TG[Telegram]
         API[Evolution API]
         CLOUD[WhatsApp Cloud]
     end
-    
+
     subgraph "Discuss Hub Core"
         WH[Webhook Controller]
         CONN[Connector Model]
         PM[Plugin Manager]
-        
+
         subgraph "Plugins"
             PE[Evolution Plugin]
             PC[Cloud Plugin]
@@ -25,43 +25,43 @@ graph TB
             PX[Custom Plugin]
         end
     end
-    
+
     subgraph "Odoo Core"
         DC[Discuss Channel]
         MM[Mail Message]
         RP[Res Partner]
         BA[Base Automation]
     end
-    
+
     subgraph "External Tools"
         N8N[N8N Workflows]
         WF[Webhook Flows]
     end
-    
+
     WA --> API
     API --> WH
     CLOUD --> WH
     TG --> WH
-    
+
     WH --> CONN
     CONN --> PM
     PM --> PE
     PM --> PC
     PM --> PN
     PM --> PX
-    
+
     PE --> DC
     PC --> DC
     PN --> DC
     PX --> DC
-    
+
     DC --> MM
     MM --> RP
     MM --> BA
-    
+
     N8N --> WF
     WF --> WH
-    
+
     BA --> CONN
 ```
 
@@ -76,7 +76,7 @@ sequenceDiagram
     participant PLUGIN as Plugin
     participant CHANNEL as Discuss Channel
     participant MSG as Mail Message
-    
+
     WA->>API: Mensagem recebida
     API->>WH: POST /webhook/discuss_hub/uuid
     WH->>CONN: find connector by uuid
@@ -93,13 +93,13 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant USER as Usuário Odoo
-    participant CHANNEL as Discuss Channel  
+    participant CHANNEL as Discuss Channel
     participant AUTO as Base Automation
     participant CONN as Connector
     particle PLUGIN as Plugin
     participant API as Evolution API
     participant WA as WhatsApp
-    
+
     USER->>CHANNEL: Digita mensagem
     CHANNEL->>AUTO: Trigger on message create
     AUTO->>CONN: outgo_message()
@@ -124,10 +124,10 @@ stateDiagram-v2
     Error --> Ready: Error Handled
     Ready --> Stopping: Connector Disabled
     Stopping --> [*]: Plugin Unloaded
-    
+
     Ready --> StatusCheck: get_status()
     StatusCheck --> Ready: Status Updated
-    
+
     Ready --> Sending: outgo_message()
     Sending --> Ready: Message Sent
     Sending --> Error: Send Failed
@@ -141,39 +141,39 @@ graph TD
         WA[WhatsApp Mobile]
         WEB[WhatsApp Web]
     end
-    
+
     subgraph "Evolution API"
         INST[Instance Manager]
         SESS[Session Handler]
         WS[WebSocket Manager]
         QR[QR Code Generator]
     end
-    
+
     subgraph "Evolution Plugin"
         STATUS[Status Monitor]
         PROC[Payload Processor]
         SENDER[Message Sender]
         CONTACT[Contact Sync]
     end
-    
+
     subgraph "Odoo Integration"
         CONN[Connector Model]
         CHAN[Discuss Channels]
         PART[Partners/Contacts]
     end
-    
+
     WA <--> INST
     WEB <--> INST
     INST --> SESS
     SESS --> WS
     SESS --> QR
-    
+
     WS --> STATUS
     WS --> PROC
     STATUS --> CONN
     PROC --> CHAN
     PROC --> PART
-    
+
     SENDER --> INST
     CONTACT --> PART
 ```
@@ -185,26 +185,26 @@ flowchart TD
     START([Webhook Recebido]) --> VALIDATE{Validar Payload}
     VALIDATE -->|Válido| ROUTE[Rotear por Tipo]
     VALIDATE -->|Inválido| ERROR[Log Error & Exit]
-    
+
     ROUTE --> MSG[Processar Mensagem]
     ROUTE --> STATUS[Atualizar Status]
     ROUTE --> CONTACT[Sincronizar Contato]
-    
+
     MSG --> CHANNEL{Canal Existe?}
     CHANNEL -->|Não| CREATE[Criar Canal]
     CHANNEL -->|Sim| UPDATE[Usar Canal Existente]
-    
+
     CREATE --> NOTIFY[Notificar Usuários]
     UPDATE --> NOTIFY
-    
+
     STATUS --> QRCODE{QR Code?}
     QRCODE -->|Sim| DISPLAY[Exibir QR Code]
     QRCODE -->|Não| CONTINUE[Continuar Fluxo]
-    
+
     CONTACT --> PARTNER{Partner Existe?}
     PARTNER -->|Não| CREATEP[Criar Partner]
     PARTNER -->|Sim| UPDATEP[Atualizar Partner]
-    
+
     NOTIFY --> END([Finalizar])
     DISPLAY --> END
     CONTINUE --> END
@@ -222,22 +222,22 @@ sequenceDiagram
     participant PLUGIN as Evolution Plugin
     participant API as Evolution API
     participant WA as WhatsApp
-    
+
     USER->>ODOO: Criar Connector
     ODOO->>PLUGIN: get_status()
     PLUGIN->>API: GET /instance/status
-    
+
     alt Instance Not Found
         API-->>PLUGIN: 404 Not Found
         PLUGIN->>API: POST /instance/create
         API-->>PLUGIN: Instance Created
         PLUGIN->>API: GET /instance/status
     end
-    
+
     API-->>PLUGIN: Status + QR Code
     PLUGIN-->>ODOO: Display QR
     ODOO-->>USER: Show QR Code
-    
+
     USER->>WA: Scan QR Code
     WA->>API: Authentication
     API->>PLUGIN: Webhook: connection.update
@@ -258,14 +258,14 @@ erDiagram
         api_key string
         uuid string
     }
-    
+
     CHANNEL {
         id integer
         name string
         discuss_hub_connector_id integer
         discuss_hub_outgoing_destination string
     }
-    
+
     MESSAGE {
         id integer
         body text
@@ -274,7 +274,7 @@ erDiagram
         discuss_hub_message_id string
         author_id integer
     }
-    
+
     PARTNER {
         id integer
         name string
@@ -282,7 +282,7 @@ erDiagram
         email string
         image_1920 binary
     }
-    
+
     CONNECTOR ||--o{ CHANNEL : "manages"
     CHANNEL ||--o{ MESSAGE : "contains"
     PARTNER ||--o{ MESSAGE : "authors"
@@ -320,4 +320,5 @@ Para visualização adequada no Obsidian, instale o plugin "Mermaid" e configure
 - [[Troubleshooting|Solução de Problemas]]
 
 ---
-*Última atualização: 24 de Setembro de 2025*
+
+_Última atualização: 24 de Setembro de 2025_

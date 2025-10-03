@@ -18,7 +18,9 @@
 
 ## 📖 Introdução
 
-O sistema de plugins do Discuss Hub permite integrar qualquer serviço de mensagens externo ao Odoo de forma modular e extensível. Cada plugin é uma classe Python que herda de `PluginBase` e implementa métodos específicos para o provedor de mensagens.
+O sistema de plugins do Discuss Hub permite integrar qualquer serviço de mensagens
+externo ao Odoo de forma modular e extensível. Cada plugin é uma classe Python que herda
+de `PluginBase` e implementa métodos específicos para o provedor de mensagens.
 
 ### 🎯 Objetivos dos Plugins
 
@@ -77,26 +79,26 @@ Todos os plugins herdam desta classe base:
 ```python
 class Plugin:
     """Base class for all plugins."""
-    
+
     name = os.path.basename(__file__).split(".")[0]
-    
+
     def __init__(self, connector):
         """Initialize with connector instance."""
         self.connector = connector
-        
+
     # Métodos abstratos que devem ser implementados
     def process_payload(self, payload):
         raise NotImplementedError()
-    
+
     def get_status(self):
         raise NotImplementedError()
-        
+
     def get_message_id(self, payload):
         raise NotImplementedError()
-        
+
     def get_contact_name(self, payload):
         raise NotImplementedError()
-        
+
     def get_contact_identifier(self, payload):
         raise NotImplementedError()
 ```
@@ -136,16 +138,16 @@ _logger = logging.getLogger(__name__)
 
 class Plugin(PluginBase):
     plugin_name = "meu_plugin"
-    
+
     def __init__(self, connector):
         """Inicializa o plugin com o connector."""
         super().__init__(connector)
-        
+
         # Configurações específicas do plugin
         self.api_url = connector.url
         self.api_key = connector.api_key
         self.session = self._get_requests_session()
-    
+
     def _get_requests_session(self):
         """Cria sessão requests com autenticação."""
         import requests
@@ -164,7 +166,7 @@ Adicione ao `models/models.py`:
 ```python
 type = fields.Selection([
     ("base", "Base Plugin"),
-    ("example", "Example Plugin"), 
+    ("example", "Example Plugin"),
     ("evolution", "Evolution"),
     ("meu_plugin", "Meu Plugin"),  # Adicionar aqui
     # ...
@@ -223,7 +225,7 @@ def process_payload(self, payload):
     """Processa payload recebido do webhook."""
     try:
         event_type = payload.get("event", payload.get("type"))
-        
+
         if event_type == "message":
             return self._process_message(payload)
         elif event_type == "status":
@@ -233,7 +235,7 @@ def process_payload(self, payload):
         else:
             _logger.warning(f"Unhandled event type: {event_type}")
             return {"success": False, "error": "Unknown event type"}
-            
+
     except Exception as e:
         _logger.error(f"Error processing payload: {e}")
         return {"success": False, "error": str(e)}
@@ -249,7 +251,7 @@ def get_message_id(self, payload):
     # Adapte conforme estrutura da sua API
     return (
         payload.get("message_id") or
-        payload.get("id") or 
+        payload.get("id") or
         payload.get("data", {}).get("id")
     )
 ```
@@ -310,20 +312,20 @@ def outgo_message(self, channel, message):
     try:
         # Extrair destinatário do canal
         destination = channel.discuss_hub_outgoing_destination
-        
+
         # Preparar dados da mensagem
         data = {
             "to": destination,
             "message": self._extract_text_from_html(message.body),
             "type": "text"
         }
-        
+
         # Enviar via API
         response = self.session.post(
             f"{self.api_url}/send-message",
             json=data
         )
-        
+
         if response.status_code == 200:
             result = response.json()
             _logger.info(f"Message sent: {result}")
@@ -331,7 +333,7 @@ def outgo_message(self, channel, message):
         else:
             _logger.error(f"Send failed: {response.text}")
             return None
-            
+
     except Exception as e:
         _logger.error(f"Error sending message: {e}")
         return None
@@ -370,27 +372,27 @@ def logout_instance(self):
 ```python
 def _process_message(self, payload):
     """Processa mensagem recebida."""
-    
+
     # 1. Extrair informações básicas
     message_id = self.get_message_id(payload)
     contact_name = self.get_contact_name(payload)
     contact_identifier = self.get_contact_identifier(payload)
     message_text = self._extract_message_text(payload)
-    
+
     # 2. Buscar ou criar contato
     partner = self._find_or_create_partner(
-        contact_identifier, 
-        contact_name, 
+        contact_identifier,
+        contact_name,
         payload
     )
-    
+
     # 3. Buscar ou criar canal
     channel = self._find_or_create_channel(
         contact_identifier,
         partner,
         payload
     )
-    
+
     # 4. Criar mensagem no Odoo
     message = self._create_message(
         channel,
@@ -398,7 +400,7 @@ def _process_message(self, payload):
         partner,
         payload
     )
-    
+
     return {
         "success": True,
         "partner_id": partner.id,
@@ -413,11 +415,11 @@ def _process_message(self, payload):
 def _find_or_create_partner(self, identifier, name, payload):
     """Busca ou cria partner para o contato."""
     Partner = self.connector.env["res.partner"]
-    
+
     # Buscar por campo configurado no connector
     field_name = self.connector.partner_contact_field or "phone"
     domain = [(field_name, "=", identifier)]
-    
+
     partner = Partner.search(domain, limit=1)
     if not partner:
         partner = Partner.create({
@@ -425,23 +427,23 @@ def _find_or_create_partner(self, identifier, name, payload):
             field_name: identifier,
             "is_company": False,
         })
-        
+
         # Atualizar foto se disponível
         profile_pic = self._get_profile_picture(payload)
         if profile_pic:
             partner.image_1920 = profile_pic
-    
+
     return partner
 
 def _find_or_create_channel(self, identifier, partner, payload):
     """Busca ou cria canal para a conversa."""
     Channel = self.connector.env["discuss.channel"]
-    
+
     channel = Channel.search([
         ("discuss_hub_connector", "=", self.connector.id),
         ("discuss_hub_outgoing_destination", "=", identifier)
     ], limit=1)
-    
+
     if not channel:
         channel = Channel.create({
             "name": self.get_channel_name(payload),
@@ -449,16 +451,16 @@ def _find_or_create_channel(self, identifier, partner, payload):
             "discuss_hub_outgoing_destination": identifier,
             "channel_partner_ids": [(4, partner.id)],
         })
-    
+
     return channel
 
 def _create_message(self, channel, text, partner, payload):
     """Cria mensagem no canal."""
     Message = self.connector.env["mail.message"]
-    
+
     return Message.create({
         "body": f"<p>{text}</p>",
-        "model": "discuss.channel", 
+        "model": "discuss.channel",
         "res_id": channel.id,
         "message_type": "comment",
         "author_id": partner.id,
@@ -478,7 +480,7 @@ env = self.connector.env
 
 # Principais models
 Partner = env["res.partner"]         # Contatos
-Channel = env["discuss.channel"]     # Canais de conversa  
+Channel = env["discuss.channel"]     # Canais de conversa
 Message = env["mail.message"]        # Mensagens
 Attachment = env["ir.attachment"]    # Anexos
 ```
@@ -488,17 +490,20 @@ Attachment = env["ir.attachment"]    # Anexos
 O Discuss Hub adiciona campos específicos aos models do Odoo:
 
 #### `discuss.channel`
+
 ```python
 discuss_hub_connector = fields.Many2one("discuss_hub.connector")
 discuss_hub_outgoing_destination = fields.Char()  # ID do chat externo
 ```
 
-#### `mail.message`  
+#### `mail.message`
+
 ```python
 discuss_hub_message_id = fields.Char()  # ID da mensagem externa
 ```
 
 #### `res.partner`
+
 ```python
 # Campo configurável no connector para identificar contatos
 # Pode ser phone, email, mobile, etc.
@@ -507,6 +512,7 @@ discuss_hub_message_id = fields.Char()  # ID da mensagem externa
 ### Automações Base
 
 O sistema inclui automações que disparam quando:
+
 - Nova mensagem é criada no canal
 - Status do connector muda
 - Contato é atualizado
@@ -525,13 +531,13 @@ from unittest.mock import patch, MagicMock
 from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 
-@tagged("discuss_hub", "meu_plugin") 
+@tagged("discuss_hub", "meu_plugin")
 class TestMeuPlugin(TransactionCase):
-    
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        
+
         # Criar connector de teste
         cls.connector = cls.env["discuss_hub.connector"].create({
             "name": "test_meu_plugin",
@@ -540,42 +546,42 @@ class TestMeuPlugin(TransactionCase):
             "url": "https://api.test.com",
             "api_key": "test_key",
         })
-    
+
     def test_get_status(self):
         """Testa obtenção de status."""
         plugin = self.connector.get_plugin()
-        
+
         with patch.object(plugin.session, 'get') as mock_get:
             mock_get.return_value.status_code = 200
             mock_get.return_value.json.return_value = {"status": "connected"}
-            
+
             result = plugin.get_status()
-            
+
             self.assertEqual(result["status"], "open")
             self.assertTrue(result["success"])
-    
+
     @patch("requests.Session.post")
     def test_outgo_message(self, mock_post):
         """Testa envio de mensagem."""
         mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = {"id": "msg_123"}
-        
+
         # Criar canal e mensagem de teste
         channel = self.env["discuss.channel"].create({
             "name": "Test Channel",
             "discuss_hub_connector": self.connector.id,
             "discuss_hub_outgoing_destination": "test_contact",
         })
-        
+
         message = self.env["mail.message"].create({
             "body": "<p>Test message</p>",
             "model": "discuss.channel",
             "res_id": channel.id,
         })
-        
+
         plugin = self.connector.get_plugin()
         result = plugin.outgo_message(channel, message)
-        
+
         self.assertIsNotNone(result)
         mock_post.assert_called_once()
 ```
@@ -641,17 +647,17 @@ tail -f /var/log/odoo/odoo-server.log | grep meu_plugin
 def process_payload(self, payload):
     if not isinstance(payload, dict):
         raise ValueError("Payload must be dict")
-    
+
     # Sanitizar dados
     message_text = self._sanitize_text(payload.get("message", ""))
-    
+
 # Usar HTTPS sempre
 def _get_requests_session(self):
     session = requests.Session()
     session.verify = True  # Verificar certificados SSL
     return session
 
-# Não logar informações sensíveis  
+# Não logar informações sensíveis
 _logger.info(f"Processing message for {contact_name}")  # ✅
 _logger.debug(f"API Key: {self.api_key}")              # ❌
 ```
@@ -680,23 +686,23 @@ response = self.session.get(url, timeout=10)
 ```python
 class Plugin(PluginBase):
     """Plugin para integração com MeuProvedor API.
-    
+
     Este plugin permite conectar o Discuss Hub com a API do MeuProvedor,
     suportando envio e recebimento de mensagens de texto e mídia.
-    
+
     Configuração necessária:
         - url: URL base da API (ex: https://api.meuprovedor.com)
         - api_key: Token de autenticação
-        
+
     Eventos suportados:
         - message: Mensagem recebida/enviada
         - status: Mudança de status da conexão
         - contact: Atualização de contato
     """
-    
+
     def get_status(self):
         """Obtém status atual da conexão.
-        
+
         Returns:
             dict: Status da conexão com campos:
                 - status (str): open|closed|connecting|error
@@ -714,18 +720,18 @@ def process_payload(self, payload):
         # Validação inicial
         if not payload or not isinstance(payload, dict):
             raise ValueError("Invalid payload format")
-        
+
         # Processamento principal
         return self._process_main_logic(payload)
-        
+
     except requests.RequestException as e:
         _logger.error(f"Network error processing payload: {e}")
         return {"success": False, "error": "Network error"}
-        
+
     except ValueError as e:
         _logger.warning(f"Invalid payload: {e}")
         return {"success": False, "error": "Invalid data"}
-        
+
     except Exception as e:
         _logger.exception(f"Unexpected error: {e}")
         return {"success": False, "error": "Internal error"}
@@ -737,7 +743,7 @@ def process_payload(self, payload):
 class Plugin(PluginBase):
     plugin_name = "meu_plugin"
     version = "1.0.0"
-    
+
     def get_status(self):
         status = self._get_base_status()
         status.update({
@@ -752,7 +758,7 @@ class Plugin(PluginBase):
 ## 🔗 Links Relacionados
 
 - [[Plugin Base|Classe Base]] - Documentação da classe pai
-- [[Evolution Plugin|Plugin Evolution]] - Exemplo de plugin completo  
+- [[Evolution Plugin|Plugin Evolution]] - Exemplo de plugin completo
 - [[Example Plugin|Plugin Exemplo]] - Template básico
 - [[API Reference|API Reference]] - Referência completa da API
 - [[Testing Guide|Guia de Testes]] - Como testar plugins
@@ -762,9 +768,11 @@ class Plugin(PluginBase):
 ## 📞 Suporte
 
 - **Issues**: [GitHub Issues](https://github.com/discusshub/discuss_hub/issues)
-- **Discussões**: [GitHub Discussions](https://github.com/discusshub/discuss_hub/discussions)
+- **Discussões**:
+  [GitHub Discussions](https://github.com/discusshub/discuss_hub/discussions)
 - **Comunidade**: Discuss Hub Community
 - **Documentação**: [DeepWiki](https://deepwiki.com/discusshub/discuss_hub)
 
 ---
-*Última atualização: 24 de Setembro de 2025*
+
+_Última atualização: 24 de Setembro de 2025_

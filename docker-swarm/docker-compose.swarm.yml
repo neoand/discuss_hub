@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 networks:
   traefik:
@@ -6,7 +6,7 @@ networks:
   internal:
     driver: overlay
     attachable: true
-  
+
 volumes:
   db_data:
     driver: local
@@ -91,7 +91,11 @@ services:
         reservations:
           memory: 512M
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-postgres}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-postgres}",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -99,7 +103,9 @@ services:
 
   redis:
     image: redis:7-alpine
-    command: redis-server --port 6379 --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    command:
+      redis-server --port 6379 --appendonly yes --maxmemory 256mb --maxmemory-policy
+      allkeys-lru
     volumes:
       - redis_data:/data
     networks:
@@ -166,23 +172,25 @@ services:
       labels:
         - traefik.enable=true
         - traefik.docker.network=traefik
-        
+
         # HTTP Router
-        - traefik.http.routers.odoo-web.rule=Host(`odoo.${DOMAIN:-localhost}`) || Host(`${DOMAIN:-localhost}`)
+        - traefik.http.routers.odoo-web.rule=Host(`odoo.${DOMAIN:-localhost}`) ||
+          Host(`${DOMAIN:-localhost}`)
         - traefik.http.routers.odoo-web.entrypoints=web
         - traefik.http.routers.odoo-web.middlewares=odoo-redirect-ssl
-        
+
         # HTTPS Router
-        - traefik.http.routers.odoo-websecure.rule=Host(`odoo.${DOMAIN:-localhost}`) || Host(`${DOMAIN:-localhost}`)
+        - traefik.http.routers.odoo-websecure.rule=Host(`odoo.${DOMAIN:-localhost}`) ||
+          Host(`${DOMAIN:-localhost}`)
         - traefik.http.routers.odoo-websecure.entrypoints=websecure
         - traefik.http.routers.odoo-websecure.tls=true
         - traefik.http.routers.odoo-websecure.tls.certresolver=letsencrypt
-        
+
         # Service
         - traefik.http.services.odoo.loadbalancer.server.port=8069
         - traefik.http.services.odoo.loadbalancer.sticky.cookie=true
         - traefik.http.services.odoo.loadbalancer.sticky.cookie.name=odoo-server
-        
+
         # Middlewares
         - traefik.http.middlewares.odoo-redirect-ssl.redirectscheme.scheme=https
         - traefik.http.middlewares.odoo-redirect-ssl.redirectscheme.permanent=true
@@ -247,22 +255,22 @@ services:
       labels:
         - traefik.enable=true
         - traefik.docker.network=traefik
-        
+
         # HTTP Router
         - traefik.http.routers.evolution-web.rule=Host(`evolution.${DOMAIN:-localhost}`)
         - traefik.http.routers.evolution-web.entrypoints=web
         - traefik.http.routers.evolution-web.middlewares=evolution-redirect-ssl
-        
+
         # HTTPS Router
         - traefik.http.routers.evolution-websecure.rule=Host(`evolution.${DOMAIN:-localhost}`)
         - traefik.http.routers.evolution-websecure.entrypoints=websecure
         - traefik.http.routers.evolution-websecure.tls=true
         - traefik.http.routers.evolution-websecure.tls.certresolver=letsencrypt
-        
+
         # Service
         - traefik.http.services.evolution.loadbalancer.server.port=8080
-        
-        # Middlewares  
+
+        # Middlewares
         - traefik.http.middlewares.evolution-redirect-ssl.redirectscheme.scheme=https
         - traefik.http.middlewares.evolution-redirect-ssl.redirectscheme.permanent=true
     healthcheck:
@@ -284,21 +292,21 @@ services:
       labels:
         - traefik.enable=true
         - traefik.docker.network=traefik
-        
+
         # HTTP Router
         - traefik.http.routers.mailpit-web.rule=Host(`mailpit.${DOMAIN:-localhost}`)
         - traefik.http.routers.mailpit-web.entrypoints=web
         - traefik.http.routers.mailpit-web.middlewares=mailpit-redirect-ssl
-        
-        # HTTPS Router  
+
+        # HTTPS Router
         - traefik.http.routers.mailpit-websecure.rule=Host(`mailpit.${DOMAIN:-localhost}`)
         - traefik.http.routers.mailpit-websecure.entrypoints=websecure
         - traefik.http.routers.mailpit-websecure.tls=true
         - traefik.http.routers.mailpit-websecure.tls.certresolver=letsencrypt
-        
+
         # Service
         - traefik.http.services.mailpit.loadbalancer.server.port=8025
-        
+
         # Middlewares
         - traefik.http.middlewares.mailpit-redirect-ssl.redirectscheme.scheme=https
         - traefik.http.middlewares.mailpit-redirect-ssl.redirectscheme.permanent=true

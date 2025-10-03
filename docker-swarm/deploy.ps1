@@ -6,10 +6,10 @@ param(
     [Parameter(Position=0)]
     [ValidateSet("deploy", "status", "logs", "scale", "remove", "update", "help")]
     [string]$Command = "deploy",
-    
+
     [Parameter(Position=1)]
     [string]$ServiceName = "",
-    
+
     [Parameter(Position=2)]
     [int]$Replicas = 0
 )
@@ -42,7 +42,7 @@ function Write-Error {
 
 function Test-Requirements {
     Write-Info "Verificando requisitos..."
-    
+
     # Check if Docker is running
     try {
         $null = docker info 2>$null
@@ -50,7 +50,7 @@ function Test-Requirements {
         Write-Error "Docker não está executando!"
         exit 1
     }
-    
+
     # Check if running in swarm mode
     $swarmState = docker info --format '{{.Swarm.LocalNodeState}}' 2>$null
     if ($swarmState -ne "active") {
@@ -58,13 +58,13 @@ function Test-Requirements {
         Write-Info "Execute: docker swarm init"
         exit 1
     }
-    
+
     # Check if compose file exists
     if (-not (Test-Path $COMPOSE_FILE)) {
         Write-Error "Arquivo $COMPOSE_FILE não encontrado!"
         exit 1
     }
-    
+
     # Check if .env file exists
     if (-not (Test-Path $ENV_FILE)) {
         Write-Warning "Arquivo .env não encontrado. Copiando do .env.example..."
@@ -76,13 +76,13 @@ function Test-Requirements {
             exit 1
         }
     }
-    
+
     Write-Success "Requisitos verificados!"
 }
 
 function New-Networks {
     Write-Info "Criando networks..."
-    
+
     # Check if traefik network exists
     $networks = docker network ls --format "{{.Name}}"
     if ($networks -notcontains "traefik") {
@@ -95,17 +95,17 @@ function New-Networks {
 
 function Set-NodeLabels {
     Write-Info "Configurando labels dos nodes..."
-    
+
     # Label current node for database
     $nodeId = (docker node ls --filter "role=manager" --format "{{.ID}}" | Select-Object -First 1)
     docker node update --label-add db=true $nodeId
-    
+
     Write-Success "Node labels configurados!"
 }
 
 function Deploy-Stack {
     Write-Info "Fazendo deploy da stack $STACK_NAME..."
-    
+
     # Load environment variables
     if (Test-Path $ENV_FILE) {
         Get-Content $ENV_FILE | Where-Object { $_ -match '^\s*[^#].*=' } | ForEach-Object {
@@ -113,22 +113,22 @@ function Deploy-Stack {
             [Environment]::SetEnvironmentVariable($key.Trim(), $value.Trim(), "Process")
         }
     }
-    
+
     # Deploy the stack
     docker stack deploy -c $COMPOSE_FILE $STACK_NAME
-    
+
     Write-Success "Stack $STACK_NAME deployed!"
 }
 
 function Show-StackStatus {
     Write-Info "Verificando status da stack..."
-    
+
     Write-Host "`n=== STACK STATUS ===" -ForegroundColor Cyan
     docker stack ls
-    
-    Write-Host "`n=== SERVICES STATUS ===" -ForegroundColor Cyan  
+
+    Write-Host "`n=== SERVICES STATUS ===" -ForegroundColor Cyan
     docker stack services $STACK_NAME
-    
+
     Write-Host "`n=== SERVICES DETAILS ===" -ForegroundColor Cyan
     docker service ls --filter "label=com.docker.stack.namespace=$STACK_NAME"
 }
@@ -142,11 +142,11 @@ function Show-Urls {
             $domain = ($domainLine -split "=")[1].Trim()
         }
     }
-    
+
     Write-Host "`n=== ACESSOS ===" -ForegroundColor Cyan
     Write-Host "Odoo:           " -NoNewline -ForegroundColor Green
     Write-Host "https://odoo.$domain"
-    Write-Host "Evolution API:  " -NoNewline -ForegroundColor Green  
+    Write-Host "Evolution API:  " -NoNewline -ForegroundColor Green
     Write-Host "https://evolution.$domain"
     Write-Host "Mailpit:        " -NoNewline -ForegroundColor Green
     Write-Host "https://mailpit.$domain"
@@ -157,15 +157,15 @@ function Show-Urls {
 
 function Invoke-Deploy {
     Write-Info "=== DISCUSS HUB - DOCKER SWARM DEPLOY ==="
-    
+
     Test-Requirements
     New-Networks
     Set-NodeLabels
     Deploy-Stack
-    
+
     Write-Host ""
     Write-Success "Deploy concluído!"
-    
+
     Show-StackStatus
     Show-Urls
 }

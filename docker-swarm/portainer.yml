@@ -4,7 +4,7 @@
 # Este arquivo adiciona Portainer para interface gráfica do Swarm
 # Para usar: docker stack deploy -c portainer.yml portainer
 
-version: '3.8'
+version: "3.8"
 
 services:
   agent:
@@ -39,21 +39,21 @@ services:
       labels:
         - traefik.enable=true
         - traefik.docker.network=traefik
-        
+
         # HTTP
         - traefik.http.routers.portainer-web.rule=Host(`portainer.${DOMAIN:-localhost}`)
         - traefik.http.routers.portainer-web.entrypoints=web
         - traefik.http.routers.portainer-web.middlewares=portainer-redirect-ssl
-        
+
         # HTTPS
         - traefik.http.routers.portainer-websecure.rule=Host(`portainer.${DOMAIN:-localhost}`)
         - traefik.http.routers.portainer-websecure.entrypoints=websecure
         - traefik.http.routers.portainer-websecure.tls=true
         - traefik.http.routers.portainer-websecure.tls.certresolver=letsencrypt
-        
+
         # Service
         - traefik.http.services.portainer.loadbalancer.server.port=9000
-        
+
         # Middleware
         - traefik.http.middlewares.portainer-redirect-ssl.redirectscheme.scheme=https
         - traefik.http.middlewares.portainer-redirect-ssl.redirectscheme.permanent=true

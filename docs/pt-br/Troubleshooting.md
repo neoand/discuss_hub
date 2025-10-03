@@ -20,6 +20,7 @@
 **Sintomas**: Containers não sobem ou falham na inicialização
 
 **Soluções**:
+
 ```bash
 # Verificar se Docker está rodando
 docker ps
@@ -40,6 +41,7 @@ docker compose -f compose-dev.yaml up -d --force-recreate
 **Sintomas**: `ModuleNotFoundError` ou erros de import
 
 **Soluções**:
+
 ```bash
 # Reconstruir imagem do Odoo
 docker compose build odoo --no-cache
@@ -56,6 +58,7 @@ docker compose exec odoo odoo shell -c "import discuss_hub"
 **Sintomas**: `FATAL: password authentication failed`
 
 **Soluções**:
+
 ```bash
 # Verificar variáveis de ambiente
 cat .env | grep PG
@@ -76,6 +79,7 @@ docker compose up -d odoo
 **Sintomas**: Mensagens não aparecem no Odoo
 
 **Diagnóstico**:
+
 ```bash
 # Testar webhook manualmente
 curl -X POST http://localhost:8069/webhook/discuss_hub/SEU_UUID \
@@ -91,6 +95,7 @@ docker compose exec -T db psql -U odoo -d odoo
 ```
 
 **Soluções**:
+
 - Confirmar URL do webhook na API externa
 - Verificar se UUID do connector está correto
 - Confirmar que connector está `enabled=True`
@@ -101,6 +106,7 @@ docker compose exec -T db psql -U odoo -d odoo
 **Sintomas**: Status sempre "not_found" ou "error"
 
 **Verificações**:
+
 ```bash
 # Testar API diretamente
 curl -H "apikey: SEU_TOKEN" \
@@ -114,6 +120,7 @@ docker logs evolution-api-container
 ```
 
 **Soluções**:
+
 - Confirmar que Evolution API está acessível
 - Verificar URL (sem trailing slash)
 - Confirmar API Key válida
@@ -124,6 +131,7 @@ docker logs evolution-api-container
 **Sintomas**: Campo QR Code vazio no connector
 
 **Soluções**:
+
 ```python
 # No shell do Odoo, forçar refresh do status
 connector = env['discuss_hub.connector'].browse(ID_DO_CONNECTOR)
@@ -144,6 +152,7 @@ plugin.restart_instance()
 **Sintomas**: Erro ao enviar mensagens do Odoo
 
 **Diagnóstico**:
+
 ```python
 # No shell do Odoo
 channel = env['discuss.channel'].search([('name', 'ilike', 'NOME_DO_CANAL')])
@@ -156,6 +165,7 @@ print(result)
 ```
 
 **Soluções**:
+
 - Verificar se canal tem `discuss_hub_outgoing_destination`
 - Confirmar que connector está habilitado
 - Testar API externa manualmente
@@ -166,19 +176,20 @@ print(result)
 **Sintomas**: Mesma mensagem aparece várias vezes
 
 **Soluções**:
+
 ```sql
 -- Verificar mensagens duplicadas
-SELECT discuss_hub_message_id, COUNT(*) 
-FROM mail_message 
+SELECT discuss_hub_message_id, COUNT(*)
+FROM mail_message
 WHERE discuss_hub_message_id IS NOT NULL
 GROUP BY discuss_hub_message_id
 HAVING COUNT(*) > 1;
 
 -- Limpar duplicatas (CUIDADO!)
-DELETE FROM mail_message 
+DELETE FROM mail_message
 WHERE id NOT IN (
-    SELECT MIN(id) 
-    FROM mail_message 
+    SELECT MIN(id)
+    FROM mail_message
     GROUP BY discuss_hub_message_id
 );
 ```
@@ -188,6 +199,7 @@ WHERE id NOT IN (
 **Sintomas**: Emojis ou acentos não aparecem corretamente
 
 **Soluções**:
+
 ```bash
 # Verificar encoding do banco
 docker compose exec db psql -U odoo -c "SHOW server_encoding;"
@@ -208,6 +220,7 @@ docker compose exec odoo locale
 **Sintomas**: `Plugin not found` ou erro de import
 
 **Verificações**:
+
 ```python
 # No shell do Odoo, testar import manual
 try:
@@ -223,6 +236,7 @@ print(f"Arquivo existe: {os.path.exists(plugin_path)}")
 ```
 
 **Soluções**:
+
 - Verificar sintaxe do arquivo Python
 - Confirmar que `plugin_name` está definido
 - Verificar se está no diretório correto
@@ -233,6 +247,7 @@ print(f"Arquivo existe: {os.path.exists(plugin_path)}")
 **Sintomas**: `NotImplementedError` ao usar plugin
 
 **Soluções**:
+
 ```python
 # Verificar se plugin implementa métodos obrigatórios
 plugin = connector.get_plugin()
@@ -240,7 +255,7 @@ plugin = connector.get_plugin()
 # Métodos obrigatórios
 required_methods = [
     'get_status',
-    'process_payload', 
+    'process_payload',
     'get_message_id',
     'get_contact_name',
     'get_contact_identifier'
@@ -256,6 +271,7 @@ for method in required_methods:
 **Sintomas**: Exceções não tratadas no plugin
 
 **Debug**:
+
 ```python
 # Ativar modo debug detalhado
 import logging
@@ -280,6 +296,7 @@ except Exception as e:
 **Sintomas**: Demora para processar mensagens
 
 **Otimizações**:
+
 ```python
 # Otimizar busca de partners
 # Em vez de:
@@ -305,6 +322,7 @@ def get_channel_cached(identifier):
 **Sintomas**: Erro "too many connections"
 
 **Soluções**:
+
 ```bash
 # Configurar pool de conexões no Odoo
 # odoo.conf
@@ -314,8 +332,8 @@ max_cron_threads = 2
 
 # Monitorar conexões ativas
 docker compose exec db psql -U odoo -c "
-SELECT count(*) as connections, state 
-FROM pg_stat_activity 
+SELECT count(*) as connections, state
+FROM pg_stat_activity
 GROUP BY state;
 "
 ```
@@ -325,6 +343,7 @@ GROUP BY state;
 **Sintomas**: Demora para sincronizar muitos contatos
 
 **Otimizações**:
+
 ```python
 # Processar em lotes menores
 def process_contacts_batch(contacts, batch_size=50):
@@ -476,6 +495,7 @@ docker compose exec -u node n8n sh -c "n8n update:workflow --all --active=true"
 ## ❓ FAQ (Perguntas Frequentes)
 
 ### Q: Como resetar completamente o ambiente?
+
 ```bash
 docker compose down -v
 docker system prune -af
@@ -483,6 +503,7 @@ docker compose -f compose-dev.yaml up -d
 ```
 
 ### Q: Como migrar configurações para novo servidor?
+
 ```bash
 # Exportar dados do connector
 docker compose exec db pg_dump -U odoo -t discuss_hub_connector odoo > connectors.sql
@@ -492,11 +513,12 @@ docker compose exec -T db psql -U odoo odoo < connectors.sql
 ```
 
 ### Q: Como testar plugin sem afetar produção?
+
 ```python
 # Criar connector de teste
 test_connector = env['discuss_hub.connector'].create({
     'name': 'test_instance',
-    'type': 'meu_plugin', 
+    'type': 'meu_plugin',
     'enabled': False,  # Desabilitado para não processar webhooks
     'url': 'https://test-api.com',
     'api_key': 'test_key'
@@ -508,6 +530,7 @@ status = plugin.get_status()
 ```
 
 ### Q: Como monitorar performance dos webhooks?
+
 ```python
 # Adicionar timing nos plugins
 import time
@@ -526,6 +549,7 @@ def process_payload(self, payload):
 ```
 
 ### Q: Como fazer backup dos dados de mensagens?
+
 ```bash
 # Backup completo das mensagens
 docker compose exec db pg_dump -U odoo \
@@ -536,6 +560,7 @@ docker compose exec db pg_dump -U odoo \
 ```
 
 ### Q: Como configurar múltiplos conectores do mesmo tipo?
+
 ```python
 # Cada connector deve ter name único
 connector1 = env['discuss_hub.connector'].create({
@@ -548,7 +573,7 @@ connector1 = env['discuss_hub.connector'].create({
 connector2 = env['discuss_hub.connector'].create({
     'name': 'whatsapp_suporte',   # Nome único diferente
     'type': 'evolution',
-    'url': 'https://api2.evolution.com', 
+    'url': 'https://api2.evolution.com',
     'api_key': 'key2'
 })
 ```
@@ -560,6 +585,7 @@ connector2 = env['discuss_hub.connector'].create({
 Se após seguir este guia você ainda tiver problemas:
 
 1. **Colete informações**:
+
    - Versão do Discuss Hub
    - Logs de erro completos
    - Configuração do connector (sem API keys)
@@ -568,22 +594,24 @@ Se após seguir este guia você ainda tiver problemas:
 2. **Abra uma issue**: [GitHub Issues](https://github.com/discusshub/discuss_hub/issues)
 
 3. **Use o template**:
+
    ```markdown
-   **Descrição do Problema**: 
-   [Descreva o que está acontecendo]
+   **Descrição do Problema**: [Descreva o que está acontecendo]
 
    **Passos para Reproduzir**:
+
    1. [Primeiro passo]
    2. [Segundo passo]
-   
-   **Comportamento Esperado**:
-   [O que deveria acontecer]
-   
+
+   **Comportamento Esperado**: [O que deveria acontecer]
+
    **Logs de Erro**:
    ```
+
    [Cole os logs aqui]
+
    ```
-   
+
    **Ambiente**:
    - Odoo Version: [ex: 18.0]
    - Discuss Hub Version: [ex: 18.0.0.0.10]
@@ -601,4 +629,5 @@ Se após seguir este guia você ainda tiver problemas:
 - [[API Reference|Referência da API]]
 
 ---
-*Última atualização: 24 de Setembro de 2025*
+
+_Última atualização: 24 de Setembro de 2025_

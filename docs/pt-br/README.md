@@ -16,7 +16,9 @@
 
 ## 📖 Visão Geral
 
-O **Discuss Hub** é um framework para integração de canais de mensagens de terceiros no sistema Discuss do Odoo. Permite conectar diferentes provedores de mensagens (WhatsApp, Telegram, etc.) através de uma arquitetura modular baseada em plugins.
+O **Discuss Hub** é um framework para integração de canais de mensagens de terceiros no
+sistema Discuss do Odoo. Permite conectar diferentes provedores de mensagens (WhatsApp,
+Telegram, etc.) através de uma arquitetura modular baseada em plugins.
 
 ### ✨ Principais Características
 
@@ -91,7 +93,7 @@ graph TD
     E --> F[Processamento de Payload]
     F --> G[Discuss Channel]
     G --> H[Mail Message]
-    
+
     I[N8N Workflows] --> J[Automações]
     J --> K[Base Automation]
     K --> L[Ações Automatizadas]
@@ -100,24 +102,28 @@ graph TD
 ### 🧩 Componentes Principais
 
 #### 1. **Connector (`models/models.py`)**
+
 - [[Connector Model|Modelo principal]] que gerencia conexões
 - Instancia e configura plugins
 - Processa payloads de entrada
 - Gerencia status e configurações
 
 #### 2. **Plugins (`models/plugins/`)**
+
 - [[Plugin Base|Classe base]] para todos os plugins
-- [[Evolution Plugin|Plugin Evolution]] - WhatsApp via Evolution API  
+- [[Evolution Plugin|Plugin Evolution]] - WhatsApp via Evolution API
 - [[Example Plugin|Plugin Exemplo]] - Template para novos plugins
 - [[NotificaMe Plugin|Plugin NotificaMe]] - Integração NotificaMe
 - [[WhatsApp Cloud Plugin|Plugin WhatsApp Cloud]] - WhatsApp Business API
 
 #### 3. **Controllers (`controllers/`)**
+
 - [[HTTP Controllers|Controladores HTTP]] para webhooks
 - Processamento de requisições externas
 - Validação de payloads
 
 #### 4. **Models Estendidos**
+
 - [[Discuss Channel Model|discuss_channel.py]] - Extensões do canal
 - [[Mail Message Model|mail_message.py]] - Processamento de mensagens
 - [[Res Partner Model|res_partner.py]] - Integração com contatos
@@ -127,10 +133,11 @@ graph TD
 ## 🔌 Plugins Disponíveis
 
 ### [[Evolution Plugin]] 🔥
-**Status**: ✅ Produção  
-**Descrição**: Integração com Evolution API para WhatsApp
+
+**Status**: ✅ Produção **Descrição**: Integração com Evolution API para WhatsApp
 
 **Características**:
+
 - QR Code dinâmico
 - Envio/recebimento de mensagens
 - Sincronização de contatos
@@ -138,6 +145,7 @@ graph TD
 - Reações e status
 
 **Configuração**:
+
 ```yaml
 type: evolution
 url: https://evolution-api.com
@@ -146,18 +154,18 @@ name: minha_instancia
 ```
 
 ### [[Example Plugin]] 📝
-**Status**: 🧪 Desenvolvimento  
-**Descrição**: Plugin de exemplo para desenvolvimento
+
+**Status**: 🧪 Desenvolvimento **Descrição**: Plugin de exemplo para desenvolvimento
 
 **Uso**: Template para criar novos plugins
 
 ### [[NotificaMe Plugin]] 📱
-**Status**: 🚧 Beta  
-**Descrição**: Integração com NotificaMe
+
+**Status**: 🚧 Beta **Descrição**: Integração com NotificaMe
 
 ### [[WhatsApp Cloud Plugin]] ☁️
-**Status**: 🚧 Beta  
-**Descrição**: WhatsApp Business API oficial
+
+**Status**: 🚧 Beta **Descrição**: WhatsApp Business API oficial
 
 ---
 
@@ -185,30 +193,32 @@ EVOLUTION_API_KEY=your-api-key
 
 ### 📋 Connector Settings
 
-| Campo | Descrição | Obrigatório |
-|-------|-----------|-------------|
-| `name` | Nome único do connector | ✅ |
-| `type` | Tipo do plugin | ✅ |
-| `enabled` | Ativo/Inativo | ✅ |
-| `url` | URL da API externa | ⭐ |
-| `api_key` | Chave de autenticação | ⭐ |
-| `uuid` | Identificador único | ✅ |
+| Campo     | Descrição               | Obrigatório |
+| --------- | ----------------------- | ----------- |
+| `name`    | Nome único do connector | ✅          |
+| `type`    | Tipo do plugin          | ✅          |
+| `enabled` | Ativo/Inativo           | ✅          |
+| `url`     | URL da API externa      | ⭐          |
+| `api_key` | Chave de autenticação   | ⭐          |
+| `uuid`    | Identificador único     | ✅          |
 
 **⭐** = Depende do plugin
 
 ### 🛠️ Configurações Avançadas
 
 #### Automações Base
+
 ```xml
 <!-- datas/base_automation.xml -->
 <record id="base_automation_outgoing_message" model="base.automation">
-    <field name="name">Discuss Hub - Outgoing Message</field>
-    <field name="model_id" ref="mail.model_mail_message"/>
-    <field name="trigger">on_create</field>
+  <field name="name">Discuss Hub - Outgoing Message</field>
+  <field name="model_id" ref="mail.model_mail_message" />
+  <field name="trigger">on_create</field>
 </record>
 ```
 
 #### Views Customizadas
+
 - `views/views.xml` - Interface principal
 - `views/res_partner_view.xml` - Integração com contatos
 - `views/templates.xml` - Templates web
@@ -249,31 +259,34 @@ docker compose run --rm odoo odoo \
 ### 📝 Criando um Novo Plugin
 
 1. **Crie o arquivo do plugin**:
+
 ```python
 # models/plugins/meu_plugin.py
 from .base import Plugin as PluginBase
 
 class Plugin(PluginBase):
     plugin_name = "meu_plugin"
-    
+
     def __init__(self, connector):
         super().__init__(connector)
-    
+
     def get_status(self):
         return {"status": "open"}
-    
+
     def process_payload(self, payload):
         # Sua lógica aqui
         pass
 ```
 
 2. **Registre no manifest**:
+
 ```python
 # __manifest__.py
 "depends": ["base", "mail", "base_automation"],
 ```
 
 3. **Adicione ao selector**:
+
 ```python
 # models/models.py
 type = fields.Selection([
@@ -317,25 +330,33 @@ tests/
 #### Métodos Principais
 
 ##### `get_plugin()`
+
 Retorna instância do plugin configurado
+
 ```python
 plugin = connector.get_plugin()
 ```
 
 ##### `process_payload(payload)`
+
 Processa payload recebido via webhook
+
 ```python
 result = connector.process_payload(webhook_data)
 ```
 
 ##### `outgo_message(channel, message)`
+
 Envia mensagem para canal externo
+
 ```python
 result = connector.outgo_message(channel, message)
 ```
 
 ##### `get_status()`
+
 Obtém status atual da conexão
+
 ```python
 status = connector.get_status()
 # Returns: {"status": "open|closed|error", "qr_code": "..."}
@@ -350,19 +371,19 @@ class Plugin(PluginBase):
     def get_status(self):
         """Retorna status da conexão"""
         pass
-    
+
     def process_payload(self, payload):
         """Processa payload recebido"""
         pass
-    
+
     def get_message_id(self, payload):
         """Extrai ID da mensagem"""
         pass
-    
+
     def get_contact_identifier(self, payload):
         """Extrai identificador do contato"""
         pass
-    
+
     def get_contact_name(self, payload):
         """Extrai nome do contato"""
         pass
@@ -371,28 +392,31 @@ class Plugin(PluginBase):
 ### [[Webhook API]]
 
 #### Endpoint Principal
+
 ```
 POST /webhook/discuss_hub/<connector_uuid>
 ```
 
 #### Headers Necessários
+
 ```
 Content-Type: application/json
 Authorization: Bearer <api_key> (opcional)
 ```
 
 #### Exemplo de Payload
+
 ```json
 {
-    "event": "message.received",
-    "data": {
-        "message_id": "msg_123",
-        "contact_identifier": "+5511999999999",
-        "contact_name": "João Silva",
-        "message_type": "text",
-        "message_body": "Olá, preciso de ajuda!",
-        "timestamp": "2025-09-24T10:30:00Z"
-    }
+  "event": "message.received",
+  "data": {
+    "message_id": "msg_123",
+    "contact_identifier": "+5511999999999",
+    "contact_name": "João Silva",
+    "message_type": "text",
+    "message_body": "Olá, preciso de ajuda!",
+    "timestamp": "2025-09-24T10:30:00Z"
+  }
 }
 ```
 
@@ -403,6 +427,7 @@ Authorization: Bearer <api_key> (opcional)
 ### ❌ Problemas Comuns
 
 #### 1. **Connector não recebe mensagens**
+
 ```bash
 # Verifique os logs
 docker compose logs odoo | grep discuss_hub
@@ -414,11 +439,13 @@ curl -X POST http://localhost:8069/webhook/discuss_hub/SEU_UUID \
 ```
 
 #### 2. **Plugin não carrega**
+
 - Verifique se o plugin está no diretório correto
 - Confirme que `plugin_name` está definido
 - Verifique imports e dependências
 
 #### 3. **QR Code não aparece**
+
 - Confirme configuração da Evolution API
 - Verifique URL e API Key
 - Teste conexão manual com a API
@@ -427,7 +454,7 @@ curl -X POST http://localhost:8069/webhook/discuss_hub/SEU_UUID \
 
 - [ ] Connector está **enabled**
 - [ ] URL da API está correta
-- [ ] API Key é válida  
+- [ ] API Key é válida
 - [ ] UUID do connector é único
 - [ ] Webhook está configurado na API externa
 - [ ] Logs não mostram erros de importação
@@ -458,12 +485,13 @@ docker compose logs -f db
 1. **Fork** o repositório
 2. Crie uma **branch** para sua feature: `git checkout -b feature/nova-funcionalidade`
 3. **Commit** suas mudanças: `git commit -m 'Add: nova funcionalidade'`
-4. **Push** para a branch: `git push origin feature/nova-funcionalidade`  
+4. **Push** para a branch: `git push origin feature/nova-funcionalidade`
 5. Abra um **Pull Request**
 
 ### 📝 Padrões de Código
 
 #### Commits
+
 ```
 feat: adiciona nova funcionalidade
 fix: corrige bug específico
@@ -474,12 +502,14 @@ style: corrige formatação
 ```
 
 #### Python
+
 - Use **PEP 8**
 - Docstrings em **português** ou **inglês**
 - Type hints quando possível
 - Testes para novas funcionalidades
 
 #### XML/Views
+
 - Indentação de **4 espaços**
 - IDs descritivos com prefixo do módulo
 - Comentários explicativos
@@ -508,25 +538,29 @@ pytest discuss_hub/tests/ -v
 
 ## 📄 Licença
 
-Este projeto é licenciado sob **AGPL-3.0** - veja o arquivo [LICENSE](../../LICENSE) para detalhes.
+Este projeto é licenciado sob **AGPL-3.0** - veja o arquivo [LICENSE](../../LICENSE)
+para detalhes.
 
-Cada módulo pode ter licença diferente - consulte o arquivo `__manifest__.py` de cada módulo.
+Cada módulo pode ter licença diferente - consulte o arquivo `__manifest__.py` de cada
+módulo.
 
 ---
 
 ## 🔗 Links Relacionados
 
 - [[Evolution Plugin|Plugin Evolution]] - Documentação detalhada
-- [[Plugin Development|Desenvolvimento de Plugins]] - Guia completo  
+- [[Plugin Development|Desenvolvimento de Plugins]] - Guia completo
 - [[API Reference|Referência da API]] - Documentação técnica
 - [[Troubleshooting|Solução de Problemas]] - Guia de solução
 - [[Contributing|Como Contribuir]] - Guia de contribuição
 
 ---
 
-**📞 Suporte**: [GitHub Issues](https://github.com/discusshub/discuss_hub/issues)  
-**🌐 Website**: [https://deepwiki.com/discusshub/discuss_hub](https://deepwiki.com/discusshub/discuss_hub)  
+**📞 Suporte**: [GitHub Issues](https://github.com/discusshub/discuss_hub/issues) **🌐
+Website**:
+[https://deepwiki.com/discusshub/discuss_hub](https://deepwiki.com/discusshub/discuss_hub)
 **📧 Comunidade**: Discuss Hub Community
 
 ---
-*Última atualização: 24 de Setembro de 2025* 
+
+_Última atualização: 24 de Setembro de 2025_

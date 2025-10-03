@@ -26,7 +26,7 @@
         }
       },
       {
-        "id": "search-tab", 
+        "id": "search-tab",
         "type": "leaf",
         "state": {
           "type": "search",
@@ -44,7 +44,7 @@
   },
   "right": {
     "id": "right-sidebar",
-    "type": "split", 
+    "type": "split",
     "children": [
       {
         "id": "outline-tab",
@@ -67,7 +67,7 @@
   "active": "file-explorer",
   "lastOpenFiles": [
     "README.md",
-    "pt-br/README.md", 
+    "pt-br/README.md",
     "en/README.md",
     "pt-br/Evolution Plugin.md",
     "en/Evolution Plugin.md",

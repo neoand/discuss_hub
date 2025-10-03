@@ -1,47 +1,47 @@
-# Testes do Discuss Hub
+# Discuss Hub Tests
 
-Este diretório contém os testes automatizados para o módulo Discuss Hub.
+This directory contains the automated tests for the Discuss Hub module.
 
-## Estrutura de Testes
+## Test Structure
 
-Os testes estão organizados da seguinte forma:
+Tests are organized as follows:
 
-- `test_models.py`: Testes unitários para os modelos principais
-- `test_controller.py`: Testes para os controladores HTTP
-- `test_routing_manager.py`: Testes específicos para o sistema de roteamento
-- `test_base.py`: Testes base e utilitários compartilhados
+- `test_models.py`: Unit tests for core models
+- `test_controller.py`: Tests for HTTP controllers
+- `test_routing_manager.py`: Tests specific to the routing system
+- `test_base.py`: Base tests and shared utilities
 
-## Execução dos Testes
+## Running the Tests
 
-Para executar os testes, utilize o framework de testes do Odoo:
+To run the tests, use Odoo's test framework:
 
 ```bash
 python3 odoo-bin -d YOUR_DATABASE -i discuss_hub --test-enable --stop-after-init
 ```
 
-## Tags de Testes
+## Test Tags
 
-Os testes utilizam as seguintes tags:
+The test suite uses the following tags:
 
-- `discuss_hub`: Testes gerais do módulo
-- `connector`: Testes específicos dos conectores
-- `integration`: Testes de integração que podem precisar de serviços externos mockados
+- `discuss_hub`: General module tests
+- `connector`: Connector-specific tests
+- `integration`: Integration tests that may require external services to be mocked
 
-## Melhores Práticas
+## Best Practices
 
-Ao adicionar novos testes ou modificar os existentes, siga estas diretrizes:
+When adding or modifying tests, follow these guidelines:
 
-1. Use mocks para serviços externos (API Evolution, etc.)
-2. Mantenha testes unitários isolados uns dos outros
-3. Documente cenários de teste com comentários claros
-4. Garanta que os testes sejam determinísticos (sem dependências de estado)
-5. Cubra tanto casos de sucesso quanto casos de erro
+1. Mock external services (Evolution API, etc.)
+2. Keep unit tests isolated from each other
+3. Document test scenarios with clear comments
+4. Ensure tests are deterministic (no reliance on external state)
+5. Cover both success and error cases
 
-## Cobertura de Testes
+## Test Coverage
 
-Áreas críticas que devem ser bem testadas:
+Critical areas that should be well tested:
 
-- Processamento de webhooks
-- Roteamento de mensagens
-- Sincronização de contatos
-- Tratamento de erros
+- Webhook processing
+- Message routing
+- Contact synchronization
+- Error handling

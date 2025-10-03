@@ -1,6 +1,7 @@
 # Discuss Hub - Docker Swarm Deployment 🐳
 
-Esta pasta contém a configuração para deploy do Discuss Hub em um cluster Docker Swarm com Traefik como proxy reverso.
+Esta pasta contém a configuração para deploy do Discuss Hub em um cluster Docker Swarm
+com Traefik como proxy reverso.
 
 ## 📁 Estrutura de Arquivos
 
@@ -17,7 +18,7 @@ docker-swarm/
 
 ### 1. Pré-requisitos
 
-- Docker Engine 20.10+ 
+- Docker Engine 20.10+
 - Docker Swarm mode ativado
 - Pelo menos 4GB RAM disponível
 - Portas 80, 443 e 8080 disponíveis
@@ -47,12 +48,14 @@ notepad .env  # Windows
 ### 4. Deploy da Stack
 
 **Linux/macOS:**
+
 ```bash
 chmod +x deploy.sh
 ./deploy.sh
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 .\deploy.ps1
 ```
@@ -61,13 +64,13 @@ chmod +x deploy.sh
 
 ### Variáveis de Ambiente Principais
 
-| Variável | Descrição | Padrão | Produção |
-|----------|-----------|--------|----------|
-| `DOMAIN` | Domínio base | `localhost` | `yourdomain.com` |
-| `ACME_EMAIL` | Email para Let's Encrypt | `admin@example.com` | Seu email real |
-| `POSTGRES_PASSWORD` | Senha do PostgreSQL | `admin` | Senha segura |
-| `ODOO_ADMIN_PASSWORD` | Senha admin Odoo | `admin` | Senha segura |
-| `DISCUSS_HUB_EVOLUTION_APIKEY` | Chave Evolution API | Padrão | Sua chave |
+| Variável                       | Descrição                | Padrão              | Produção         |
+| ------------------------------ | ------------------------ | ------------------- | ---------------- |
+| `DOMAIN`                       | Domínio base             | `localhost`         | `yourdomain.com` |
+| `ACME_EMAIL`                   | Email para Let's Encrypt | `admin@example.com` | Seu email real   |
+| `POSTGRES_PASSWORD`            | Senha do PostgreSQL      | `admin`             | Senha segura     |
+| `ODOO_ADMIN_PASSWORD`          | Senha admin Odoo         | `admin`             | Senha segura     |
+| `DISCUSS_HUB_EVOLUTION_APIKEY` | Chave Evolution API      | Padrão              | Sua chave        |
 
 ### Configuração para Produção
 
@@ -111,7 +114,7 @@ graph TD
     Traefik --> Odoo2[Odoo Replica 2]
     Traefik --> Evolution[Evolution API]
     Traefik --> Mailpit
-    
+
     Odoo1 --> PostgreSQL
     Odoo2 --> PostgreSQL
     Odoo1 --> Redis
@@ -210,7 +213,7 @@ docker service logs -f discuss-hub_odoo
 ### SSL/TLS Automático
 
 - **Let's Encrypt** configurado automaticamente
-- **Redirecionamento HTTP → HTTPS** 
+- **Redirecionamento HTTP → HTTPS**
 - **Certificados renovados automaticamente**
 
 ### Rede Interna
@@ -234,24 +237,31 @@ openssl rand -hex 64     # Para API keys
 ### Problemas Comuns
 
 #### 1. Swarm não inicializado
+
 ```bash
 Error: This node is not a swarm manager
 ```
+
 **Solução:**
+
 ```bash
 docker swarm init
 ```
 
 #### 2. Network traefik não existe
+
 ```bash
 Error: network traefik not found
 ```
+
 **Solução:**
+
 ```bash
 docker network create --driver overlay --attachable traefik
 ```
 
 #### 3. Serviço não inicia
+
 ```bash
 # Ver logs detalhados
 docker service logs discuss-hub_SERVICO
@@ -261,6 +271,7 @@ docker service ps discuss-hub_SERVICO --no-trunc
 ```
 
 #### 4. SSL não funciona
+
 - Verificar se `DOMAIN` e `ACME_EMAIL` estão corretos
 - Aguardar alguns minutos para provisionamento inicial
 - Ver logs do Traefik: `docker service logs discuss-hub_traefik`
@@ -305,7 +316,7 @@ docker volume prune
 # Escalar Odoo para 5 réplicas
 docker service scale discuss-hub_odoo=5
 
-# Escalar Evolution para 2 réplicas  
+# Escalar Evolution para 2 réplicas
 docker service scale discuss-hub_evolution=2
 ```
 
@@ -314,6 +325,7 @@ docker service scale discuss-hub_evolution=2
 Para clusters multi-node:
 
 1. **Join nodes ao cluster:**
+
 ```bash
 # No manager
 docker swarm join-token worker
@@ -323,6 +335,7 @@ docker swarm join --token TOKEN MANAGER_IP:2377
 ```
 
 2. **Label nodes para constraints:**
+
 ```bash
 # Dedicar node para banco
 docker node update --label-add db=true NODE_ID
@@ -332,6 +345,7 @@ docker node update --label-add app=true NODE_ID
 ```
 
 3. **Atualizar constraints no compose:**
+
 ```yaml
 deploy:
   placement:
@@ -373,4 +387,4 @@ docker run --rm -v discuss-hub_odoo_data:/data \
 
 ---
 
-*Última atualização: 24 de Setembro de 2025*
+_Última atualização: 24 de Setembro de 2025_

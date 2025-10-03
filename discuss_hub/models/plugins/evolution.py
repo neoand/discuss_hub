@@ -26,27 +26,32 @@ class Plugin(PluginBase):
         self.session = self.get_requests_session()
         self.evolution_url = self.get_evolution_url()
 
-    # MANAGEMENT / HELPERS
+        # MANAGEMENT / HELPERS
 
     def get_status(self):
         """Get the status of the Evolution API connector instance.
-        
-        This method queries the Evolution API to check the current status of the 
+
+        This method queries the Evolution API to check the current status of the
         WhatsApp connection. It handles various response scenarios including:
-        - Instance not found (404): Attempts to create a new instance automatically
+        - Instance not found (404): Attempts to create a new instance
+          automatically
         - Authentication failure (401): Returns unauthorized status
-        - Success (200): Processes response including potential QR code for authentication
-        
+        - Success (200): Processes response and may include a QR code
+          for authentication
+
         Returns:
             dict: A status dictionary containing:
-                - status (str): Current connection state ('open', 'closed', 'not_found', etc.)
-                - qrcode (str, optional): Base64 QR code for WhatsApp authentication if needed
+                - status (str): Current connection state. Examples: 'open',
+                  'closed', 'not_found'
+                - qrcode (str, optional): Base64 QR code for WhatsApp
+                  authentication if needed
                 - success (bool): Whether the status request was successful
                 - plugin_name (str): Name of the plugin ('evolution')
                 - connector (str): String representation of the connector
-        
+
         Raises:
-            No exceptions are raised as they're caught internally, but errors are logged.
+            No exceptions are propagated: errors are handled and logged
+            internally.
         """
         url = f"{self.evolution_url}/instance/connect/{self.connector.name}"
         qrcode = None
@@ -144,22 +149,30 @@ class Plugin(PluginBase):
             # Log specific error type for better troubleshooting
             error_type = type(e).__name__
             _logger.error(
-                f"Error getting status: {error_type}: {str(e)} for connector {self.connector.name}"
+                "Error getting status: %s: %s for connector %s",
+                error_type,
+                str(e),
+                self.connector.name,
             )
             status = "error"
         except ValueError as e:
             # Handle JSON parsing errors separately
             _logger.error(
-                f"Invalid JSON response from Evolution API: {str(e)} for connector {self.connector.name}"
+                "Invalid JSON response from Evolution API: %s for connector %s",
+                str(e),
+                self.connector.name,
             )
             status = "error"
         except Exception as e:
             # Catch-all for unexpected errors
             _logger.error(
-                f"Unexpected error in get_status: {type(e).__name__}: {str(e)} for connector {self.connector.name}"
+                "Unexpected error in get_status: %s: %s for connector %s",
+                type(e).__name__,
+                str(e),
+                self.connector.name,
             )
             status = "error"
-            
+
         return {
             "status": status,
             "qrcode": qrcode,

@@ -37,20 +37,20 @@ log_error() {
 
 check_requirements() {
     log_info "Verificando requisitos..."
-    
+
     # Check if running in swarm mode
     if ! docker info --format '{{.Swarm.LocalNodeState}}' | grep -q active; then
         log_error "Docker Swarm não está ativo!"
         log_info "Execute: docker swarm init"
         exit 1
     fi
-    
+
     # Check if compose file exists
     if [[ ! -f "$COMPOSE_FILE" ]]; then
         log_error "Arquivo $COMPOSE_FILE não encontrado!"
         exit 1
     fi
-    
+
     # Check if .env file exists
     if [[ ! -f "$ENV_FILE" ]]; then
         log_warning "Arquivo .env não encontrado. Copiando do .env.example..."
@@ -62,13 +62,13 @@ check_requirements() {
             exit 1
         fi
     fi
-    
+
     log_success "Requisitos verificados!"
 }
 
 create_networks() {
     log_info "Criando networks..."
-    
+
     # Create traefik network if it doesn't exist
     if ! docker network ls --format "{{.Name}}" | grep -q "^traefik$"; then
         docker network create --driver overlay --attachable traefik
@@ -80,41 +80,41 @@ create_networks() {
 
 label_nodes() {
     log_info "Configurando labels dos nodes..."
-    
+
     # Label current node for database (you can change this)
     NODE_ID=$(docker node ls --filter "role=manager" --format "{{.ID}}" | head -n1)
     docker node update --label-add db=true "$NODE_ID"
-    
+
     log_success "Node labels configurados!"
 }
 
 deploy_stack() {
     log_info "Fazendo deploy da stack $STACK_NAME..."
-    
+
     # Source environment file
     if [[ -f "$ENV_FILE" ]]; then
         set -a
         source "$ENV_FILE"
         set +a
     fi
-    
+
     # Deploy the stack
     docker stack deploy -c "$COMPOSE_FILE" "$STACK_NAME"
-    
+
     log_success "Stack $STACK_NAME deployed!"
 }
 
 check_stack_status() {
     log_info "Verificando status da stack..."
-    
+
     echo ""
     echo "=== STACK STATUS ==="
     docker stack ls
-    
+
     echo ""
     echo "=== SERVICES STATUS ==="
     docker stack services "$STACK_NAME"
-    
+
     echo ""
     echo "=== SERVICES DETAILS ==="
     docker service ls --filter "label=com.docker.stack.namespace=$STACK_NAME"
@@ -127,13 +127,13 @@ show_urls() {
         source "$ENV_FILE"
         set +a
     fi
-    
+
     DOMAIN=${DOMAIN:-localhost}
-    
+
     echo ""
     echo "=== ACESSOS ==="
     echo -e "${GREEN}Odoo:${NC}           https://odoo.${DOMAIN}"
-    echo -e "${GREEN}Evolution API:${NC}  https://evolution.${DOMAIN}"  
+    echo -e "${GREEN}Evolution API:${NC}  https://evolution.${DOMAIN}"
     echo -e "${GREEN}Mailpit:${NC}       https://mailpit.${DOMAIN}"
     echo -e "${GREEN}Traefik:${NC}       https://traefik.${DOMAIN}"
     echo ""
@@ -143,15 +143,15 @@ show_urls() {
 # Main execution
 main() {
     log_info "=== DISCUSS HUB - DOCKER SWARM DEPLOY ==="
-    
+
     check_requirements
     create_networks
     label_nodes
     deploy_stack
-    
+
     echo ""
     log_success "Deploy concluído!"
-    
+
     check_stack_status
     show_urls
 }

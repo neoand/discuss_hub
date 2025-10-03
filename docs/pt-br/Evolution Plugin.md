@@ -15,7 +15,9 @@
 
 ## 📖 Visão Geral
 
-O **Evolution Plugin** é a integração principal do Discuss Hub com a Evolution API, permitindo conectar instâncias do WhatsApp ao Odoo através de uma API robusta e confiável.
+O **Evolution Plugin** é a integração principal do Discuss Hub com a Evolution API,
+permitindo conectar instâncias do WhatsApp ao Odoo através de uma API robusta e
+confiável.
 
 ### ✨ Características
 
@@ -46,23 +48,23 @@ graph TD
 
 ```yaml
 # Connector Configuration
-name: "minha_instancia"          # Nome único da instância
-type: "evolution"                # Tipo do plugin
-enabled: true                    # Ativar connector
+name: "minha_instancia" # Nome único da instância
+type: "evolution" # Tipo do plugin
+enabled: true # Ativar connector
 url: "https://api.evolution.com" # URL da Evolution API
-api_key: "seu_token_aqui"        # Token de autenticação
+api_key: "seu_token_aqui" # Token de autenticação
 ```
 
 ### 📋 Campos do Connector
 
-| Campo | Tipo | Descrição | Obrigatório |
-|-------|------|-----------|-------------|
-| `name` | Char | Nome da instância WhatsApp | ✅ |
-| `url` | Char | URL base da Evolution API | ✅ |
-| `api_key` | Char | Token de autenticação | ✅ |
-| `uuid` | Char | UUID único do connector | ✅ |
-| `enabled` | Boolean | Status ativo/inativo | ✅ |
-| `import_contacts` | Boolean | Importar contatos automaticamente | ❌ |
+| Campo             | Tipo    | Descrição                         | Obrigatório |
+| ----------------- | ------- | --------------------------------- | ----------- |
+| `name`            | Char    | Nome da instância WhatsApp        | ✅          |
+| `url`             | Char    | URL base da Evolution API         | ✅          |
+| `api_key`         | Char    | Token de autenticação             | ✅          |
+| `uuid`            | Char    | UUID único do connector           | ✅          |
+| `enabled`         | Boolean | Status ativo/inativo              | ✅          |
+| `import_contacts` | Boolean | Importar contatos automaticamente | ❌          |
 
 ### 🌐 Evolution API Settings
 
@@ -70,33 +72,33 @@ A Evolution API deve estar configurada com:
 
 ```json
 {
-    "instance": {
-        "name": "minha_instancia",
-        "webhook": {
-            "url": "http://seu-odoo.com/webhook/discuss_hub/UUID_CONNECTOR",
-            "events": [
-                "MESSAGES_UPSERT",
-                "MESSAGES_UPDATE", 
-                "MESSAGES_DELETE",
-                "SEND_MESSAGE",
-                "CONTACTS_UPSERT",
-                "CONTACTS_UPDATE",
-                "PRESENCE_UPDATE",
-                "CHATS_UPSERT",
-                "CHATS_UPDATE",
-                "CHATS_DELETE",
-                "GROUPS_UPSERT",
-                "GROUP_UPDATE",
-                "GROUP_PARTICIPANTS_UPDATE",
-                "CONNECTION_UPDATE",
-                "LABELS_EDIT",
-                "LABELS_ASSOCIATION",
-                "CALL",
-                "TYPEBOT_START",
-                "TYPEBOT_CHANGE_STATUS"
-            ]
-        }
+  "instance": {
+    "name": "minha_instancia",
+    "webhook": {
+      "url": "http://seu-odoo.com/webhook/discuss_hub/UUID_CONNECTOR",
+      "events": [
+        "MESSAGES_UPSERT",
+        "MESSAGES_UPDATE",
+        "MESSAGES_DELETE",
+        "SEND_MESSAGE",
+        "CONTACTS_UPSERT",
+        "CONTACTS_UPDATE",
+        "PRESENCE_UPDATE",
+        "CHATS_UPSERT",
+        "CHATS_UPDATE",
+        "CHATS_DELETE",
+        "GROUPS_UPSERT",
+        "GROUP_UPDATE",
+        "GROUP_PARTICIPANTS_UPDATE",
+        "CONNECTION_UPDATE",
+        "LABELS_EDIT",
+        "LABELS_ASSOCIATION",
+        "CALL",
+        "TYPEBOT_START",
+        "TYPEBOT_CHANGE_STATUS"
+      ]
     }
+  }
 }
 ```
 
@@ -153,37 +155,41 @@ O plugin monitora constantemente o status da conexão:
 ### 💬 Tipos de Mensagem Suportados
 
 #### Texto
+
 ```json
 {
-    "message_type": "text",
-    "message": "Olá! Como posso ajudar?",
-    "contact_identifier": "5511999999999@c.us"
+  "message_type": "text",
+  "message": "Olá! Como posso ajudar?",
+  "contact_identifier": "5511999999999@c.us"
 }
 ```
 
 #### Mídia (Imagem, Vídeo, Áudio)
+
 ```json
 {
-    "message_type": "image",
-    "media_url": "https://exemplo.com/imagem.jpg",
-    "caption": "Legenda opcional",
-    "contact_identifier": "5511999999999@c.us"
+  "message_type": "image",
+  "media_url": "https://exemplo.com/imagem.jpg",
+  "caption": "Legenda opcional",
+  "contact_identifier": "5511999999999@c.us"
 }
 ```
 
 #### Documento
+
 ```json
 {
-    "message_type": "document",
-    "media_url": "https://exemplo.com/documento.pdf",
-    "filename": "documento.pdf",
-    "contact_identifier": "5511999999999@c.us"
+  "message_type": "document",
+  "media_url": "https://exemplo.com/documento.pdf",
+  "filename": "documento.pdf",
+  "contact_identifier": "5511999999999@c.us"
 }
 ```
 
 ### 👥 Sincronização de Contatos
 
 O plugin automaticamente:
+
 - Importa contatos do WhatsApp
 - Atualiza fotos de perfil
 - Sincroniza nomes e números
@@ -192,6 +198,7 @@ O plugin automaticamente:
 ### ⚡ Processamento em Tempo Real
 
 Eventos processados automaticamente:
+
 - Mensagens recebidas
 - Status de leitura
 - Reações
@@ -205,6 +212,7 @@ Eventos processados automaticamente:
 ### Core Methods
 
 #### `get_status()`
+
 Obtém o status atual da instância WhatsApp.
 
 ```python
@@ -220,6 +228,7 @@ status = plugin.get_status()
 ```
 
 #### `process_payload(payload)`
+
 Processa webhook recebido da Evolution API.
 
 ```python
@@ -228,6 +237,7 @@ result = plugin.process_payload(webhook_data)
 ```
 
 #### `outgo_message(channel, message)`
+
 Envia mensagem do Odoo para WhatsApp.
 
 ```python
@@ -238,6 +248,7 @@ result = plugin.outgo_message(channel, odoo_message)
 ### Utility Methods
 
 #### `get_contact_name(payload)`
+
 Extrai nome do contato do payload.
 
 ```python
@@ -246,6 +257,7 @@ name = plugin.get_contact_name(payload)
 ```
 
 #### `get_contact_identifier(payload)`
+
 Extrai identificador único do contato.
 
 ```python
@@ -254,6 +266,7 @@ identifier = plugin.get_contact_identifier(payload)
 ```
 
 #### `get_message_id(payload)`
+
 Extrai ID da mensagem do payload.
 
 ```python
@@ -264,6 +277,7 @@ msg_id = plugin.get_message_id(payload)
 ### Management Methods
 
 #### `restart_instance()`
+
 Reinicia a instância WhatsApp.
 
 ```python
@@ -272,6 +286,7 @@ plugin.restart_instance()
 ```
 
 #### `logout_instance()`
+
 Desconecta a instância WhatsApp.
 
 ```python
@@ -284,6 +299,7 @@ plugin.logout_instance()
 ## 🔗 Webhooks
 
 ### Endpoint
+
 ```
 POST /webhook/discuss_hub/<connector_uuid>
 ```
@@ -291,69 +307,73 @@ POST /webhook/discuss_hub/<connector_uuid>
 ### Eventos Principais
 
 #### MESSAGES_UPSERT
+
 Mensagem recebida ou enviada.
 
 ```json
 {
-    "event": "messages.upsert",
-    "instance": "minha_instancia",
-    "data": {
-        "key": {
-            "remoteJid": "5511999999999@c.us",
-            "fromMe": false,
-            "id": "msg_123"
-        },
-        "message": {
-            "conversation": "Olá!",
-            "messageTimestamp": 1695552000
-        },
-        "messageType": "conversation",
-        "pushName": "João Silva"
-    }
+  "event": "messages.upsert",
+  "instance": "minha_instancia",
+  "data": {
+    "key": {
+      "remoteJid": "5511999999999@c.us",
+      "fromMe": false,
+      "id": "msg_123"
+    },
+    "message": {
+      "conversation": "Olá!",
+      "messageTimestamp": 1695552000
+    },
+    "messageType": "conversation",
+    "pushName": "João Silva"
+  }
 }
 ```
 
 #### CONNECTION_UPDATE
+
 Status da conexão alterado.
 
 ```json
 {
-    "event": "connection.update",
-    "instance": "minha_instancia", 
-    "data": {
-        "state": "open",
-        "statusReason": 200
-    }
+  "event": "connection.update",
+  "instance": "minha_instancia",
+  "data": {
+    "state": "open",
+    "statusReason": 200
+  }
 }
 ```
 
 #### QRCODE_UPDATED
+
 QR Code atualizado.
 
 ```json
 {
-    "event": "qrcode.updated",
-    "instance": "minha_instancia",
-    "data": {
-        "qrcode": "data:image/png;base64,iVBOR..."
-    }
+  "event": "qrcode.updated",
+  "instance": "minha_instancia",
+  "data": {
+    "qrcode": "data:image/png;base64,iVBOR..."
+  }
 }
 ```
 
 #### CONTACTS_UPSERT
+
 Contatos atualizados.
 
 ```json
 {
-    "event": "contacts.upsert",
-    "instance": "minha_instancia",
-    "data": [
-        {
-            "id": "5511999999999@c.us",
-            "name": "João Silva",
-            "profilePictureUrl": "https://..."
-        }
-    ]
+  "event": "contacts.upsert",
+  "instance": "minha_instancia",
+  "data": [
+    {
+      "id": "5511999999999@c.us",
+      "name": "João Silva",
+      "profilePictureUrl": "https://..."
+    }
+  ]
 }
 ```
 
@@ -366,6 +386,7 @@ Contatos atualizados.
 #### 1. **QR Code não aparece**
 
 **Causa**: Instância não criada na Evolution API
+
 ```python
 # Verificar logs
 _logger.info("EVOLUTION: Instance status check")
@@ -374,6 +395,7 @@ _logger.info("EVOLUTION: Instance status check")
 ```
 
 **Solução**:
+
 - Aguarde alguns segundos após criar o connector
 - Verifique se URL e API Key estão corretos
 - Confirme que a Evolution API está acessível
@@ -381,6 +403,7 @@ _logger.info("EVOLUTION: Instance status check")
 #### 2. **Mensagens não são recebidas**
 
 **Causa**: Webhook não configurado
+
 ```bash
 # Teste manual do webhook
 curl -X POST http://seu-odoo.com/webhook/discuss_hub/UUID \
@@ -389,6 +412,7 @@ curl -X POST http://seu-odoo.com/webhook/discuss_hub/UUID \
 ```
 
 **Solução**:
+
 - Confirme que o webhook está configurado na Evolution API
 - Verifique se o UUID do connector está correto
 - Teste a conectividade de rede
@@ -404,6 +428,7 @@ api_url = self.get_evolution_url()    # Deve estar acessível
 ```
 
 **Solução**:
+
 - Confirme que o nome da instância é único
 - Teste conectividade com a Evolution API
 - Verifique logs da Evolution API
@@ -413,6 +438,7 @@ api_url = self.get_evolution_url()    # Deve estar acessível
 **Causa**: Campo `import_contacts` desabilitado
 
 **Solução**:
+
 - Habilite `import_contacts` no connector
 - Force sincronização manual se necessário
 - Verifique permissões da API
@@ -541,7 +567,7 @@ url = f"{plugin.evolution_url}/chat/findContacts/{connector.name}"
 response = session.get(url)
 if response.status_code == 200:
     contacts = response.json()
-    
+
     for contact in contacts:
         # Processar cada contato
         plugin.process_contact_upsert({
@@ -564,10 +590,12 @@ if response.status_code == 200:
 
 ## 📞 Suporte
 
-- **Evolution API**: [GitHub Evolution API](https://github.com/EvolutionAPI/evolution-api)
+- **Evolution API**:
+  [GitHub Evolution API](https://github.com/EvolutionAPI/evolution-api)
 - **Documentação**: [Evolution API Docs](https://doc.evolution-api.com)
 - **Issues**: [GitHub Issues](https://github.com/discusshub/discuss_hub/issues)
 - **Comunidade**: Discuss Hub Community
 
 ---
-*Última atualização: 24 de Setembro de 2025*
+
+_Última atualização: 24 de Setembro de 2025_

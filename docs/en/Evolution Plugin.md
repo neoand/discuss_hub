@@ -15,7 +15,8 @@
 
 ## 📖 Overview
 
-The **Evolution Plugin** is the main integration of Discuss Hub with the Evolution API, allowing you to connect WhatsApp instances to Odoo through a robust and reliable API.
+The **Evolution Plugin** is the main integration of Discuss Hub with the Evolution API,
+allowing you to connect WhatsApp instances to Odoo through a robust and reliable API.
 
 ### ✨ Features
 
@@ -46,23 +47,23 @@ graph TD
 
 ```yaml
 # Connector Configuration
-name: "my_instance"              # Unique instance name
-type: "evolution"                # Plugin type
-enabled: true                    # Enable connector
+name: "my_instance" # Unique instance name
+type: "evolution" # Plugin type
+enabled: true # Enable connector
 url: "https://api.evolution.com" # Evolution API URL
-api_key: "your_token_here"       # Authentication token
+api_key: "your_token_here" # Authentication token
 ```
 
 ### 📋 Connector Fields
 
-| Field | Type | Description | Required |
-|-------|------|-------------|----------|
-| `name` | Char | WhatsApp instance name | ✅ |
-| `url` | Char | Evolution API base URL | ✅ |
-| `api_key` | Char | Authentication token | ✅ |
-| `uuid` | Char | Unique connector UUID | ✅ |
-| `enabled` | Boolean | Active/inactive status | ✅ |
-| `import_contacts` | Boolean | Auto import contacts | ❌ |
+| Field             | Type    | Description            | Required |
+| ----------------- | ------- | ---------------------- | -------- |
+| `name`            | Char    | WhatsApp instance name | ✅       |
+| `url`             | Char    | Evolution API base URL | ✅       |
+| `api_key`         | Char    | Authentication token   | ✅       |
+| `uuid`            | Char    | Unique connector UUID  | ✅       |
+| `enabled`         | Boolean | Active/inactive status | ✅       |
+| `import_contacts` | Boolean | Auto import contacts   | ❌       |
 
 ### 🌐 Evolution API Settings
 
@@ -70,33 +71,33 @@ Evolution API should be configured with:
 
 ```json
 {
-    "instance": {
-        "name": "my_instance",
-        "webhook": {
-            "url": "http://your-odoo.com/webhook/discuss_hub/CONNECTOR_UUID",
-            "events": [
-                "MESSAGES_UPSERT",
-                "MESSAGES_UPDATE", 
-                "MESSAGES_DELETE",
-                "SEND_MESSAGE",
-                "CONTACTS_UPSERT",
-                "CONTACTS_UPDATE",
-                "PRESENCE_UPDATE",
-                "CHATS_UPSERT",
-                "CHATS_UPDATE",
-                "CHATS_DELETE",
-                "GROUPS_UPSERT",
-                "GROUP_UPDATE",
-                "GROUP_PARTICIPANTS_UPDATE",
-                "CONNECTION_UPDATE",
-                "LABELS_EDIT",
-                "LABELS_ASSOCIATION",
-                "CALL",
-                "TYPEBOT_START",
-                "TYPEBOT_CHANGE_STATUS"
-            ]
-        }
+  "instance": {
+    "name": "my_instance",
+    "webhook": {
+      "url": "http://your-odoo.com/webhook/discuss_hub/CONNECTOR_UUID",
+      "events": [
+        "MESSAGES_UPSERT",
+        "MESSAGES_UPDATE",
+        "MESSAGES_DELETE",
+        "SEND_MESSAGE",
+        "CONTACTS_UPSERT",
+        "CONTACTS_UPDATE",
+        "PRESENCE_UPDATE",
+        "CHATS_UPSERT",
+        "CHATS_UPDATE",
+        "CHATS_DELETE",
+        "GROUPS_UPSERT",
+        "GROUP_UPDATE",
+        "GROUP_PARTICIPANTS_UPDATE",
+        "CONNECTION_UPDATE",
+        "LABELS_EDIT",
+        "LABELS_ASSOCIATION",
+        "CALL",
+        "TYPEBOT_START",
+        "TYPEBOT_CHANGE_STATUS"
+      ]
     }
+  }
 }
 ```
 
@@ -153,37 +154,41 @@ The plugin constantly monitors connection status:
 ### 💬 Supported Message Types
 
 #### Text
+
 ```json
 {
-    "message_type": "text",
-    "message": "Hello! How can I help?",
-    "contact_identifier": "5511999999999@c.us"
+  "message_type": "text",
+  "message": "Hello! How can I help?",
+  "contact_identifier": "5511999999999@c.us"
 }
 ```
 
 #### Media (Image, Video, Audio)
+
 ```json
 {
-    "message_type": "image",
-    "media_url": "https://example.com/image.jpg",
-    "caption": "Optional caption",
-    "contact_identifier": "5511999999999@c.us"
+  "message_type": "image",
+  "media_url": "https://example.com/image.jpg",
+  "caption": "Optional caption",
+  "contact_identifier": "5511999999999@c.us"
 }
 ```
 
 #### Document
+
 ```json
 {
-    "message_type": "document",
-    "media_url": "https://example.com/document.pdf",
-    "filename": "document.pdf",
-    "contact_identifier": "5511999999999@c.us"
+  "message_type": "document",
+  "media_url": "https://example.com/document.pdf",
+  "filename": "document.pdf",
+  "contact_identifier": "5511999999999@c.us"
 }
 ```
 
 ### 👥 Contact Synchronization
 
 The plugin automatically:
+
 - Imports WhatsApp contacts
 - Updates profile pictures
 - Syncs names and numbers
@@ -192,6 +197,7 @@ The plugin automatically:
 ### ⚡ Real-time Processing
 
 Automatically processed events:
+
 - Received messages
 - Read status
 - Reactions
@@ -205,6 +211,7 @@ Automatically processed events:
 ### Core Methods
 
 #### `get_status()`
+
 Gets current WhatsApp instance status.
 
 ```python
@@ -220,6 +227,7 @@ status = plugin.get_status()
 ```
 
 #### `process_payload(payload)`
+
 Processes webhook received from Evolution API.
 
 ```python
@@ -228,6 +236,7 @@ result = plugin.process_payload(webhook_data)
 ```
 
 #### `outgo_message(channel, message)`
+
 Sends message from Odoo to WhatsApp.
 
 ```python
@@ -238,6 +247,7 @@ result = plugin.outgo_message(channel, odoo_message)
 ### Utility Methods
 
 #### `get_contact_name(payload)`
+
 Extracts contact name from payload.
 
 ```python
@@ -246,6 +256,7 @@ name = plugin.get_contact_name(payload)
 ```
 
 #### `get_contact_identifier(payload)`
+
 Extracts unique contact identifier.
 
 ```python
@@ -254,6 +265,7 @@ identifier = plugin.get_contact_identifier(payload)
 ```
 
 #### `get_message_id(payload)`
+
 Extracts message ID from payload.
 
 ```python
@@ -264,6 +276,7 @@ msg_id = plugin.get_message_id(payload)
 ### Management Methods
 
 #### `restart_instance()`
+
 Restarts WhatsApp instance.
 
 ```python
@@ -272,6 +285,7 @@ plugin.restart_instance()
 ```
 
 #### `logout_instance()`
+
 Disconnects WhatsApp instance.
 
 ```python
@@ -284,6 +298,7 @@ plugin.logout_instance()
 ## 🔗 Webhooks
 
 ### Endpoint
+
 ```
 POST /webhook/discuss_hub/<connector_uuid>
 ```
@@ -291,69 +306,73 @@ POST /webhook/discuss_hub/<connector_uuid>
 ### Main Events
 
 #### MESSAGES_UPSERT
+
 Message received or sent.
 
 ```json
 {
-    "event": "messages.upsert",
-    "instance": "my_instance",
-    "data": {
-        "key": {
-            "remoteJid": "5511999999999@c.us",
-            "fromMe": false,
-            "id": "msg_123"
-        },
-        "message": {
-            "conversation": "Hello!",
-            "messageTimestamp": 1695552000
-        },
-        "messageType": "conversation",
-        "pushName": "John Silva"
-    }
+  "event": "messages.upsert",
+  "instance": "my_instance",
+  "data": {
+    "key": {
+      "remoteJid": "5511999999999@c.us",
+      "fromMe": false,
+      "id": "msg_123"
+    },
+    "message": {
+      "conversation": "Hello!",
+      "messageTimestamp": 1695552000
+    },
+    "messageType": "conversation",
+    "pushName": "John Silva"
+  }
 }
 ```
 
 #### CONNECTION_UPDATE
+
 Connection status changed.
 
 ```json
 {
-    "event": "connection.update",
-    "instance": "my_instance", 
-    "data": {
-        "state": "open",
-        "statusReason": 200
-    }
+  "event": "connection.update",
+  "instance": "my_instance",
+  "data": {
+    "state": "open",
+    "statusReason": 200
+  }
 }
 ```
 
 #### QRCODE_UPDATED
+
 QR Code updated.
 
 ```json
 {
-    "event": "qrcode.updated",
-    "instance": "my_instance",
-    "data": {
-        "qrcode": "data:image/png;base64,iVBOR..."
-    }
+  "event": "qrcode.updated",
+  "instance": "my_instance",
+  "data": {
+    "qrcode": "data:image/png;base64,iVBOR..."
+  }
 }
 ```
 
 #### CONTACTS_UPSERT
+
 Contacts updated.
 
 ```json
 {
-    "event": "contacts.upsert",
-    "instance": "my_instance",
-    "data": [
-        {
-            "id": "5511999999999@c.us",
-            "name": "John Silva",
-            "profilePictureUrl": "https://..."
-        }
-    ]
+  "event": "contacts.upsert",
+  "instance": "my_instance",
+  "data": [
+    {
+      "id": "5511999999999@c.us",
+      "name": "John Silva",
+      "profilePictureUrl": "https://..."
+    }
+  ]
 }
 ```
 
@@ -366,6 +385,7 @@ Contacts updated.
 #### 1. **QR Code not showing**
 
 **Cause**: Instance not created in Evolution API
+
 ```python
 # Check logs
 _logger.info("EVOLUTION: Instance status check")
@@ -374,6 +394,7 @@ _logger.info("EVOLUTION: Instance status check")
 ```
 
 **Solution**:
+
 - Wait a few seconds after creating connector
 - Check if URL and API Key are correct
 - Confirm Evolution API is accessible
@@ -381,6 +402,7 @@ _logger.info("EVOLUTION: Instance status check")
 #### 2. **Messages not received**
 
 **Cause**: Webhook not configured
+
 ```bash
 # Manual webhook test
 curl -X POST http://your-odoo.com/webhook/discuss_hub/UUID \
@@ -389,6 +411,7 @@ curl -X POST http://your-odoo.com/webhook/discuss_hub/UUID \
 ```
 
 **Solution**:
+
 - Confirm webhook is configured in Evolution API
 - Check connector UUID is correct
 - Test network connectivity
@@ -404,6 +427,7 @@ api_url = self.get_evolution_url()    # Should be accessible
 ```
 
 **Solution**:
+
 - Confirm instance name is unique
 - Test connectivity with Evolution API
 - Check Evolution API logs
@@ -413,6 +437,7 @@ api_url = self.get_evolution_url()    # Should be accessible
 **Cause**: `import_contacts` field disabled
 
 **Solution**:
+
 - Enable `import_contacts` in connector
 - Force manual sync if needed
 - Check API permissions
@@ -541,7 +566,7 @@ url = f"{plugin.evolution_url}/chat/findContacts/{connector.name}"
 response = session.get(url)
 if response.status_code == 200:
     contacts = response.json()
-    
+
     for contact in contacts:
         # Process each contact
         plugin.process_contact_upsert({
@@ -564,10 +589,12 @@ if response.status_code == 200:
 
 ## 📞 Support
 
-- **Evolution API**: [GitHub Evolution API](https://github.com/EvolutionAPI/evolution-api)
+- **Evolution API**:
+  [GitHub Evolution API](https://github.com/EvolutionAPI/evolution-api)
 - **Documentation**: [Evolution API Docs](https://doc.evolution-api.com)
 - **Issues**: [GitHub Issues](https://github.com/discusshub/discuss_hub/issues)
 - **Community**: Discuss Hub Community
 
 ---
-*Last updated: September 24, 2025*
+
+_Last updated: September 24, 2025_
