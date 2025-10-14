@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Message Template Views -->
+
+    <!-- Tree View -->
+    <record id="view_message_template_tree" model="ir.ui.view">
+        <field name="name">discuss_hub.message_template.tree</field>
+        <field name="model">discuss_hub.message_template</field>
+        <field name="arch" type="xml">
+            <tree string="WhatsApp Templates">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="category"/>
+                <field name="usage_count"/>
+                <field name="last_used_date"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_message_template_form" model="ir.ui.view">
+        <field name="name">discuss_hub.message_template.form</field>
+        <field name="model">discuss_hub.message_template</field>
+        <field name="arch" type="xml">
+            <form string="WhatsApp Template">
+                <header>
+                    <button name="action_preview"
+                            string="Preview"
+                            type="object"
+                            class="btn-primary"
+                            icon="fa-eye"/>
+                    <button name="action_duplicate"
+                            string="Duplicate"
+                            type="object"
+                            class="btn-secondary"
+                            icon="fa-copy"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="toggle_active"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-archive">
+                            <field name="active" widget="boolean_button" options="{'terminology': 'archive'}"/>
+                        </button>
+                        <button name="action_manage_attachments"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-paperclip"
+                                invisible="attachment_count == 0">
+                            <field name="attachment_count" widget="statinfo" string="Attachments"/>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g., Welcome Message"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="category"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group>
+                            <field name="usage_count" readonly="1"/>
+                            <field name="last_used_date" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Message" name="message">
+                            <group>
+                                <field name="body" widget="html"/>
+                            </group>
+
+                            <group string="Available Variables">
+                                <div class="alert alert-info">
+                                    <p><strong>You can use the following variables:</strong></p>
+                                    <ul>
+                                        <li><code>{{partner.name}}</code> - Partner name</li>
+                                        <li><code>{{partner.phone}}</code> - Partner phone</li>
+                                        <li><code>{{partner.email}}</code> - Partner email</li>
+                                        <li><code>{{company.name}}</code> - Company name</li>
+                                        <li><code>{{company.phone}}</code> - Company phone</li>
+                                        <li><code>{{user.name}}</code> - Current user name</li>
+                                        <li><code>{{record.name}}</code> - Record name (lead, ticket, etc)</li>
+                                    </ul>
+                                    <p><strong>Example:</strong></p>
+                                    <p><code>Hello {{partner.name}}, welcome to {{company.name}}!</code></p>
+                                </div>
+                            </group>
+                        </page>
+
+                        <page string="Signature" name="signature">
+                            <group>
+                                <field name="include_signature"/>
+                                <field name="signature" widget="text" invisible="not include_signature"/>
+                            </group>
+                            <group string="Info">
+                                <div class="alert alert-info">
+                                    <p>If custom signature is empty, the default company signature will be used:</p>
+                                    <ul>
+                                        <li>Company name</li>
+                                        <li>Company phone</li>
+                                        <li>Company email</li>
+                                        <li>Company website</li>
+                                    </ul>
+                                </div>
+                            </group>
+                        </page>
+
+                        <page string="Attachments" name="attachments">
+                            <group>
+                                <field name="attachment_ids" widget="many2many_binary" nolabel="1" colspan="2"/>
+                            </group>
+                            <group string="Info">
+                                <div class="alert alert-info">
+                                    <p><strong>Supported File Types:</strong></p>
+                                    <ul>
+                                        <li><strong>Images:</strong> JPG, PNG, GIF (max 5MB)</li>
+                                        <li><strong>Documents:</strong> PDF, DOC, DOCX (max 100MB)</li>
+                                        <li><strong>Videos:</strong> MP4, 3GP (max 16MB)</li>
+                                        <li><strong>Audio:</strong> MP3, OGG, AMR (max 16MB)</li>
+                                    </ul>
+                                    <p><strong>Note:</strong> Attachments will be sent automatically with the message.</p>
+                                </div>
+                            </group>
+                        </page>
+
+                        <page string="Advanced" name="advanced">
+                            <group>
+                                <field name="model_ids" widget="many2many_tags"/>
+                            </group>
+                            <group string="Info">
+                                <div class="alert alert-info">
+                                    <p><strong>Applicable Models:</strong></p>
+                                    <p>Restrict where this template can be used. Leave empty to allow usage everywhere.</p>
+                                </div>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_message_template_search" model="ir.ui.view">
+        <field name="name">discuss_hub.message_template.search</field>
+        <field name="model">discuss_hub.message_template</field>
+        <field name="arch" type="xml">
+            <search string="WhatsApp Templates">
+                <field name="name"/>
+                <field name="body"/>
+                <field name="category"/>
+                <filter name="active" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter name="most_used" string="Most Used" domain="[]" context="{'order': 'usage_count desc'}"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter name="group_category" string="Category" context="{'group_by': 'category'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_message_template" model="ir.actions.act_window">
+        <field name="name">WhatsApp Templates</field>
+        <field name="res_model">discuss_hub.message_template</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first WhatsApp template!
+            </p>
+            <p>
+                Templates allow you to send pre-written messages with dynamic variables.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_message_template"
+              name="Templates"
+              parent="discuss_hub.menu_root"
+              action="action_message_template"
+              sequence="20"/>
+
+    <!-- Send Template Wizard Views -->
+
+    <!-- Wizard Form -->
+    <record id="view_send_template_wizard_form" model="ir.ui.view">
+        <field name="name">discuss_hub.send_template_wizard.form</field>
+        <field name="model">discuss_hub.send_template_wizard</field>
+        <field name="arch" type="xml">
+            <form string="Send WhatsApp Template">
+                <group>
+                    <field name="res_model" invisible="1"/>
+                    <field name="res_id" invisible="1"/>
+                    <field name="has_channel" invisible="1"/>
+                    <field name="channel_id" invisible="1"/>
+                </group>
+
+                <group>
+                    <field name="template_id" options="{'no_create': True}"/>
+                    <field name="category" readonly="1"/>
+                </group>
+
+                <!-- Warning if no channel -->
+                <div class="alert alert-warning" invisible="has_channel">
+                    <strong>⚠️ No WhatsApp Channel</strong>
+                    <p>This record doesn't have a WhatsApp channel yet.</p>
+                    <p>Please create a channel first before sending messages.</p>
+                </div>
+
+                <group string="Preview" invisible="not template_id">
+                    <field name="preview_text" readonly="1" nolabel="1"/>
+                </group>
+
+                <group>
+                    <field name="include_signature"/>
+                </group>
+
+                <footer>
+                    <button string="Send"
+                            name="action_send_and_close"
+                            type="object"
+                            class="btn-primary"
+                            invisible="not has_channel"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Template Preview Wizard -->
+    <record id="view_template_preview_wizard_form" model="ir.ui.view">
+        <field name="name">discuss_hub.template_preview_wizard.form</field>
+        <field name="model">discuss_hub.template_preview_wizard</field>
+        <field name="arch" type="xml">
+            <form string="Template Preview">
+                <group>
+                    <field name="template_id" readonly="1"/>
+                </group>
+                <group string="Preview with Sample Data">
+                    <field name="preview_text" nolabel="1" readonly="1"/>
+                </group>
+                <footer>
+                    <button string="Close" class="btn-primary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

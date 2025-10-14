@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Automated Trigger Views -->
+    <!-- ============================================================ -->
+
+    <!-- Tree View -->
+    <record id="view_automated_trigger_tree" model="ir.ui.view">
+        <field name="name">discuss_hub.automated_trigger.tree</field>
+        <field name="model">discuss_hub.automated_trigger</field>
+        <field name="arch" type="xml">
+            <tree string="Automated Triggers" multi_edit="1">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="model_id"/>
+                <field name="trigger_type"/>
+                <field name="template_id"/>
+                <field name="trigger_count"/>
+                <field name="last_trigger_date"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_automated_trigger_form" model="ir.ui.view">
+        <field name="name">discuss_hub.automated_trigger.form</field>
+        <field name="model">discuss_hub.automated_trigger</field>
+        <field name="arch" type="xml">
+            <form string="Automated Trigger">
+                <header>
+                    <button name="action_test_trigger"
+                            string="Test Trigger"
+                            type="object"
+                            class="btn-primary"
+                            help="Send test message using this trigger"/>
+                    <button name="action_view_base_automation"
+                            string="View Automation"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="not base_automation_id"/>
+                    <field name="active" widget="boolean_button" options="{'terminology': 'active'}"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="e.g. Welcome New Leads"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Target">
+                            <field name="model_id"
+                                   options="{'no_create': True, 'no_create_edit': True}"/>
+                            <field name="model_name" invisible="1"/>
+                            <field name="sequence"/>
+                        </group>
+
+                        <group string="Statistics">
+                            <label for="trigger_count" string="Executed"/>
+                            <div>
+                                <field name="trigger_count" class="oe_inline"/> times
+                            </div>
+                            <field name="last_trigger_date" readonly="1"/>
+                            <field name="base_automation_id" invisible="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <!-- Tab 1: Trigger Configuration -->
+                        <page string="Trigger" name="trigger">
+                            <group>
+                                <group string="When to Trigger">
+                                    <field name="trigger_type" widget="radio"/>
+
+                                    <!-- Stage-specific fields -->
+                                    <field name="stage_from_id"
+                                           invisible="trigger_type != 'on_stage_change'"
+                                           domain="[('model_id', '=', model_id)]"
+                                           options="{'no_create': True}"/>
+                                    <field name="stage_to_id"
+                                           invisible="trigger_type != 'on_stage_change'"
+                                           domain="[('model_id', '=', model_id)]"
+                                           required="trigger_type == 'on_stage_change'"
+                                           options="{'no_create': True}"/>
+
+                                    <!-- Scheduled fields -->
+                                    <field name="schedule_type"
+                                           invisible="trigger_type != 'scheduled'"
+                                           required="trigger_type == 'scheduled'"/>
+                                    <field name="schedule_delay"
+                                           invisible="trigger_type != 'scheduled'"
+                                           required="trigger_type == 'scheduled'"/>
+                                    <field name="schedule_date_field_id"
+                                           invisible="schedule_type not in ['before_date', 'after_date']"
+                                           required="schedule_type in ['before_date', 'after_date']"
+                                           domain="[('model_id', '=', model_id), ('ttype', 'in', ['date', 'datetime'])]"/>
+                                </group>
+
+                                <group string="Apply On (Domain Filter)">
+                                    <field name="filter_domain"
+                                           widget="domain"
+                                           options="{'model': 'model_name', 'in_dialog': True}"/>
+
+                                    <div colspan="2" class="alert alert-info" role="alert" style="margin-top: 10px;">
+                                        <p><strong>Examples:</strong></p>
+                                        <ul style="margin-bottom: 0;">
+                                            <li><code>[('stage_id.name', '=', 'New')]</code> - Only "New" leads</li>
+                                            <li><code>[('priority', 'in', ['2', '3'])]</code> - High/Urgent only</li>
+                                            <li><code>[('partner_id', '!=', False)]</code> - Has customer</li>
+                                        </ul>
+                                    </div>
+                                </group>
+                            </group>
+                        </page>
+
+                        <!-- Tab 2: Message Template -->
+                        <page string="Message" name="message">
+                            <group>
+                                <field name="template_id"
+                                       domain="[('active', '=', True)]"
+                                       context="{'default_category': 'notification'}"
+                                       options="{'no_create': True}"/>
+
+                                <button name="%(action_discuss_hub_message_template)d"
+                                        string="Create New Template"
+                                        type="action"
+                                        class="btn-link"
+                                        icon="fa-plus"/>
+                            </group>
+
+                            <!-- Template Preview -->
+                            <group string="Template Preview" invisible="not template_id">
+                                <field name="template_id"
+                                       widget="html"
+                                       readonly="1"
+                                       nolabel="1"
+                                       options="{'field_text_inline': 'body'}"/>
+                            </group>
+                        </page>
+
+                        <!-- Tab 3: Help -->
+                        <page string="Help" name="help">
+                            <group>
+                                <div class="alert alert-info" role="alert">
+                                    <h4><i class="fa fa-info-circle"/> How Automated Triggers Work</h4>
+                                    <p><strong>This feature automatically sends WhatsApp templates when specific events occur.</strong></p>
+
+                                    <h5>Trigger Types:</h5>
+                                    <ul>
+                                        <li><strong>On Creation:</strong> Send message when a new record is created</li>
+                                        <li><strong>On Update:</strong> Send message when record is modified</li>
+                                        <li><strong>On Stage Change:</strong> Send message when record moves to a specific stage</li>
+                                        <li><strong>On State Change:</strong> Send message when record state changes</li>
+                                        <li><strong>Scheduled:</strong> Send message at a specific time (e.g., 3 days after creation)</li>
+                                    </ul>
+
+                                    <h5>Requirements:</h5>
+                                    <ul>
+                                        <li>Records must have a WhatsApp channel configured</li>
+                                        <li>Records without channels will be skipped automatically</li>
+                                        <li>Template must be active and valid</li>
+                                    </ul>
+
+                                    <h5>Examples:</h5>
+                                    <ul>
+                                        <li><strong>Welcome New Leads:</strong> Trigger "On Creation" → Send "Welcome Message" template</li>
+                                        <li><strong>Ticket Resolved:</strong> Trigger "On Stage Change" to "Resolved" → Send "Support Ticket Resolved" template</li>
+                                        <li><strong>Follow-up Reminder:</strong> Trigger "Scheduled" 3 days after creation → Send "Follow-up" template</li>
+                                    </ul>
+
+                                    <h5>Testing:</h5>
+                                    <p>Use the <strong>"Test Trigger"</strong> button to send a test message to a sample record.</p>
+                                </div>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_automated_trigger_search" model="ir.ui.view">
+        <field name="name">discuss_hub.automated_trigger.search</field>
+        <field name="model">discuss_hub.automated_trigger</field>
+        <field name="arch" type="xml">
+            <search string="Automated Triggers">
+                <field name="name"/>
+                <field name="model_id"/>
+                <field name="template_id"/>
+
+                <filter name="filter_active"
+                        string="Active"
+                        domain="[('active', '=', True)]"/>
+                <filter name="filter_inactive"
+                        string="Inactive"
+                        domain="[('active', '=', False)]"/>
+
+                <separator/>
+                <filter name="filter_crm"
+                        string="CRM"
+                        domain="[('model_name', '=', 'crm.lead')]"/>
+                <filter name="filter_helpdesk"
+                        string="Helpdesk"
+                        domain="[('model_name', '=', 'helpdesk.ticket')]"/>
+                <filter name="filter_project"
+                        string="Project"
+                        domain="[('model_name', '=', 'project.task')]"/>
+
+                <separator/>
+                <filter name="group_by_model"
+                        string="Model"
+                        context="{'group_by': 'model_id'}"/>
+                <filter name="group_by_trigger_type"
+                        string="Trigger Type"
+                        context="{'group_by': 'trigger_type'}"/>
+                <filter name="group_by_template"
+                        string="Template"
+                        context="{'group_by': 'template_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_automated_trigger" model="ir.actions.act_window">
+        <field name="name">Automated Triggers</field>
+        <field name="res_model">discuss_hub.automated_trigger</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_filter_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first automated trigger
+            </p>
+            <p>
+                Automated triggers send WhatsApp templates automatically when specific events occur,
+                like creating a new lead or resolving a ticket.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_automated_trigger"
+              name="Automated Triggers"
+              parent="discuss_hub.menu_discuss_hub"
+              action="action_automated_trigger"
+              sequence="15"/>
+
+</odoo>

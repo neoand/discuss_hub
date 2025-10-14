@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Form View -->
+    <record id="view_project_task_form_discusshub" model="ir.ui.view">
+        <field name="name">project.task.form.discusshub</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="arch" type="xml">
+
+            <!-- Smart Button -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_discusshub_channel"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-whatsapp"
+                        invisible="not discusshub_channel_id">
+                    <field name="discusshub_message_count" widget="statinfo" string="WhatsApp"/>
+                </button>
+            </xpath>
+
+            <!-- WhatsApp Page -->
+            <xpath expr="//notebook" position="inside">
+                <page string="WhatsApp" name="discusshub">
+                    <group>
+                        <group>
+                            <field name="discusshub_channel_id" readonly="1"/>
+                            <field name="discusshub_message_count" readonly="1"/>
+                        </group>
+                        <group>
+                            <button name="action_create_discusshub_channel"
+                                    string="Create WhatsApp Channel"
+                                    type="object"
+                                    invisible="discusshub_channel_id"/>
+                            <button name="action_send_discusshub_message"
+                                    string="Send Message"
+                                    type="object"
+                                    invisible="not discusshub_channel_id"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Bulk Send Action for Project Tasks -->
+    <!-- ============================================================ -->
+
+    <record id="action_project_task_bulk_send_whatsapp" model="ir.actions.server">
+        <field name="name">Send WhatsApp Template (Bulk)</field>
+        <field name="model_id" ref="project.model_project_task"/>
+        <field name="binding_model_id" ref="project.model_project_task"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+# Get selected record IDs
+if records:
+    res_ids = ','.join(str(rec.id) for rec in records)
+
+    action = {
+        'name': 'Bulk Send WhatsApp Template',
+        'type': 'ir.actions.act_window',
+        'res_model': 'discuss_hub.bulk_send_wizard',
+        'view_mode': 'form',
+        'target': 'new',
+        'context': {
+            'default_res_model': 'project.task',
+            'default_res_ids': res_ids,
+        },
+    }
+else:
+    raise UserError('Please select at least one task.')
+        ]]></field>
+    </record>
+
+</odoo>

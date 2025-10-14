@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Demo Message Templates -->
+
+    <!-- Welcome Templates -->
+    <record id="template_welcome_general" model="discuss_hub.message_template">
+        <field name="name">Welcome Message</field>
+        <field name="category">welcome</field>
+        <field name="sequence">10</field>
+        <field name="body"><![CDATA[<p>Hello <strong>{{partner.name}}</strong>! 👋</p>
+<p>Welcome to <strong>{{company.name}}</strong>!</p>
+<p>We're excited to have you with us. If you have any questions, feel free to reach out anytime.</p>]]></field>
+        <field name="include_signature" eval="True"/>
+    </record>
+
+    <!-- Follow-up Templates -->
+    <record id="template_follow_up_general" model="discuss_hub.message_template">
+        <field name="name">General Follow-up</field>
+        <field name="category">follow_up</field>
+        <field name="sequence">20</field>
+        <field name="body"><![CDATA[<p>Hi <strong>{{partner.name}}</strong>,</p>
+<p>I wanted to follow up on our previous conversation. Have you had a chance to review our proposal?</p>
+<p>Please let me know if you have any questions or need additional information.</p>
+<p>Looking forward to hearing from you!</p>]]></field>
+        <field name="include_signature" eval="True"/>
+    </record>
+
+    <!-- Appointment Templates -->
+    <record id="template_appointment_confirmation" model="discuss_hub.message_template">
+        <field name="name">Appointment Confirmation</field>
+        <field name="category">appointment</field>
+        <field name="sequence">30</field>
+        <field name="body"><![CDATA[<p>Hi <strong>{{partner.name}}</strong>,</p>
+<p>📅 This is a confirmation of your appointment:</p>
+<p><strong>Date/Time:</strong> [Please specify date and time]</p>
+<p><strong>Location:</strong> [Please specify location]</p>
+<p>If you need to reschedule, please let us know as soon as possible.</p>
+<p>See you soon! 👍</p>]]></field>
+        <field name="include_signature" eval="True"/>
+    </record>
+
+    <!-- Support Templates -->
+    <record id="template_support_ticket_created" model="discuss_hub.message_template">
+        <field name="name">Support Ticket Created</field>
+        <field name="category">support</field>
+        <field name="sequence">40</field>
+        <field name="body"><![CDATA[<p>Hello <strong>{{partner.name}}</strong>,</p>
+<p>✅ Your support ticket has been created successfully!</p>
+<p><strong>Ticket #:</strong> {{record.id}}</p>
+<p>Our team will review your request and get back to you as soon as possible.</p>
+<p>Thank you for your patience!</p>]]></field>
+        <field name="include_signature" eval="True"/>
+    </record>
+
+    <record id="template_support_ticket_resolved" model="discuss_hub.message_template">
+        <field name="name">Support Ticket Resolved</field>
+        <field name="category">support</field>
+        <field name="sequence">41</field>
+        <field name="body"><![CDATA[<p>Hi <strong>{{partner.name}}</strong>,</p>
+<p>✅ Great news! Your support ticket has been resolved.</p>
+<p><strong>Ticket #:</strong> {{record.id}}</p>
+<p>If you have any additional questions or concerns, please don't hesitate to reach out.</p>
+<p>We hope everything is working perfectly now! 🎉</p>]]></field>
+        <field name="include_signature" eval="True"/>
+    </record>
+
+    <!-- Feedback Templates -->
+    <record id="template_feedback_request" model="discuss_hub.message_template">
+        <field name="name">Feedback Request</field>
+        <field name="category">feedback</field>
+        <field name="sequence">50</field>
+        <field name="body"><![CDATA[<p>Hi <strong>{{partner.name}}</strong>,</p>
+<p>We hope you're satisfied with our service! 😊</p>
+<p>We would love to hear your feedback. Could you take a moment to rate your experience?</p>
+<p>Your opinion matters to us and helps us improve!</p>
+<p>Thank you in advance! 🙏</p>]]></field>
+        <field name="include_signature" eval="True"/>
+    </record>
+
+    <!-- Notification Templates -->
+    <record id="template_notification_general" model="discuss_hub.message_template">
+        <field name="name">General Notification</field>
+        <field name="category">notification</field>
+        <field name="sequence">60</field>
+        <field name="body"><![CDATA[<p>Hello <strong>{{partner.name}}</strong>,</p>
+<p>We wanted to inform you that:</p>
+<p>[Your notification message here]</p>
+<p>If you have any questions, please contact us.</p>]]></field>
+        <field name="include_signature" eval="True"/>
+    </record>
+
+    <!-- Invoice Templates -->
+    <record id="template_invoice_ready" model="discuss_hub.message_template">
+        <field name="name">Invoice Ready</field>
+        <field name="category">invoice</field>
+        <field name="sequence">70</field>
+        <field name="body"><![CDATA[<p>Hi <strong>{{partner.name}}</strong>,</p>
+<p>📄 Your invoice is ready!</p>
+<p>You can view and download it from your customer portal.</p>
+<p>If you have any questions about the invoice, please let us know.</p>
+<p>Thank you for your business! 💼</p>]]></field>
+        <field name="include_signature" eval="True"/>
+    </record>
+
+    <!-- Payment Templates -->
+    <record id="template_payment_received" model="discuss_hub.message_template">
+        <field name="name">Payment Received</field>
+        <field name="category">payment</field>
+        <field name="sequence">80</field>
+        <field name="body"><![CDATA[<p>Hello <strong>{{partner.name}}</strong>,</p>
+<p>✅ We have received your payment!</p>
+<p>Thank you for your prompt payment. A receipt will be sent to your email shortly.</p>
+<p>We appreciate your business! 💚</p>]]></field>
+        <field name="include_signature" eval="True"/>
+    </record>
+
+    <record id="template_payment_reminder" model="discuss_hub.message_template">
+        <field name="name">Payment Reminder</field>
+        <field name="category">payment</field>
+        <field name="sequence">81</field>
+        <field name="body"><![CDATA[<p>Hi <strong>{{partner.name}}</strong>,</p>
+<p>This is a friendly reminder that payment for invoice #[invoice_number] is due.</p>
+<p><strong>Amount:</strong> [amount]</p>
+<p><strong>Due Date:</strong> [due_date]</p>
+<p>Please let us know if you have any questions or concerns.</p>
+<p>Thank you! 🙏</p>]]></field>
+        <field name="include_signature" eval="True"/>
+    </record>
+
+</odoo>

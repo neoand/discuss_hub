@@ -1,0 +1,42 @@
+<odoo>
+    <!-- create a discuss_hub.bot_manager record for the bot agent-->
+    <record id="botmanager0" model="discuss_hub.bot_manager">
+        <field name="bot_type">generic</field>
+        <field name="bot_url">http://n8n:5678/webhook/discuss_hub/incoming/debug</field>
+        <field name="bot_url_timeout">360</field>
+        <field name="bot_api_key">some_api</field>
+        <field
+            name="on_error_message"
+        >An error occurred while processing your request. Please try again later.</field>
+    </record>
+
+    <!-- create a partner and user called bot -->
+    <record id="bot_partner" model="res.partner">
+        <field name="name">Bot</field>
+        <field name="email">bot@example.com</field>
+        <field name="bot" ref="botmanager0" />
+    </record>
+
+    <!-- note that his partner must point the bot to the bot_manager-->
+    <record id="bot_user" model="res.users" context="{'no_reset_password': True}">
+        <field name="name">Bot User</field>
+        <field name="login">bot@example.com</field>
+        <field name="partner_id" ref="bot_partner" />
+    </record>
+
+    <!-- now we create a connector -->
+    <!-- note that we add our bot as one of the automatic_added_partners-->
+    <record id="object0" model="discuss_hub.connector">
+        <field name="name">test</field>
+        <field name="uuid">76320171-94ec-455e-89c8-42995918fec6</field>
+        <field name="description">evolution connector demo</field>
+        <field name="type">evolution</field>
+        <field name="url">http://evolution:8080</field>
+        <field name="api_key">1369429683C4C977415CAAFCCE10F7D57E11</field>
+        <field
+            name="automatic_added_partners"
+            eval="[(6, 0, [ref('base.partner_admin'), ref('bot_partner')])]"
+        />
+        <field name="manager_channel" eval="[(6, 0, [1])]" />
+    </record>
+</odoo>
