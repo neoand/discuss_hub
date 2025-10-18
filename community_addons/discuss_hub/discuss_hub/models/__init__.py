@@ -10,3 +10,5 @@ from . import message_template  # Phase 3: Templates system
 from . import analytics  # Phase 3 Advanced: Analytics dashboard
 from . import automated_trigger  # Phase 3 Advanced: Automated triggers
 from . import ai_responder  # Phase 5: AI-powered auto-responses with Google Gemini
+from . import sentiment_analyzer  # Phase 5: Sentiment analysis
+from . import voice_message  # Phase 5: Voice transcription

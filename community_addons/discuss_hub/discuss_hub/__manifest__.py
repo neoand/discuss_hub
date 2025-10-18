@@ -28,6 +28,7 @@
         # Phase 5: AI Features with Google Gemini
         "views/ai_responder_views.xml",
         "views/ai_response_history_views.xml",
+        "views/sentiment_analyzer_views.xml",
         # initial base_automation
         "datas/base_automation.xml",
         # wizards
@@ -38,6 +39,8 @@
         "python": [
             "google-generativeai",
             "textblob",
+            "SpeechRecognition",
+            "pydub",
         ],
     },
     "assets": {

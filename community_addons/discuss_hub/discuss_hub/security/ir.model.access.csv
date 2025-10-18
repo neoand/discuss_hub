@@ -21,3 +21,7 @@ access_discuss_hub_ai_responder_user,discuss_hub AI Responder User,model_discuss
 access_discuss_hub_ai_responder_manager,discuss_hub AI Responder Manager,model_discuss_hub_ai_responder,base.group_system,1,1,1,1
 access_discuss_hub_ai_response_history_user,discuss_hub AI Response History User,model_discuss_hub_ai_response_history,base.group_user,1,0,0,0
 access_discuss_hub_ai_response_history_manager,discuss_hub AI Response History Manager,model_discuss_hub_ai_response_history,base.group_system,1,1,1,1
+access_discuss_hub_sentiment_analyzer_user,discuss_hub Sentiment Analyzer User,model_discuss_hub_sentiment_analyzer,base.group_user,1,0,0,0
+access_discuss_hub_sentiment_analyzer_manager,discuss_hub Sentiment Analyzer Manager,model_discuss_hub_sentiment_analyzer,base.group_system,1,1,1,1
+access_discuss_hub_voice_message_user,discuss_hub Voice Message User,model_discuss_hub_voice_message,base.group_user,1,0,0,0
+access_discuss_hub_voice_message_manager,discuss_hub Voice Message Manager,model_discuss_hub_voice_message,base.group_system,1,1,1,1

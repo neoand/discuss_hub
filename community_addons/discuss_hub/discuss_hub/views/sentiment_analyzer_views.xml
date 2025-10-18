@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Sentiment Analyzer List View - Odoo 18 Standard -->
+    <record id="view_sentiment_analyzer_list" model="ir.ui.view">
+        <field name="name">discuss_hub.sentiment_analyzer.view.list</field>
+        <field name="model">discuss_hub.sentiment_analyzer</field>
+        <field name="arch" type="xml">
+            <list string="Sentiment Analysis" create="0" edit="0">
+                <field name="create_date"/>
+                <field name="channel_id"/>
+                <field name="partner_id"/>
+                <field name="sentiment" widget="badge"
+                       decoration-danger="sentiment in ['very_negative', 'negative']"
+                       decoration-warning="sentiment == 'neutral'"
+                       decoration-success="sentiment in ['positive', 'very_positive']"/>
+                <field name="polarity" widget="progressbar"/>
+                <field name="subjectivity" widget="progressbar" optional="hide"/>
+                <field name="confidence" widget="percentage" optional="hide"/>
+                <field name="escalated" widget="boolean_toggle"/>
+                <field name="analysis_method" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Sentiment Analyzer Form View - Odoo 18 Standard -->
+    <record id="view_sentiment_analyzer_form" model="ir.ui.view">
+        <field name="name">discuss_hub.sentiment_analyzer.view.form</field>
+        <field name="model">discuss_hub.sentiment_analyzer</field>
+        <field name="arch" type="xml">
+            <form string="Sentiment Analysis" create="0" edit="0">
+                <header>
+                    <field name="sentiment" widget="badge"
+                           decoration-danger="sentiment in ['very_negative', 'negative']"
+                           decoration-warning="sentiment == 'neutral'"
+                           decoration-success="sentiment in ['positive', 'very_positive']"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="trigger_escalation"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-exclamation-triangle"
+                                invisible="escalated or sentiment not in ['very_negative', 'negative']">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Escalate</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="message_id"/>
+                            <field name="channel_id"/>
+                            <field name="partner_id"/>
+                            <field name="create_date"/>
+                        </group>
+                        <group>
+                            <field name="polarity" widget="percentage"/>
+                            <field name="subjectivity" widget="percentage"/>
+                            <field name="confidence" widget="percentage"/>
+                            <field name="analysis_method"/>
+                        </group>
+                    </group>
+
+                    <group string="Escalation" invisible="not escalated">
+                        <group>
+                            <field name="escalated" widget="boolean_toggle"/>
+                            <field name="escalation_date"/>
+                        </group>
+                        <group>
+                            <field name="escalation_reason" widget="text" nolabel="1"/>
+                        </group>
+                    </group>
+
+                    <group string="Emotions" invisible="not emotions">
+                        <field name="emotions" widget="text" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View - Odoo 18 Standard -->
+    <record id="view_sentiment_analyzer_search" model="ir.ui.view">
+        <field name="name">discuss_hub.sentiment_analyzer.view.search</field>
+        <field name="model">discuss_hub.sentiment_analyzer</field>
+        <field name="arch" type="xml">
+            <search string="Sentiment Analysis">
+                <field name="channel_id"/>
+                <field name="partner_id"/>
+                <field name="message_id"/>
+                <separator/>
+                <filter string="Very Negative" name="filter_very_negative"
+                        domain="[('sentiment', '=', 'very_negative')]"/>
+                <filter string="Negative" name="filter_negative"
+                        domain="[('sentiment', '=', 'negative')]"/>
+                <filter string="Neutral" name="filter_neutral"
+                        domain="[('sentiment', '=', 'neutral')]"/>
+                <filter string="Positive" name="filter_positive"
+                        domain="[('sentiment', '=', 'positive')]"/>
+                <filter string="Very Positive" name="filter_very_positive"
+                        domain="[('sentiment', '=', 'very_positive')]"/>
+                <separator/>
+                <filter string="Escalated" name="filter_escalated"
+                        domain="[('escalated', '=', True)]"/>
+                <filter string="Not Escalated" name="filter_not_escalated"
+                        domain="[('escalated', '=', False)]"/>
+                <separator/>
+                <filter string="Today" name="filter_today"
+                        domain="[('create_date', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter string="Last 7 Days" name="filter_week"
+                        domain="[('create_date', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Last 30 Days" name="filter_month"
+                        domain="[('create_date', '&gt;=', (context_today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Sentiment" name="group_sentiment"
+                            context="{'group_by': 'sentiment'}"/>
+                    <filter string="Channel" name="group_channel"
+                            context="{'group_by': 'channel_id'}"/>
+                    <filter string="Partner" name="group_partner"
+                            context="{'group_by': 'partner_id'}"/>
+                    <filter string="Date" name="group_date"
+                            context="{'group_by': 'create_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Pivot View for Analytics - Odoo 18 -->
+    <record id="view_sentiment_analyzer_pivot" model="ir.ui.view">
+        <field name="name">discuss_hub.sentiment_analyzer.view.pivot</field>
+        <field name="model">discuss_hub.sentiment_analyzer</field>
+        <field name="arch" type="xml">
+            <pivot string="Sentiment Analytics">
+                <field name="create_date" type="row" interval="day"/>
+                <field name="sentiment" type="col"/>
+                <field name="polarity" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Graph View for Analytics - Odoo 18 -->
+    <record id="view_sentiment_analyzer_graph" model="ir.ui.view">
+        <field name="name">discuss_hub.sentiment_analyzer.view.graph</field>
+        <field name="model">discuss_hub.sentiment_analyzer</field>
+        <field name="arch" type="xml">
+            <graph string="Sentiment Trends" type="line">
+                <field name="create_date" interval="day"/>
+                <field name="polarity" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Action - USE "list" NOT "tree" -->
+    <record id="action_sentiment_analyzer" model="ir.actions.act_window">
+        <field name="name">Sentiment Analysis</field>
+        <field name="res_model">discuss_hub.sentiment_analyzer</field>
+        <field name="view_mode">list,form,pivot,graph</field>
+        <field name="context">{'search_default_filter_week': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">
+                No sentiment analysis yet
+            </p>
+            <p>
+                Sentiment analysis will appear here automatically when messages are processed.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_sentiment_analyzer"
+              name="Sentiment Analysis"
+              parent="menu_discuss_hub_analytics"
+              action="action_sentiment_analyzer"
+              sequence="70"/>
+
+</odoo>
