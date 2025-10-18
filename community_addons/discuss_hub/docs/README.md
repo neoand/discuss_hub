@@ -42,7 +42,7 @@ Welcome to the DiscussHub documentation hub! Here you'll find comprehensive guid
 
 **Guías Completas:**
 - **[Documentación Principal](es/README.md)** - Visión general completa e inicio rápido
-- **Módulos Bridge** - Próximamente
+- **[Módulos Bridge](es/Módulos%20Bridge.md)** - Integración con CRM, Helpdesk, Project y módulos personalizados
 - **Plugin Evolution** - Disponible en [inglés](en/Evolution%20Plugin.md)
 - **Desarrollo de Plugins** - Disponible en [inglés](en/Plugin%20Development.md)
 
@@ -73,7 +73,8 @@ docs/
 │   └── Troubleshooting.md         # Solução de problemas
 │
 ├── es/                            # 🇪🇸 Spanish documentation
-│   └── README.md                  # Guía principal
+│   ├── README.md                  # Guía principal
+│   └── Módulos Bridge.md          # Guía de integración CRM/Helpdesk/Project
 │
 └── assets/                        # Shared assets
     └── diagrams.md                # Architecture diagrams
@@ -154,11 +155,12 @@ We welcome documentation improvements!
 
 ### Supported Languages
 
-- ✅ English (Complete)
-- ✅ Português Brasileiro (Complete)
-- 🚧 Español Latinoamericano (In Progress)
+- ✅ English (Complete - 4 guides)
+- ✅ Português Brasileiro (Complete - 5 guides)
+- ✅ Español Latinoamericano (Complete - 2 guides)
 - 📋 Français (Planned)
 - 📋 Deutsch (Planned)
+- 📋 中文 Chinese (Planned)
 
 ---
 

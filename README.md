@@ -5,6 +5,9 @@
 [![Pre-commit Status](https://github.com/neoand/discuss_hub/actions/workflows/pre-commit.yml/badge.svg?branch=main)](https://github.com/neoand/discuss_hub/actions/workflows/pre-commit.yml?query=branch%3Amain)
 [![Build Status](https://github.com/neoand/discuss_hub/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/neoand/discuss_hub/actions/workflows/test.yml?query=branch%3Amain)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%203.0-blue.svg)](LICENSE)
+[![Odoo Version](https://img.shields.io/badge/Odoo-18.0-875A7B.svg)](https://www.odoo.com)
+[![Documentation](https://img.shields.io/badge/Docs-Multi--Language-blue.svg)](community_addons/discuss_hub/docs)
+[![Languages](https://img.shields.io/badge/Languages-EN%20%7C%20PT--BR%20%7C%20ES-green.svg)](#-languages--idiomas--línguas)
 
 ---
 
@@ -402,7 +405,7 @@ def _get_discusshub_channel_name(self):
 |----------|------------|----------------|-------------|
 | 🇺🇸 **English** | [README](community_addons/discuss_hub/docs/en/README.md) | [Bridge Modules](community_addons/discuss_hub/docs/en/Bridge%20Modules.md) | [Evolution Plugin](community_addons/discuss_hub/docs/en/Evolution%20Plugin.md) |
 | 🇧🇷 **Português** | [README](community_addons/discuss_hub/docs/pt-br/README.md) | [Módulos Bridge](community_addons/discuss_hub/docs/pt-br/Módulos%20Bridge.md) | [Troubleshooting](community_addons/discuss_hub/docs/pt-br/Troubleshooting.md) |
-| 🇪🇸 **Español** | [README](community_addons/discuss_hub/docs/es/README.md) | Coming soon | Coming soon |
+| 🇪🇸 **Español** | [README](community_addons/discuss_hub/docs/es/README.md) | [Módulos Bridge](community_addons/discuss_hub/docs/es/Módulos%20Bridge.md) | [Evolution (EN)](community_addons/discuss_hub/docs/en/Evolution%20Plugin.md) |
 
 ### 📖 Quick Access Guides
 

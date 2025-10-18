@@ -1,149 +1,398 @@
-# Contributing to Neodoo18Framework
+# Contributing to DiscussHub 🤝
 
-## 🎯 Mission
+> **Help us build the best multi-channel messaging integration for Odoo!**
 
-Help developers and LLMs build better Odoo 18+ applications by providing a rock-solid framework that enforces best practices and prevents common mistakes.
+Thank you for your interest in contributing to DiscussHub! This document provides guidelines for contributing to the project.
+
+---
+
+## 🌍 Language Contributions
+
+We welcome documentation translations! Currently supported:
+
+- ✅ English (Primary)
+- ✅ Português Brasileiro (Complete)
+- ✅ Español Latinoamericano (Complete)
+- 📋 Français (Planned)
+- 📋 Deutsch (Planned)
+- 📋 中文 Chinese (Planned)
+
+### How to Contribute Translations
+
+1. **Choose a language** not yet fully translated
+2. **Follow the structure** in `community_addons/discuss_hub/docs/en/`
+3. **Translate guides** maintaining technical accuracy
+4. **Update** `docs/README.md` with new language links
+5. **Submit PR** with translation
+
+---
 
 ## 🚀 Quick Contributing Guide
 
 ### For Developers
 
 1. **Fork the repository**
-2. **Create feature branch**: `git checkout -b feature/amazing-feature`
-3. **Follow our standards** (see below)
-4. **Test thoroughly**: `python framework/validator.py .`
-5. **Submit PR with clear description**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/discuss_hub.git
+   cd discuss_hub
+   ```
 
-### For LLMs
+2. **Create feature branch**
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
 
-- Always validate code with `framework/validator.py` before submitting
-- Follow patterns in `templates/patterns/`
-- Use `framework/SOIL_CORE.md` as your primary reference
-- Test with multiple LLM providers (Claude, Gemini preferred)
+3. **Make your changes**
+   - Follow Odoo coding standards
+   - Add tests for new features
+   - Update documentation
+
+4. **Run tests**
+   ```bash
+   docker compose -f compose-dev.yaml exec odoo odoo \
+     -c /etc/odoo/odoo.conf --test-enable \
+     --stop-after-init -u discuss_hub
+   ```
+
+5. **Submit Pull Request**
+   - Clear description of changes
+   - Link to related issues
+   - Screenshots if UI changes
+
+---
 
 ## 📋 Development Standards
 
 ### Code Quality
-- ✅ Python 3.8+ compatibility
-- ✅ Full Odoo 18+ compliance (no legacy patterns)
-- ✅ Comprehensive error handling
-- ✅ Clear documentation and comments
+
+- ✅ **Odoo 18.0+ compatible**
+- ✅ **Python 3.10+ syntax**
+- ✅ **PEP 8 compliant** (use `ruff` linter)
+- ✅ **Type hints** where applicable
+- ✅ **Comprehensive docstrings**
+- ✅ **Error handling** with proper logging
 
 ### Testing Requirements
-- ✅ All code must pass `framework/validator.py`
-- ✅ New templates must include test cases
-- ✅ Backwards compatibility maintained
-- ✅ Performance benchmarks for validators
+
+- ✅ **Unit tests** for all new features
+- ✅ **Integration tests** for plugins
+- ✅ **Test coverage** > 70%
+- ✅ **Mock external services** properly
+- ✅ **Test documentation** in `tests/README.md`
 
 ### Documentation Standards
-- ✅ Clear examples for LLMs to follow
-- ✅ Step-by-step guides for common tasks
-- ✅ Updated README for new features
-- ✅ Inline code documentation
+
+- ✅ **Update relevant guides** when adding features
+- ✅ **Code examples** for all public APIs
+- ✅ **Inline comments** for complex logic
+- ✅ **Changelog entry** for user-facing changes
+- ✅ **Screenshots** for UI changes
+
+---
 
 ## 🧪 Testing Your Contributions
 
+### Run All Tests
+
 ```bash
-# Validate framework itself
-python framework/validator.py framework/ templates/
+# Full test suite
+docker compose -f compose-dev.yaml exec odoo odoo \
+  -c /etc/odoo/odoo.conf --test-enable \
+  --stop-after-init -u discuss_hub
 
-# Test project generation
-python generator/create_project.py --name=test_contrib --type=minimal
-
-# Test validator on generated project
-python framework/validator.py test_contrib/
-
-# Test LLM integration
-python framework/llm_init.py
+# Specific test file
+docker compose -f compose-dev.yaml exec odoo odoo \
+  -c /etc/odoo/odoo.conf --test-enable \
+  --stop-after-init -u discuss_hub \
+  --test-tags /discuss_hub:TestEvolutionPlugin
 ```
+
+### Pre-commit Checks
+
+```bash
+# Install pre-commit hooks
+pre-commit install
+
+# Run manually
+pre-commit run --all-files
+```
+
+### Code Quality Checks
+
+```bash
+# Python linting
+ruff check community_addons/discuss_hub/
+
+# Python formatting
+ruff format community_addons/discuss_hub/
+
+# JavaScript linting
+npm run lint
+```
+
+---
 
 ## 🐛 Reporting Issues
 
-When reporting bugs or requesting features:
-
-1. **Use clear, descriptive titles**
-2. **Provide minimal reproduction steps**
-3. **Include framework version and environment**
-4. **Tag with appropriate labels** (bug, enhancement, documentation)
+When reporting bugs or requesting features, please use our templates:
 
 ### Bug Report Template
 
 ```markdown
-**Bug Description**: Clear description of the issue
+## Bug Description
+Clear and concise description of the bug
 
-**To Reproduce**: 
-1. Step 1
-2. Step 2
-3. Error occurs
+## To Reproduce
+1. Go to '...'
+2. Click on '....'
+3. See error
 
-**Expected Behavior**: What should happen
+## Expected Behavior
+What should happen instead
 
-**Environment**:
-- Framework version: 
-- Python version:
-- LLM used (if applicable):
+## Environment
+- Odoo version: 18.0
+- DiscussHub version: X.X.X
+- Plugin: Evolution / WhatsApp Cloud / etc
+- Browser (if applicable): Chrome 120
 
-**Additional Context**: Screenshots, logs, etc.
+## Screenshots
+If applicable, add screenshots
+
+## Additional Context
+Logs, error messages, etc.
 ```
 
-## 🏷️ Release Process
+### Feature Request Template
 
-### Versioning
-We follow [Semantic Versioning](https://semver.org/):
-- `1.0.0` - Major: Breaking changes
-- `1.1.0` - Minor: New features, backwards compatible  
-- `1.0.1` - Patch: Bug fixes
+```markdown
+## Feature Description
+Clear description of the proposed feature
 
-### Release Checklist
-- [ ] All tests pass
-- [ ] Documentation updated
-- [ ] Version bumped in relevant files
-- [ ] CHANGELOG.md updated
-- [ ] Tagged release in Git
+## Use Case
+Why is this feature needed? Who will use it?
 
-## 🤝 Community Guidelines
+## Proposed Solution
+How would you like this to work?
 
-### Be Respectful
-- Constructive feedback only
-- Help newcomers learn
-- Celebrate contributions of all sizes
+## Alternatives Considered
+Other approaches you've thought about
 
-### Be Collaborative  
-- Discuss major changes in issues first
-- Review PRs thoroughly but kindly
-- Share knowledge and learnings
-
-### Be Professional
-- Keep discussions on-topic
-- Use inclusive language
-- Credit others' work appropriately
-
-## 🛠️ Development Setup
-
-```bash
-# Clone repository
-git clone https://github.com/yourusername/neodoo18framework.git
-cd neodoo18framework
-
-# Install development dependencies
-pip install -r requirements-dev.txt
-
-# Run tests
-python -m pytest tests/
-
-# Validate framework
-python framework/validator.py .
+## Additional Context
+Mockups, examples from other apps, etc.
 ```
-
-## 📚 Resources
-
-- **Odoo 18+ Documentation**: https://www.odoo.com/documentation/18.0/
-- **Framework Documentation**: `/docs/`
-- **Community Discussions**: GitHub Issues and Discussions
-- **LLM Testing Guidelines**: `/docs/llm-testing.md`
 
 ---
 
-**Thank you for contributing to Neodoo18Framework!** 🎉
+## 🔌 Creating New Plugins
 
-Together we're making Odoo development better for everyone.
+Want to add support for a new messaging platform?
+
+### Plugin Structure
+
+```python
+# community_addons/discuss_hub/discuss_hub/models/plugins/your_plugin.py
+
+from .base import DiscussHubPluginBase
+
+class YourPlugin(DiscussHubPluginBase):
+    """Plugin for Your Messaging Platform."""
+
+    _name = 'your_platform'
+    _description = 'Your Platform Integration'
+
+    def send_message(self, channel, body, **kwargs):
+        """Send message via Your Platform API."""
+        # Implementation
+        pass
+
+    def process_incoming_message(self, payload):
+        """Process incoming webhook from Your Platform."""
+        # Implementation
+        pass
+```
+
+### Required Methods
+
+- `send_message()` - Send text message
+- `send_media()` - Send media files
+- `process_incoming_message()` - Handle webhook
+- `get_qr_code()` - Get QR for authentication (if applicable)
+
+### Testing Your Plugin
+
+```python
+# tests/test_your_plugin.py
+
+class TestYourPlugin(TransactionCase):
+
+    def setUp(self):
+        super().setUp()
+        self.plugin = self.env['discuss_hub.connector'].create({
+            'name': 'Test Your Platform',
+            'type': 'your_platform',
+            # ...
+        })
+
+    def test_send_message(self):
+        # Test implementation
+        pass
+```
+
+---
+
+## 🌉 Creating Bridge Modules
+
+Want to integrate DiscussHub with another Odoo app?
+
+### Quick Start
+
+See our comprehensive guides:
+- [English Guide](community_addons/discuss_hub/docs/en/Bridge%20Modules.md#creating-your-own-bridge)
+- [Guía en Español](community_addons/discuss_hub/docs/es/Módulos%20Bridge.md#crear-tu-propio-bridge)
+- [Guia em Português](community_addons/discuss_hub/docs/pt-br/Módulos%20Bridge.md#como-criar-seu-próprio-bridge)
+
+### Minimum Requirements
+
+1. **Inherit `discusshub.mixin`**
+2. **Add buttons to form view**
+3. **Test integration**
+4. **Document usage**
+
+---
+
+## 📚 Documentation Contributions
+
+### Documentation Structure
+
+```
+docs/
+├── en/          # English (primary)
+├── pt-br/       # Portuguese
+├── es/          # Spanish
+└── assets/      # Shared images
+```
+
+### Adding a New Guide
+
+1. **Create file** in appropriate language folder
+2. **Follow existing structure** (see other guides)
+3. **Add links** from main README
+4. **Update docs/README.md**
+5. **Translate to other languages** (or mark as "Translation needed")
+
+### Writing Style
+
+- ✅ **Clear and concise**
+- ✅ **Use examples liberally**
+- ✅ **Include code snippets**
+- ✅ **Add screenshots** when helpful
+- ✅ **Link to related docs**
+
+---
+
+## 🏷️ Versioning & Releases
+
+We follow [Semantic Versioning](https://semver.org/):
+
+- **Major** (X.0.0): Breaking changes
+- **Minor** (0.X.0): New features, backwards compatible
+- **Patch** (0.0.X): Bug fixes
+
+### Release Process
+
+1. Update version in `__manifest__.py`
+2. Update `CHANGELOG.md`
+3. Tag release: `git tag -a vX.Y.Z -m "Version X.Y.Z"`
+4. Push tags: `git push origin vX.Y.Z`
+5. Create GitHub release with notes
+
+---
+
+## 🤝 Community Guidelines
+
+### Code of Conduct
+
+- **Be respectful** and inclusive
+- **Help newcomers** learn
+- **Give constructive feedback**
+- **Celebrate contributions** of all sizes
+
+### Pull Request Etiquette
+
+- **One feature per PR**
+- **Clear commit messages**
+- **Link related issues**
+- **Respond to review comments**
+- **Keep PRs small** and focused
+
+### Review Process
+
+1. **Automated checks** must pass (CI/CD)
+2. **Code review** by maintainer
+3. **Test in dev environment**
+4. **Merge** when approved
+
+---
+
+## 🛠️ Development Setup
+
+### Using Docker (Recommended)
+
+```bash
+# Clone repository
+git clone https://github.com/neoand/discuss_hub.git
+cd discuss_hub
+
+# Start development environment
+docker compose -f compose-dev.yaml up -d
+
+# Access Odoo
+# URL: http://localhost:8069
+# User: admin / Password: admin
+
+# View logs
+docker compose -f compose-dev.yaml logs -f odoo
+
+# Run tests
+docker compose -f compose-dev.yaml exec odoo odoo \
+  -c /etc/odoo/odoo.conf --test-enable \
+  --stop-after-init -u discuss_hub
+```
+
+### Local Setup (Alternative)
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure database
+createdb discuss_hub_dev
+
+# Run Odoo
+./odoo-bin -c odoo.conf -d discuss_hub_dev --dev=all
+```
+
+---
+
+## 📞 Getting Help
+
+- **GitHub Issues**: [Bug reports & features](https://github.com/neoand/discuss_hub/issues)
+- **GitHub Discussions**: [Questions & ideas](https://github.com/neoand/discuss_hub/discussions)
+- **Documentation**: [Complete guides](community_addons/discuss_hub/docs)
+
+---
+
+## 📜 License
+
+By contributing to DiscussHub, you agree that your contributions will be licensed under the **AGPL-3.0 License**.
+
+---
+
+**Thank you for contributing to DiscussHub!** 🎉
+
+Together we're making Odoo messaging integration better for everyone.
+
+---
+
+**Made with ❤️ by the DiscussHub Community**
