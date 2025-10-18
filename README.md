@@ -8,6 +8,16 @@
 
 ---
 
+## 🌍 Languages / Idiomas / Línguas
+
+**📖 Read this in your language:**
+
+- 🇺🇸 **[English](README.md)** (You are here / Estás aquí / Você está aqui)
+- 🇧🇷 **[Português (Brasil)](community_addons/discuss_hub/docs/pt-br/README.md)** - Documentação completa em português
+- 🇪🇸 **[Español (Latinoamérica)](community_addons/discuss_hub/docs/es/README.md)** - Documentación completa en español
+
+---
+
 ## 📖 Table of Contents
 
 - [Overview](#-overview)
@@ -386,23 +396,30 @@ def _get_discusshub_channel_name(self):
 
 ## 📚 Documentation
 
-### Complete Guides
+### 🌍 Documentation by Language
 
-- 🇧🇷 **[Documentação Completa em Português](community_addons/discuss_hub/docs/pt-br/README.md)**
-- 🇺🇸 **[Complete English Documentation](community_addons/discuss_hub/docs/en/README.md)**
+| Language | Main Guide | Bridge Modules | Specialized |
+|----------|------------|----------------|-------------|
+| 🇺🇸 **English** | [README](community_addons/discuss_hub/docs/en/README.md) | [Bridge Modules](community_addons/discuss_hub/docs/en/Bridge%20Modules.md) | [Evolution Plugin](community_addons/discuss_hub/docs/en/Evolution%20Plugin.md) |
+| 🇧🇷 **Português** | [README](community_addons/discuss_hub/docs/pt-br/README.md) | [Módulos Bridge](community_addons/discuss_hub/docs/pt-br/Módulos%20Bridge.md) | [Troubleshooting](community_addons/discuss_hub/docs/pt-br/Troubleshooting.md) |
+| 🇪🇸 **Español** | [README](community_addons/discuss_hub/docs/es/README.md) | Coming soon | Coming soon |
 
-### Specialized Guides
+### 📖 Quick Access Guides
 
+#### Getting Started
+- 🚀 **[Quick Start](community_addons/discuss_hub/docs/SETUP.md)** - Installation and basic setup
 - 🔥 **[Evolution Plugin Guide](community_addons/discuss_hub/docs/en/Evolution%20Plugin.md)** - WhatsApp Baileys integration
-- 🛠️ **[Plugin Development](community_addons/discuss_hub/docs/en/Plugin%20Development.md)** - Create custom plugins
-- 🔧 **[Troubleshooting](community_addons/discuss_hub/docs/pt-br/Troubleshooting.md)** - Common issues & solutions
+- 🔗 **[Bridge Modules Guide](community_addons/discuss_hub/docs/en/Bridge%20Modules.md)** - Integrate with CRM, Helpdesk, Project
+
+#### Development
+- 🛠️ **[Plugin Development](community_addons/discuss_hub/docs/en/Plugin%20Development.md)** - Create custom messaging plugins
+- 🔌 **[Creating Your Own Bridge](community_addons/discuss_hub/docs/en/Bridge%20Modules.md#creating-your-own-bridge)** - Extend any Odoo module
+- 🧪 **[Test Documentation](community_addons/discuss_hub/tests/README.md)** - Running and writing tests
+
+#### Operations
+- 🐳 **[Docker Setup](community_addons/discuss_hub/compose.yaml)** - Production deployment
+- 🔧 **[Troubleshooting](community_addons/discuss_hub/docs/pt-br/Troubleshooting.md)** - Common issues & solutions (PT-BR)
 - 📊 **[Architecture Diagrams](community_addons/discuss_hub/docs/assets/diagrams.md)** - System design
-
-### Technical Documentation
-
-- **[Test Documentation](community_addons/discuss_hub/tests/README.md)** - Running and writing tests
-- **[Docker Setup](community_addons/discuss_hub/compose.yaml)** - Production deployment
-- **[Development Setup](community_addons/discuss_hub/compose-dev.yaml)** - Local development
 
 ---
 
