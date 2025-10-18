@@ -1,339 +1,537 @@
+# 💬 DiscussHub - WhatsApp & Multi-Channel Integration for Odoo 18
 
-# 🚀 Neodoo18Framework
+> **Complete bidirectional messaging solution integrating WhatsApp, Telegram, and other channels directly into Odoo Discuss**
 
-> **The Ultimate Complete Odoo 18+ Development Environment**
-
----
-> ⚠️ **ATTENTION:**
-> To run Neodoo18Framework, you MUST have **Python 3.8+** and **PostgreSQL 12+** installed and available in your system PATH.
->
-> If either is missing, the system will show an alert and will not proceed.
->
-> - [How to install Python](https://www.python.org/downloads/)
-> - [How to install PostgreSQL](https://www.postgresql.org/download/)
->
-> *Recommended: Install both before starting the framework!*
----
-
-**Create production-ready Odoo 18+ projects with a single command!**
-
-## ⚡ **QUICK START - 30 SECONDS TO ODOO**
-
-### � **Linux/macOS**
-```bash
-# Clone and create complete Odoo project
-git clone https://github.com/neoand/neodoo18framework.git
-cd neodoo18framework
-./neodoo create  # interactive wizard (recommended)
-```
-
-### 🪟 **Windows**
-```batch
-# Clone and create complete Odoo project
-git clone https://github.com/neoand/neodoo18framework.git
-cd neodoo18framework
-
-# Option 1: Command Prompt/PowerShell
-neodoo.bat create      # interactive wizard
-
-# Option 2: PowerShell
-.\neodoo.ps1 create    # interactive wizard
-
-# Option 3: Direct Python (if above don't work)
-python framework\cli\neodoo.py create
-```
-
-**What you get:**
-- ✅ Complete Odoo 18+ source code
-- ✅ OCA modules (web_responsive included)
-- ✅ Virtual environment configured
-- ✅ Database ready
-- ✅ Browser opens automatically at http://localhost:8069
-
-## 🎯 **WHAT YOU GET**
-
-This framework creates **complete Odoo development environments**, not just modules:
-
-```
-~/odoo_projects/your_project/
-├── 📦 odoo_source/         # Complete Odoo 18+ source
-├── 🔧 custom_addons/       # Your custom modules
-├── 🌐 community_addons/    # OCA modules (web, server-tools, etc.)
-├── 🐍 .venv/              # Python virtual environment
-├── ⚙️  odoo.conf           # Pre-configured settings
-├── 🚀 run.sh              # One-click startup
-└── 📖 README.md           # Project documentation
-```
-
-## 📚 **COMPLETE DOCUMENTATION**
-
-**[📖 Central Documentation](./docs/index.md)** - Complete framework documentation
-
-### Choose Your Language:
-- 🇺🇸 [English Guide](./docs/guides/en/COMPLETE_GUIDE.md)
-- 🇧🇷 [Guia em Português](./docs/guides/pt/GUIA_COMPLETO.md)
-- 🇪🇸 [Guía en Español](./docs/guides/es/GUIA_COMPLETA.md)
-- 🧠 [VSCode Agent Playbook](./docs/guides/en/VSCODE_AGENT_PLAYBOOK.md) - Use VSCode as the multi-role command center
-- 🧩 [Validator Plugin Guide](./docs/guides/en/VALIDATOR_PLUGINS.md) - Extend the validator with custom checks
-- 🧭 [Migration Guide](./docs/guides/en/MIGRATION_GUIDE.md) - Plan upgrades from 15/16/17 to 18
-
-### Platform-Specific:
-- 🪟 **[Windows Setup Guide](./WINDOWS.md)** - Complete Windows installation and usage guide
-
-💡 **[Practical Examples](./examples/README.md)** - Real-world use cases and templates
-
-## 🛠️ **COMPLETE PROJECT MANAGEMENT**
-
-### 🎨 **New Visual CLI Interface**
-
-#### 🐧 **Linux/macOS**
-```bash
-./neodoo                  # Interactive menu with visual interface (recommended!)
-```
-
-#### 🪟 **Windows**
-```batch
-# Command Prompt/PowerShell
-neodoo.bat                # Interactive menu with visual interface
-
-# PowerShell
-.\neodoo.ps1              # Interactive menu with visual interface
-
-# Direct Python (fallback)
-python framework\cli\neodoo.py    # Interactive menu
-```
-
-**Menu Options:**
-- 🚀 **Create new project** - Interactive wizard with template selection
-- 📋 **List projects** - Visual project overview with details  
-- ▶️ **Run project** - Start Odoo with real-time status info
-- 🗑️ **Delete project** - Safe project removal with confirmation
-- 🔧 **Environment check** - System health verification
-- 🔄 **Update project** - Update Odoo source and dependencies
-- ❓ **Help** - Detailed usage information
-
-### Direct Commands (Alternative)
-
-#### 🐧 **Linux/macOS**
-```bash
-./neodoo create           # Create new complete project (wizard)
-./neodoo list             # List all projects
-./neodoo run              # Run project with visual feedback
-./neodoo delete           # Delete a project safely
-./neodoo doctor           # Check environment health
-./neodoo update           # Update project components
-./neodoo migrate path/to/module --from-version 17  # Migration assistant report
-```
-
-#### 🪟 **Windows**
-```batch
-# Command Prompt/PowerShell
-neodoo.bat create         # Create new complete project (wizard)
-neodoo.bat list           # List all projects
-neodoo.bat run            # Run project with visual feedback
-neodoo.bat delete         # Delete a project safely
-neodoo.bat doctor         # Check environment health
-neodoo.bat update         # Update project components
-neodoo.bat migrate path\to\module --from-version 17  # Migration assistant report
-
-# PowerShell (alternative)
-.\neodoo.ps1 create       # Create new complete project (wizard)
-.\neodoo.ps1 list         # List all projects
-```
-
-## 🧪 Try it
-
-Jump straight to the language guide and follow the CLI-first flow:
-
-- 🇺🇸 English: ./docs/guides/en/COMPLETE_GUIDE.md
-- 🇧🇷 Português: ./docs/guides/pt/GUIA_COMPLETO.md
-- 🇪🇸 Español: ./docs/guides/es/GUIA_COMPLETA.md
-
-Minimal .neodoo.yml example for reproducible project creation:
-
-```yaml
-# .neodoo.yml
-version: 1
-name: my_odoo18_project
-base_dir: ~/odoo_projects
-module: my_module
-template: minimal
-venv: true
-odoo_branch: 18.0
-```
-
-Then run:
-
-```bash
-./neodoo create --from-config ./docs/.neodoo.yml
-```
-
-### Visual Project Management
-```bash
-# Interactive menu (recommended)
-./neodoo                           # Beautiful visual menu interface
-
-# Direct commands with enhanced visual feedback
-./neodoo list                      # Enhanced project list with colors
-./neodoo delete                    # Safe deletion with confirmation dialog
-./neodoo run                       # Run with detailed startup information
-./neodoo run --path /my/project    # Run specific project with status
-./neodoo doctor                    # Environment check with visual results
-./neodoo doctor --path /my/project # Project-specific health check
-./neodoo update --path /my/project # Update with progress indicators
-./neodoo migrate /my/module --from-version 17 # Migration assistant report
-```
-
-**Enhanced Features:**
-- 🎨 **Colorful output** with emoji indicators
-- 📊 **Progress indicators** for long operations  
-- 🛡️ **Safe confirmations** for destructive actions
-- 📱 **Responsive interface** adapts to terminal size
-- 🎯 **Smart port detection** automatically finds available ports
-- Estrutura personalizada
-
-## 🧠 **Projetado para LLMs e Desenvolvedores**
-
-Este framework elimina confusão e impõe os padrões mais modernos do Odoo 18+:
-
-- **Sistema SOIL**: Orientação integrada para LLMs
-- **Validadores Inteligentes**: Verificação e correção automática
-- **Templates Testados**: Estruturas prontas para diversos casos de uso
-- **Configuração Zero**: Projeto funcionando em minutos
-- **VSCode Agent Workspace**: Tasks, launchers e extensões recomendadas para cada papel definido no framework
-- **Plataforma de Plugins de Validação**: Arquitetura extensível para checks internos e de comunidade
-- **Assistente de Migração**: Scanner interativo para migrar código 15/16/17 → 18 com relatório em JSON
-
-## 📦 **Componentes Principais**
-
-- `framework/` - Ferramentas essenciais e padrões
-  - `validator/` - Ferramentas de validação Odoo 18+
-  - `generator/` - Ferramentas de geração de projetos
-  - `standards/` - Padrões de conformidade (inclui SOIL)
-  - `roles/` - Definições de papéis para LLMs
-- `templates/` - Modelos de projetos por tipo
-- `examples/` - Implementações de referência
-- `docs/` - Documentação multilíngue
-```
-
-### Start Developing
-```bash
-# After project creation, start Odoo
-cd ~/odoo_projects/your_project
-./run.sh
-
-# Automatically opens browser at http://localhost:8069
-# Database is pre-configured
-# OCA web_responsive module is auto-installed
-```
-
-## 🎯 **What is Neodoo18Framework?**
-
-A comprehensive development framework that creates **complete Odoo 18+ environments**, not just modules:
-
-- **Complete Environment**: Full Odoo source + OCA modules + virtual environment
-- **SOIL System**: LLM guidance for consistent Odoo 18+ development
-- **Smart Validators**: Automatic compliance checking (no more `<tree>` vs `<list>` errors!)
-- **Project Lifecycle**: Create, manage, and delete complete projects
-- **Zero-Config Setup**: Working Odoo instance in under 5 minutes
-
-## 🏗️ **Environment Architecture**
-
-```
-Framework creates isolated, complete environments:
-
-~/odoo_projects/
-├── project_a/           # Complete Odoo environment
-│   ├── odoo_source/     # Odoo 18+ source code
-│   ├── custom_addons/   # Your modules
-│   ├── community_addons/ # OCA modules
-│   ├── .venv/          # Isolated Python environment
-│   └── run.sh          # One-click startup
-├── project_b/           # Another complete environment
-└── project_c/           # Yet another environment
-```
-
-## 🧠 **For LLMs & AI Assistants**
-
-This framework is specifically designed for AI assistants to understand and follow Odoo 18+ standards:
-
-**Entry Point**: Always start with `framework/llm-guidance/SOIL_CORE.md`
-- Contains mandatory patterns and enforcement rules
-- Eliminates common Odoo 18+ migration errors
-- Provides clear guidance for code generation
-
-## �️ **Development Tools**
-
-```bash
-# Complete project management (recommended)
-./neodoo create        # Create new complete project (wizard)
-./neodoo list          # List all projects
-./neodoo delete        # Delete project + database
-
-# Legacy tools
-./quick-start.sh       # Create project with defaults
-./setup.sh help        # Show legacy help and options
-
-# Framework tools
-./env.sh setup         # Setup framework environment
-python framework/validator/validate.py path/  # Validate Odoo 18+ compliance
-# Use strict mode to enforce stricter rules (promote key warnings to errors)
-python framework/validator/validate.py path/ --strict
-
-# Generator flags
-python framework/generator/create_project.py --name my_module --type minimal --dry-run  # preview
-python framework/generator/create_project.py --name my_module --type minimal --no-all-placeholders  # conservative replacement
-```
-
-## ✅ QA / Status
-
-- CLI help, doctor, list, create, and update verified on macOS.
-- GitHub Actions CI runs `neodoo doctor --no-input` and the strict validator on every push/pull request.
-- Generator lists templates and creates modules from the minimal template that pass the validator in strict mode.
-- Filenames with placeholders are auto-renamed during generation (e.g., views/{{MODULE_TECHNICAL_NAME}}_views.xml → views/<module>_views.xml).
-
-Re-run the quick checks locally:
-
-```bash
-# 1) List templates
-python3 framework/generator/create_project.py --name tmp --list-templates
-
-# 2) Create a temp project without venv for speed
-./neodoo create --name sanity_proj --base-dir /tmp/neodoo_sanity --module sanity_mod --template minimal --no-venv
-
-# 3) Run doctor and validator (strict)
-./neodoo doctor --path /tmp/neodoo_sanity/sanity_proj --no-input  # drop --no-input for interactive mode
-python3 framework/validator/validate.py /tmp/neodoo_sanity/sanity_proj/custom_addons/sanity_mod --strict --auto-fix
-```
-
-## 📦 **Deploy Instructions**
-See our [Deployment Guide](./DEPLOYMENT.md) for production deployment of created projects.
-
-## 🤝 Community
-
-- **License**: LGPL-3 (following Odoo licensing)
-- **Contributions**: Welcome! See [CONTRIBUTING.md](CONTRIBUTING.md)
-- **Issues**: Use GitHub Issues for bugs and feature requests
-
-## 💡 Why Use Neodoo18Framework?
-
-- **Developers**: Set up Odoo environments in minutes, not hours
-- **Companies**: Ensure consistency across projects and teams
-- **LLMs**: Get clear guidance for Odoo 18+ development
-
-## 🛡️ Strict Standards
-
-- Odoo 18+ compliance (no legacy patterns)
-- Modern Python practices
-- LLM-friendly structure
-- Enterprise-grade security standards
-
-## 🤝 Community
-
-- **License**: MIT (maximum freedom for developers)
-- **Contributions**: Welcome! See CONTRIBUTING.md
-- **Issues**: Use GitHub Issues for bugs and feature requests
+[![Pre-commit Status](https://github.com/neoand/discuss_hub/actions/workflows/pre-commit.yml/badge.svg?branch=main)](https://github.com/neoand/discuss_hub/actions/workflows/pre-commit.yml?query=branch%3Amain)
+[![Build Status](https://github.com/neoand/discuss_hub/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/neoand/discuss_hub/actions/workflows/test.yml?query=branch%3Amain)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%203.0-blue.svg)](LICENSE)
 
 ---
 
-**Built with real experience. Tested in production.**
+## 📖 Table of Contents
+
+- [Overview](#-overview)
+- [Key Features](#-key-features)
+- [Quick Start](#-quick-start)
+- [Architecture](#-architecture)
+- [Modules](#-modules)
+- [Documentation](#-documentation)
+- [Screenshots](#-screenshots)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+---
+
+## 🎯 Overview
+
+**DiscussHub** is a comprehensive Odoo 18 addon that seamlessly integrates external messaging channels (WhatsApp, Telegram, etc.) into Odoo's native Discuss application. It enables:
+
+- **Bidirectional Communication**: Send and receive messages directly from Odoo
+- **Multi-Module Integration**: Extend CRM, Helpdesk, Projects with messaging capabilities
+- **Plugin Architecture**: Easily add new messaging providers
+- **Enterprise Features**: Bulk messaging, analytics, automated triggers, templates
+
+### 🎬 What Can You Do?
+
+- 💬 Chat with customers via WhatsApp directly in Odoo Discuss
+- 📊 Track all conversations linked to CRM Leads, Helpdesk Tickets, or Project Tasks
+- 🤖 Automate messages based on record events (stage changes, creation, etc.)
+- 📱 Send bulk WhatsApp campaigns using templates
+- 📈 Monitor messaging metrics and analytics
+- 🔌 Extend to support any messaging platform through plugins
+
+---
+
+## ✨ Key Features
+
+### 🔌 Core Integration
+- **Evolution API Plugin** (WhatsApp via Baileys) - 1,280 LOC
+- **WhatsApp Cloud API Plugin** (Official Business API) - 497 LOC
+- **NotificaMe Plugin** - 133 LOC
+- **Extensible Plugin System** - Add your own providers
+
+### 📦 Bridge Modules (App Integrations)
+- **discusshub_crm**: Integrate WhatsApp with CRM Leads/Opportunities (~450 LOC)
+- **discusshub_helpdesk**: Integrate WhatsApp with Helpdesk Tickets (~200 LOC)
+- **discusshub_project**: Integrate WhatsApp with Project Tasks (~150 LOC)
+
+### 🚀 Enterprise Features
+- **Message Templates**: Jinja2-based templates with 10 categories
+- **Bulk Messaging**: Send templates to multiple records with rate limiting
+- **Analytics Dashboard**: SQL views with messaging metrics
+- **Automated Triggers**: 5 trigger types (creation, update, stage change, etc.)
+- **Attachment Support**: Send images, videos, documents, audio
+- **Routing System**: Distribute conversations to team members (round-robin, random)
+
+### 💡 Developer Tools
+- **DiscussHub Mixin**: Abstract mixin to add messaging to ANY Odoo model
+- **Comprehensive Tests**: 3,388 lines of test code, 69+ tests
+- **Well-Documented**: 60+ pages in English & Portuguese
+- **Docker Ready**: Production & development compose files included
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Docker & Docker Compose
+- Git
+
+### ⚡ 3-Minute Setup
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/neoand/discuss_hub.git
+cd discuss_hub
+
+# 2. Start services (Odoo + PostgreSQL + Evolution API + N8N + Redis)
+docker compose -f compose-dev.yaml up -d
+
+# 3. Wait for services to initialize (~30 seconds)
+sleep 30
+
+# 4. Load N8N workflows (optional automation)
+docker compose -f compose-dev.yaml exec -u node -it n8n sh -c "n8n import:workflow --input=/n8n-workflows.yaml"
+docker compose -f compose-dev.yaml exec -u node -it n8n sh -c "n8n update:workflow --all --active=true"
+docker compose -f compose-dev.yaml restart n8n
+
+# 5. Access Odoo
+# URL: http://localhost:8069/?debug=1
+# Email: admin
+# Password: admin
+```
+
+### 📱 Connect WhatsApp
+
+1. Navigate to **Discuss Hub → Connectors**
+2. Open the default Evolution connector
+3. Click **"Start Instance"**
+4. Scan the QR Code with WhatsApp
+5. Start receiving messages!
+
+---
+
+## 🏗️ Architecture
+
+```mermaid
+graph TB
+    subgraph "External Channels"
+        WA[WhatsApp]
+        TG[Telegram]
+        OT[Other Channels]
+    end
+
+    subgraph "DiscussHub Core"
+        WH[Webhook Controller]
+        CONN[Connector Manager]
+        PM[Plugin Manager]
+
+        subgraph "Plugins"
+            EVOL[Evolution Plugin]
+            CLOUD[WhatsApp Cloud Plugin]
+            NOTI[NotificaMe Plugin]
+        end
+    end
+
+    subgraph "Odoo Integration"
+        CH[Discuss Channel]
+        MSG[Mail Message]
+
+        subgraph "Bridge Modules"
+            CRM[CRM Leads]
+            HLP[Helpdesk Tickets]
+            PRJ[Project Tasks]
+        end
+    end
+
+    subgraph "Enterprise Features"
+        TPL[Templates]
+        BULK[Bulk Messaging]
+        TRIG[Automated Triggers]
+        ANAL[Analytics]
+    end
+
+    WA --> WH
+    TG --> WH
+    OT --> WH
+
+    WH --> CONN
+    CONN --> PM
+    PM --> EVOL
+    PM --> CLOUD
+    PM --> NOTI
+
+    EVOL --> CH
+    CLOUD --> CH
+    NOTI --> CH
+
+    CH --> MSG
+    CH --> CRM
+    CH --> HLP
+    CH --> PRJ
+
+    TPL --> BULK
+    TPL --> TRIG
+    MSG --> ANAL
+```
+
+### Key Components
+
+| Component | Description | Lines of Code |
+|-----------|-------------|---------------|
+| **discuss_hub** | Core module with connector & plugin system | ~2,936 |
+| **discusshub_mixin** | Abstract mixin for any model integration | 266 |
+| **automated_trigger** | Event-based message automation | 423 |
+| **message_template** | Jinja2 template system | ~200 |
+| **bulk_send_wizard** | Mass messaging with rate limiting | ~200 |
+| **analytics** | SQL views for metrics | ~150 |
+
+---
+
+## 📦 Modules
+
+### Core Module
+
+#### `discuss_hub` (Base Module)
+The foundation of the messaging integration system.
+
+**Main Features:**
+- Connector management (start/stop/configure instances)
+- Plugin-based architecture
+- Webhook processing
+- Message routing to discuss.channel
+- Support for all message types (text, media, location, contacts, reactions)
+
+**Directory Structure:**
+```
+community_addons/discuss_hub/
+├── models/
+│   ├── models.py              # Main connector model
+│   ├── discuss_channel.py     # Channel extensions
+│   ├── mail_message.py        # Message extensions
+│   ├── routing_manager.py     # Team routing
+│   ├── bot_manager.py         # Bot handlers
+│   ├── message_template.py    # Template system
+│   ├── automated_trigger.py   # Automation triggers
+│   ├── analytics.py           # Dashboard metrics
+│   ├── discusshub_mixin.py    # Abstract mixin
+│   └── plugins/
+│       ├── base.py            # Plugin interface
+│       ├── evolution.py       # Evolution API (1,280 LOC)
+│       ├── whatsapp_cloud.py  # WhatsApp Cloud (497 LOC)
+│       └── notificame.py      # NotificaMe (133 LOC)
+├── controllers/
+│   └── controllers.py         # Webhook endpoints
+├── wizard/
+│   ├── bulk_send_wizard.py    # Bulk messaging
+│   └── send_template_wizard.py
+├── views/                     # XML views
+├── security/                  # ACL rules
+├── tests/                     # 3,388 lines of tests
+└── docs/                      # Documentation (EN & PT-BR)
+```
+
+---
+
+### Bridge Modules (App Integrations)
+
+These modules extend Odoo apps with WhatsApp messaging capabilities using the `discusshub.mixin`.
+
+#### `discusshub_crm` - CRM Integration
+
+Adds WhatsApp channels to CRM Leads and Opportunities.
+
+**Features:**
+- Link WhatsApp channels to leads/opportunities
+- Send messages directly from lead form
+- Track conversation history
+- Auto-detect phone from partner or lead fields
+- Custom channel naming based on lead stage
+
+**Usage Example:**
+```python
+# Create lead with WhatsApp channel
+lead = env['crm.lead'].create({
+    'name': 'John Doe Opportunity',
+    'partner_id': partner.id,
+})
+
+# Create WhatsApp channel
+lead.action_create_discusshub_channel()
+
+# Send message
+lead.action_send_discusshub_message()
+```
+
+**Files:**
+```
+community_addons/discusshub_crm/
+├── models/
+│   └── crm_lead.py           # CRM Lead extensions (~450 LOC)
+├── views/
+│   └── crm_lead_views.xml    # Form view buttons
+└── README.md
+```
+
+---
+
+#### `discusshub_helpdesk` - Helpdesk Integration
+
+Integrate support tickets with WhatsApp for customer communication.
+
+**Features:**
+- Link WhatsApp channels to helpdesk tickets
+- Respond to customers via WhatsApp from ticket form
+- Track ticket conversations
+- Auto-detect customer phone
+
+**Usage Example:**
+```python
+# Create ticket with WhatsApp
+ticket = env['helpdesk.ticket'].create({
+    'name': 'Customer Issue #123',
+    'partner_id': partner.id,
+})
+
+# Link WhatsApp channel
+ticket.action_create_discusshub_channel()
+```
+
+**Files:**
+```
+community_addons/discusshub_helpdesk/
+├── models/
+│   └── helpdesk_ticket.py    # Ticket extensions (~200 LOC)
+├── views/
+│   └── helpdesk_ticket_views.xml
+└── README.md
+```
+
+---
+
+#### `discusshub_project` - Project Integration
+
+Connect project tasks with team communication via WhatsApp.
+
+**Features:**
+- Link WhatsApp channels to project tasks
+- Communicate with clients about task progress
+- Track task-related conversations
+- Support for assignee/follower notifications
+
+**Usage Example:**
+```python
+# Create task with WhatsApp
+task = env['project.task'].create({
+    'name': 'Website Redesign',
+    'partner_id': partner.id,
+})
+
+# Create WhatsApp channel for task
+task.action_create_discusshub_channel()
+```
+
+**Files:**
+```
+community_addons/discusshub_project/
+├── models/
+│   └── project_task.py       # Task extensions (~150 LOC)
+├── views/
+│   └── project_task_views.xml
+└── README.md
+```
+
+---
+
+### Using the DiscussHub Mixin
+
+The `discusshub.mixin` is an **abstract model** that can be inherited by ANY Odoo model to add messaging capabilities.
+
+#### Quick Integration Guide
+
+```python
+from odoo import models, fields
+
+class MyCustomModel(models.Model):
+    _name = 'my.custom.model'
+    _inherit = ['my.custom.model', 'discusshub.mixin']
+
+    # That's it! Your model now has:
+    # - discusshub_channel_id field
+    # - discusshub_message_count field
+    # - discusshub_last_message_date field
+    # - action_send_discusshub_message() method
+    # - action_create_discusshub_channel() method
+    # - action_open_discusshub_channel() method
+```
+
+#### Customization (Optional)
+
+Override helper methods for custom behavior:
+
+```python
+def _get_discusshub_destination(self):
+    """Custom phone number detection."""
+    if self.custom_phone_field:
+        return self.custom_phone_field
+    return super()._get_discusshub_destination()
+
+def _get_discusshub_channel_name(self):
+    """Custom channel naming."""
+    return f"WhatsApp: {self.name} - {self.stage_id.name}"
+```
+
+---
+
+## 📚 Documentation
+
+### Complete Guides
+
+- 🇧🇷 **[Documentação Completa em Português](community_addons/discuss_hub/docs/pt-br/README.md)**
+- 🇺🇸 **[Complete English Documentation](community_addons/discuss_hub/docs/en/README.md)**
+
+### Specialized Guides
+
+- 🔥 **[Evolution Plugin Guide](community_addons/discuss_hub/docs/en/Evolution%20Plugin.md)** - WhatsApp Baileys integration
+- 🛠️ **[Plugin Development](community_addons/discuss_hub/docs/en/Plugin%20Development.md)** - Create custom plugins
+- 🔧 **[Troubleshooting](community_addons/discuss_hub/docs/pt-br/Troubleshooting.md)** - Common issues & solutions
+- 📊 **[Architecture Diagrams](community_addons/discuss_hub/docs/assets/diagrams.md)** - System design
+
+### Technical Documentation
+
+- **[Test Documentation](community_addons/discuss_hub/tests/README.md)** - Running and writing tests
+- **[Docker Setup](community_addons/discuss_hub/compose.yaml)** - Production deployment
+- **[Development Setup](community_addons/discuss_hub/compose-dev.yaml)** - Local development
+
+---
+
+## 📸 Screenshots
+
+### Connector Management
+![Connector Management](https://via.placeholder.com/800x400.png?text=DiscussHub+Connector+Management)
+
+### WhatsApp in CRM Lead
+![WhatsApp in CRM](https://via.placeholder.com/800x400.png?text=WhatsApp+Integration+in+CRM+Lead)
+
+### Message Templates
+![Templates](https://via.placeholder.com/800x400.png?text=Message+Template+System)
+
+### Analytics Dashboard
+![Analytics](https://via.placeholder.com/800x400.png?text=Messaging+Analytics+Dashboard)
+
+---
+
+## 🧪 Testing
+
+The project includes comprehensive test coverage (3,388 lines of test code).
+
+### Run Tests
+
+```bash
+# Run all tests
+docker compose -f compose-dev.yaml exec odoo odoo -c /etc/odoo/odoo.conf \
+  --test-enable --stop-after-init -u discuss_hub
+
+# Run specific test
+docker compose -f compose-dev.yaml exec odoo odoo -c /etc/odoo/odoo.conf \
+  --test-enable --stop-after-init -u discuss_hub \
+  --test-tags /discuss_hub:TestEvolutionPlugin.test_send_text_message
+```
+
+### Test Coverage
+
+| Module | Test Files | Tests | Lines of Code |
+|--------|------------|-------|---------------|
+| discuss_hub | 8 | 69+ | 3,388 |
+| Evolution Plugin | test_evolution.py | 69 | 1,575 |
+| Base Plugin | test_base.py | 15+ | 754 |
+| Controllers | test_controller.py | 10+ | 523 |
+
+---
+
+## 🗺️ Roadmap
+
+### Phase 1 ✅ (Completed)
+- [x] Core connector framework
+- [x] Evolution API plugin (WhatsApp Baileys)
+- [x] Bidirectional messaging
+- [x] DiscussHub mixin for extensibility
+
+### Phase 2 ✅ (Completed)
+- [x] CRM integration (discusshub_crm)
+- [x] Helpdesk integration (discusshub_helpdesk)
+- [x] Project integration (discusshub_project)
+
+### Phase 3 ✅ (Completed)
+- [x] Message templates with Jinja2
+- [x] Bulk messaging wizard
+- [x] Analytics dashboard
+- [x] Automated triggers
+
+### Phase 4 🚧 (In Progress)
+- [ ] WhatsApp Cloud API improvements
+- [ ] Telegram plugin
+- [ ] Multi-language template support
+- [ ] Advanced routing algorithms
+
+### Phase 5 📋 (Planned)
+- [ ] AI-powered auto-responses
+- [ ] Chatbot integration
+- [ ] Sentiment analysis
+- [ ] Voice message support
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please follow these steps:
+
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Commit your changes**: `git commit -m 'Add amazing feature'`
+4. **Push to branch**: `git push origin feature/amazing-feature`
+5. **Open a Pull Request**
+
+### Development Guidelines
+
+- Follow Odoo coding standards
+- Add tests for new features
+- Update documentation
+- Run pre-commit hooks: `pre-commit install`
+
+---
+
+## 📄 License
+
+This project is licensed under **AGPL-3.0**. See [LICENSE](LICENSE) file for details.
+
+Each module may have its own license as specified in its `__manifest__.py` file.
+
+---
+
+## 🙏 Acknowledgments
+
+- **Odoo Community Association (OCA)** - For community modules and standards
+- **Evolution API** - For the excellent WhatsApp Baileys integration
+- **Contributors** - Thank you to all contributors who have helped improve this project
+
+---
+
+## 📞 Support
+
+- **Documentation**: [docs/](community_addons/discuss_hub/docs/)
+- **Issues**: [GitHub Issues](https://github.com/neoand/discuss_hub/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/neoand/discuss_hub/discussions)
+
+---
+
+## 🌟 Star History
+
+If you find this project useful, please consider giving it a ⭐ on GitHub!
+
+---
+
+**Made with ❤️ by the DiscussHub Team**
+
+*Empowering businesses with seamless multi-channel communication in Odoo*
