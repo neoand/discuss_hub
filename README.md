@@ -76,6 +76,13 @@
 - **Attachment Support**: Send images, videos, documents, audio
 - **Routing System**: Distribute conversations to team members (round-robin, random)
 
+### 🤖 AI-Powered Features (Phase 5)
+- **Google Gemini Integration**: Smart auto-responses with Gemini 1.5 Pro/Flash
+- **Sentiment Analysis**: Real-time emotion detection and escalation
+- **Chatbot Support**: Dialogflow, Rasa, Botpress integrations
+- **Voice Messages**: Speech-to-text transcription
+- **Confidence Scoring**: Automatic escalation when AI is uncertain
+
 ### 💡 Developer Tools
 - **DiscussHub Mixin**: Abstract mixin to add messaging to ANY Odoo model
 - **Comprehensive Tests**: 3,388 lines of test code, 69+ tests
@@ -413,6 +420,7 @@ def _get_discusshub_channel_name(self):
 - 🚀 **[Quick Start](community_addons/discuss_hub/docs/SETUP.md)** - Installation and basic setup
 - 🔥 **[Evolution Plugin Guide](community_addons/discuss_hub/docs/en/Evolution%20Plugin.md)** - WhatsApp Baileys integration
 - 🔗 **[Bridge Modules Guide](community_addons/discuss_hub/docs/en/Bridge%20Modules.md)** - Integrate with CRM, Helpdesk, Project
+- 🤖 **[AI Features Guide](community_addons/discuss_hub/docs/en/AI%20Features.md)** - Google Gemini auto-responses & sentiment analysis
 
 #### Development
 - 🛠️ **[Plugin Development](community_addons/discuss_hub/docs/en/Plugin%20Development.md)** - Create custom messaging plugins

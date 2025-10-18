@@ -345,17 +345,21 @@ class RoutingManager(models.TransientModel):
 
 ### 1. AI-Powered Auto-Responses 🤖
 
-**Status**: Implementation Guide Ready
+**Status**: ✅ IMPLEMENTED with Google Gemini
 **Priority**: High
-**Estimated Effort**: 4-5 days
+**File**: `community_addons/discuss_hub/discuss_hub/models/ai_responder.py` (~450 LOC)
 
-#### Features
+#### Features Implemented
 
-- OpenAI GPT integration
-- Context-aware responses
-- Custom training on company data
-- Response confidence scoring
-- Human escalation triggers
+- ✅ Google Gemini 1.5 Pro/Flash integration
+- ✅ Context-aware responses with conversation history
+- ✅ Custom system prompts for company personality
+- ✅ Response confidence scoring
+- ✅ Automatic human escalation triggers
+- ✅ Multi-language support
+- ✅ Safety settings configuration
+- ✅ Response history tracking
+- ✅ Feedback loop for improvement
 
 #### Architecture
 
@@ -381,67 +385,115 @@ class RoutingManager(models.TransientModel):
 └─────────────────┘
 ```
 
-#### Implementation
+#### Implementation (COMPLETE)
 
 ```python
-# models/ai_responder.py (new)
+# models/ai_responder.py (IMPLEMENTED - 450 LOC)
 
-from openai import OpenAI
+import google.generativeai as genai
 
 class AIResponder(models.Model):
     _name = 'discuss_hub.ai_responder'
-    _description = 'AI Auto-Response System'
+    _description = 'AI Auto-Response with Google Gemini'
 
     name = fields.Char(required=True)
-    connector_id = fields.Many2one('discuss_hub.connector')
-    model = fields.Selection([
-        ('gpt-4', 'GPT-4'),
-        ('gpt-3.5-turbo', 'GPT-3.5 Turbo'),
-    ], default='gpt-3.5-turbo')
-    api_key = fields.Char(required=True)
-    system_prompt = fields.Text(
-        default="You are a helpful customer service assistant."
+    connector_ids = fields.Many2many('discuss_hub.connector')
+
+    # Google Gemini Configuration
+    api_key = fields.Char(
+        string='Google AI API Key',
+        required=True,
+        help='Get from https://makersuite.google.com/app/apikey',
     )
-    confidence_threshold = fields.Float(default=0.8)
-    max_tokens = fields.Integer(default=150)
 
-    def generate_response(self, message_text, context=None):
-        """Generate AI response"""
-        client = OpenAI(api_key=self.api_key)
+    model = fields.Selection([
+        ('gemini-1.5-pro', 'Gemini 1.5 Pro (Best quality)'),
+        ('gemini-1.5-flash', 'Gemini 1.5 Flash (Faster)'),
+        ('gemini-pro', 'Gemini Pro (Legacy)'),
+    ], default='gemini-1.5-flash')
 
-        messages = [
-            {"role": "system", "content": self.system_prompt},
-        ]
+    system_prompt = fields.Text(required=True)
+    confidence_threshold = fields.Float(default=0.80)
+    max_tokens = fields.Integer(default=500)
+    temperature = fields.Float(default=0.7)
 
-        # Add context if available
-        if context:
-            messages.append({
-                "role": "system",
-                "content": f"Context: {context}"
-            })
+    # Safety Settings
+    safety_harassment = fields.Selection([
+        ('BLOCK_NONE', 'Block None'),
+        ('BLOCK_MEDIUM_AND_ABOVE', 'Block Medium and Above'),
+    ], default='BLOCK_MEDIUM_AND_ABOVE')
 
-        messages.append({"role": "user", "content": message_text})
+    # Context Management
+    use_conversation_history = fields.Boolean(default=True)
+    history_messages_count = fields.Integer(default=10)
 
-        response = client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            max_tokens=self.max_tokens,
-            temperature=0.7,
+    # Statistics
+    response_count = fields.Integer(readonly=True)
+    success_count = fields.Integer(readonly=True)
+    escalation_count = fields.Integer(readonly=True)
+
+    def generate_response(self, message_text, channel=None, context=None):
+        """Generate AI response using Google Gemini"""
+        genai.configure(api_key=self.api_key)
+
+        model = genai.GenerativeModel(
+            model_name=self.model,
+            generation_config={
+                'temperature': self.temperature,
+                'max_output_tokens': self.max_tokens,
+            },
+            safety_settings=self._get_safety_settings(),
         )
 
+        # Build chat history
+        chat_history = []
+        if self.use_conversation_history and channel:
+            chat_history = self._build_chat_history(channel)
+
+        chat = model.start_chat(history=chat_history)
+
+        # Generate response
+        full_prompt = self._build_prompt(message_text, channel, context)
+        response = chat.send_message(full_prompt)
+
+        confidence = self._calculate_confidence(response)
+
         return {
-            'text': response.choices[0].message.content,
-            'confidence': self._calculate_confidence(response),
+            'text': response.text,
+            'confidence': confidence,
+            'should_auto_respond': confidence >= self.confidence_threshold,
+            'model_used': self.model,
         }
 
     def _calculate_confidence(self, response):
-        """Calculate response confidence score"""
-        # Use logprobs or other metrics
-        return 0.85  # Placeholder
+        """Calculate confidence using heuristics"""
+        # Check response length and uncertainty phrases
+        text_length = len(response.text)
+        if text_length < 10:
+            return 0.3
 
-    def should_auto_respond(self, confidence):
-        """Check if confidence meets threshold"""
-        return confidence >= self.confidence_threshold
+        uncertainty_phrases = ["i'm not sure", "i don't know", "maybe"]
+        uncertainty_count = sum(
+            1 for phrase in uncertainty_phrases
+            if phrase in response.text.lower()
+        )
+
+        if uncertainty_count >= 2:
+            return 0.4
+        elif uncertainty_count == 1:
+            return 0.6
+
+        return 0.85
+
+class AIResponseHistory(models.Model):
+    _name = 'discuss_hub.ai_response_history'
+
+    responder_id = fields.Many2one('discuss_hub.ai_responder')
+    message_text = fields.Text()
+    response_text = fields.Text()
+    confidence = fields.Float()
+    auto_responded = fields.Boolean()
+    was_helpful = fields.Boolean()  # Feedback for training
 ```
 
 ---
@@ -747,23 +799,29 @@ class TestSentimentAnalysis(TransactionCase):
 ### Dependencies to Add
 
 ```txt
-# requirements.txt additions
-openai>=1.0.0
-google-cloud-dialogflow>=2.0.0
-textblob>=0.17.0
-SpeechRecognition>=3.10.0
-pydub>=0.25.1
-transformers>=4.30.0
+# requirements.txt additions for Phase 4 & 5
+google-generativeai>=0.3.0       # Google Gemini AI
+google-cloud-dialogflow>=2.0.0   # Dialogflow chatbots
+textblob>=0.17.0                 # Sentiment analysis
+SpeechRecognition>=3.10.0        # Voice transcription
+pydub>=0.25.1                    # Audio processing
+transformers>=4.30.0             # Advanced NLP (optional)
 ```
 
 ### Environment Variables
 
 ```bash
 # .env additions
-OPENAI_API_KEY=sk-...
-GOOGLE_APPLICATION_CREDENTIALS=/path/to/credentials.json
-TELEGRAM_BOT_TOKEN=123456:ABC-DEF...
+GOOGLE_AI_API_KEY=AIzaSy...                    # Google Gemini API key
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/creds  # Dialogflow credentials
+TELEGRAM_BOT_TOKEN=123456:ABC-DEF...           # Telegram bot token
 ```
+
+### Getting Google AI API Key
+
+1. Go to https://makersuite.google.com/app/apikey
+2. Create new API key or use existing
+3. Copy and paste into Odoo configuration
 
 ---
 
