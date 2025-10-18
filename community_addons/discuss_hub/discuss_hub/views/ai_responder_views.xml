@@ -8,7 +8,7 @@
             <list string="AI Responders" multi_edit="1">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
-                <field name="model" string="Gemini Model"/>
+                <field name="ai_provider" widget="badge"/>
                 <field name="active" widget="boolean_toggle"/>
                 <field name="confidence_threshold" widget="percentage"/>
                 <field name="response_count"/>
@@ -49,21 +49,33 @@
                             <field name="connector_ids" widget="many2many_tags"/>
                         </group>
                         <group>
-                            <field name="model"/>
+                            <field name="ai_provider" widget="radio"/>
                             <field name="confidence_threshold" widget="percentage"/>
                             <field name="temperature"/>
                         </group>
                     </group>
 
                     <notebook>
-                        <page string="Google Gemini Configuration" name="gemini_config">
+                        <page string="AI Provider Configuration" name="provider_config">
+                            <group string="Provider Selection">
+                                <div class="alert alert-info" role="alert">
+                                    <strong>Gemini:</strong> Best quality, free tier available<br/>
+                                    <strong>HuggingFace:</strong> Unlimited free, open source models
+                                </div>
+                            </group>
                             <group>
+                                <group string="Model Selection">
+                                    <field name="model" invisible="ai_provider != 'gemini'"/>
+                                    <field name="hf_model" invisible="ai_provider != 'huggingface'"/>
+                                </group>
                                 <group string="API Configuration">
                                     <field name="api_key" password="True"
-                                           placeholder="AIzaSy..."/>
+                                           placeholder="Get from provider website..."/>
                                     <field name="max_tokens"/>
                                 </group>
-                                <group string="Safety Settings">
+                            </group>
+                            <group string="Safety Settings" invisible="ai_provider != 'gemini'">
+                                <group>
                                     <field name="safety_harassment"/>
                                     <field name="safety_hate_speech"/>
                                 </group>

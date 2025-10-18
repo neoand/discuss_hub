@@ -1,10 +1,13 @@
 """
-AI Auto-Responder with Google Gemini
-======================================
+AI Auto-Responder with Multi-Provider Support
+==============================================
 
-Provides intelligent auto-responses using Google's Gemini AI models.
+Provides intelligent auto-responses using multiple AI providers:
+- Google Gemini (Best quality, free tier)
+- Hugging Face (Unlimited free)
 
 Features:
+- Multi-provider support (Gemini + HuggingFace)
 - Context-aware response generation
 - Multi-language support
 - Confidence scoring
@@ -12,28 +15,39 @@ Features:
 - Response history tracking
 - Custom system prompts
 - Safety settings
+- Enhanced error handling
+- Duplicate prevention
 
 Author: DiscussHub Team
-Version: 1.0.0
-Date: October 17, 2025
+Version: 2.0.0
+Date: October 18, 2025
 
-Google Gemini API Reference:
-https://ai.google.dev/api/python/google/generativeai
+References:
+- Google Gemini: https://ai.google.dev/api/python/google/generativeai
+- Hugging Face: https://huggingface.co/inference-api
 """
 
 import json
 import logging
+import re
+import requests
+from markupsafe import Markup
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import UserError, ValidationError, AccessError
 
 _logger = logging.getLogger(__name__)
 
+# AI Provider availability checks
 try:
     import google.generativeai as genai
     GENAI_AVAILABLE = True
 except ImportError:
     GENAI_AVAILABLE = False
-    _logger.warning("google-generativeai not installed. AI features will not work.")
+    _logger.warning("google-generativeai not installed. Gemini will not work.")
+
+# Duplicate prevention cache
+_AI_RESPONSE_CACHE = {}
+_PROCESSED_MESSAGES = []
 
 
 class AIResponder(models.Model):
@@ -65,11 +79,25 @@ class AIResponder(models.Model):
         help='Apply this AI responder to these connectors',
     )
 
+    # AI Provider Selection
+    ai_provider = fields.Selection(
+        [
+            ('gemini', 'Google Gemini (Best quality, free tier)'),
+            ('huggingface', 'Hugging Face (Unlimited free)'),
+        ],
+        string='AI Provider',
+        required=True,
+        default='gemini',
+        help='Choose AI provider:\n'
+             '- Gemini: Best quality, requires API key, generous free tier\n'
+             '- Hugging Face: Unlimited free, good quality, open source models',
+    )
+
     # Google Gemini Configuration
     api_key = fields.Char(
-        string='Google AI API Key',
-        required=True,
-        help='Get your API key from https://makersuite.google.com/app/apikey',
+        string='API Key',
+        help='Gemini: Get from https://makersuite.google.com/app/apikey\n'
+             'Hugging Face: Get from https://huggingface.co/settings/tokens',
     )
 
     model = fields.Selection(
@@ -79,12 +107,15 @@ class AIResponder(models.Model):
             ('gemini-pro', 'Gemini Pro (Legacy)'),
         ],
         string='Gemini Model',
-        required=True,
         default='gemini-1.5-flash',
-        help='Choose Gemini model based on your needs:\n'
-             '- Pro: Best quality, slower\n'
-             '- Flash: Faster, good quality\n'
-             '- Legacy: Older stable version',
+        help='Gemini model selection',
+    )
+
+    # Hugging Face Configuration
+    hf_model = fields.Char(
+        string='HuggingFace Model',
+        default='google/flan-t5-large',
+        help='HuggingFace model ID (e.g., google/flan-t5-large, meta-llama/Llama-2-7b-chat-hf)',
     )
 
     # System Prompt
@@ -232,7 +263,7 @@ Guidelines:
 
     def generate_response(self, message_text, channel=None, context=None):
         """
-        Generate AI response using Google Gemini
+        Generate AI response using configured provider (Gemini or HuggingFace)
 
         Args:
             message_text (str): User's message
@@ -245,10 +276,78 @@ Guidelines:
                 'confidence': Confidence score (0-1),
                 'should_auto_respond': Boolean,
                 'model_used': Model name,
+                'provider': Provider used,
             }
         """
         self.ensure_one()
 
+        # Check for duplicates
+        if channel and hasattr(channel, 'message_ids') and channel.message_ids:
+            last_message = channel.message_ids[0]
+            if self._check_duplicate(channel, last_message):
+                return {
+                    'text': '',
+                    'confidence': 0.0,
+                    'should_auto_respond': False,
+                    'error': 'duplicate',
+                }
+
+        try:
+            # Route to appropriate provider
+            if self.ai_provider == 'gemini':
+                response_text = self._generate_with_gemini(message_text, channel, context)
+                model_used = self.model
+            elif self.ai_provider == 'huggingface':
+                response_text = self._generate_with_huggingface_full(message_text, channel, context)
+                model_used = self.hf_model
+            else:
+                raise UserError(_('Unknown AI provider: %s') % self.ai_provider)
+
+            # Format response
+            response_text = self._format_ai_response(response_text)
+
+            # Calculate confidence (generic for both providers)
+            confidence = self._calculate_confidence_generic(response_text)
+
+            # Determine if should auto-respond
+            should_auto_respond = confidence >= self.confidence_threshold
+
+            # Log response history
+            self._log_response(
+                message_text=message_text,
+                response_text=response_text,
+                confidence=confidence,
+                auto_responded=should_auto_respond,
+                channel_id=channel.id if channel else False,
+            )
+
+            # Update statistics
+            self.sudo().write({
+                'response_count': self.response_count + 1,
+                'success_count': self.success_count + (1 if should_auto_respond else 0),
+                'escalation_count': self.escalation_count + (0 if should_auto_respond else 1),
+            })
+
+            return {
+                'text': response_text,
+                'confidence': confidence,
+                'should_auto_respond': should_auto_respond,
+                'model_used': model_used,
+                'provider': self.ai_provider,
+            }
+
+        except AccessError as e:
+            _logger.error(f"AI Access Error: {e}", exc_info=True)
+            raise
+        except UserError as e:
+            _logger.error(f"AI User Error: {e}", exc_info=True)
+            raise
+        except Exception as e:
+            _logger.error(f"Unexpected AI error: {e}", exc_info=True)
+            raise UserError(_('AI generation failed: %s') % str(e))
+
+    def _generate_with_gemini(self, message_text, channel=None, context=None):
+        """Generate response using Google Gemini"""
         if not GENAI_AVAILABLE:
             raise UserError(_(
                 'Google Generative AI library not installed. '
@@ -287,43 +386,61 @@ Guidelines:
             _logger.info(f"Generating Gemini response for: {message_text[:50]}...")
             response = chat.send_message(full_prompt)
 
-            # Extract response text
-            response_text = response.text
-
-            # Calculate confidence
-            confidence = self._calculate_confidence(response)
-
-            # Determine if should auto-respond
-            should_auto_respond = confidence >= self.confidence_threshold
-
-            # Log response history
-            self._log_response(
-                message_text=message_text,
-                response_text=response_text,
-                confidence=confidence,
-                auto_responded=should_auto_respond,
-                channel_id=channel.id if channel else False,
-            )
-
-            # Update statistics
-            self.sudo().write({
-                'response_count': self.response_count + 1,
-                'success_count': self.success_count + (1 if should_auto_respond else 0),
-                'escalation_count': self.escalation_count + (0 if should_auto_respond else 1),
-            })
-
-            return {
-                'text': response_text,
-                'confidence': confidence,
-                'should_auto_respond': should_auto_respond,
-                'model_used': self.model,
-            }
+            return response.text
 
         except Exception as e:
             _logger.error(f"Error generating Gemini response: {e}", exc_info=True)
-            raise UserError(_(
-                'Failed to generate AI response: %s'
-            ) % str(e))
+            raise UserError(_('Gemini AI failed: %s') % str(e))
+
+    def _generate_with_huggingface_full(self, message_text, channel=None, context=None):
+        """Generate response using Hugging Face with context"""
+        # Build conversation history for HF
+        chat_history = []
+        if self.use_conversation_history and channel:
+            chat_history = self._build_chat_history(channel)
+
+        # Build prompt with context
+        full_prompt = self._build_prompt(message_text, channel, context)
+
+        # Call HF API
+        return self._generate_with_huggingface(full_prompt, chat_history)
+
+    def _calculate_confidence_generic(self, response_text):
+        """
+        Calculate confidence for any provider response
+
+        Args:
+            response_text (str): Generated text
+
+        Returns:
+            float: Confidence (0-1)
+        """
+        # Length check
+        text_length = len(response_text)
+        if text_length < 10:
+            return 0.3
+        elif text_length < 30:
+            return 0.5
+
+        # Uncertainty phrases
+        uncertainty_phrases = [
+            "i'm not sure", "i don't know", "maybe",
+            "perhaps", "might be", "could be",
+            "não tenho certeza", "não sei", "talvez",
+            "no estoy seguro", "no sé", "quizás",
+        ]
+
+        text_lower = response_text.lower()
+        uncertainty_count = sum(
+            1 for phrase in uncertainty_phrases if phrase in text_lower
+        )
+
+        if uncertainty_count >= 2:
+            return 0.4
+        elif uncertainty_count == 1:
+            return 0.6
+
+        return 0.85
 
     def _build_prompt(self, message_text, channel=None, context=None):
         """Build complete prompt with context"""
@@ -586,6 +703,129 @@ Guidelines:
                 raise ValidationError(_(
                     'Temperature must be between 0 and 1'
                 ))
+
+    # ============================================================
+    # HUGGING FACE PROVIDER (Phase 6D)
+    # ============================================================
+
+    def _generate_with_huggingface(self, prompt, conversation_history=None):
+        """
+        Generate response using Hugging Face Inference API
+
+        Args:
+            prompt (str): User message prompt
+            conversation_history (list): Previous messages
+
+        Returns:
+            str: Generated text
+        """
+        if not self.api_key:
+            raise UserError(_('Hugging Face API token not configured'))
+
+        # Prepare full prompt with history
+        if conversation_history:
+            context = "\n".join([
+                f"{'User' if msg['role']=='user' else 'Assistant'}: {msg['parts'][0]}"
+                for msg in conversation_history
+            ])
+            full_prompt = f"{context}\nUser: {prompt}\nAssistant:"
+        else:
+            full_prompt = f"{self.system_prompt}\n\nUser: {prompt}\nAssistant:"
+
+        # API request
+        api_url = f"https://api-inference.huggingface.co/models/{self.hf_model}"
+        headers = {"Authorization": f"Bearer {self.api_key}"}
+        payload = {
+            "inputs": full_prompt,
+            "parameters": {
+                "max_length": self.max_tokens,
+                "temperature": self.temperature,
+                "top_p": 0.9,
+                "do_sample": True,
+            }
+        }
+
+        try:
+            response = requests.post(api_url, headers=headers, json=payload, timeout=30)
+
+            if response.status_code == 200:
+                result = response.json()
+                if isinstance(result, list) and len(result) > 0:
+                    generated_text = result[0].get("generated_text", "")
+                    # Remove prompt from response
+                    if generated_text.startswith(full_prompt):
+                        generated_text = generated_text[len(full_prompt):].strip()
+                    return generated_text
+                return str(result)
+
+            elif response.status_code == 401:
+                raise AccessError(_("Invalid Hugging Face API token"))
+            elif response.status_code == 429:
+                raise UserError(_("Rate limit reached. Wait a moment and try again."))
+            elif response.status_code == 503:
+                raise UserError(_("Model loading. Try again in 20 seconds."))
+            else:
+                error_msg = f"HuggingFace API error: {response.status_code}"
+                try:
+                    error_detail = response.json().get('error', '')
+                    error_msg += f" - {error_detail}"
+                except:
+                    pass
+                raise UserError(_(error_msg))
+
+        except requests.exceptions.ConnectionError:
+            raise AccessError(_("Cannot connect to Hugging Face API. Check internet connection."))
+        except requests.exceptions.Timeout:
+            raise UserError(_("Hugging Face API timeout. Try again."))
+
+    def _format_ai_response(self, raw_text):
+        """
+        Format AI response text (from neodoo_ai pattern)
+
+        Args:
+            raw_text (str): Raw AI response
+
+        Returns:
+            str: Formatted text
+        """
+        text = raw_text
+
+        # Remove code blocks
+        text = re.sub(r'```\w*\n?|\n?```', '', text, flags=re.MULTILINE)
+
+        # Bold prices ($XX.XX)
+        text = re.sub(r'(\$\d+\.\d{2})', r'<strong>\1</strong>', text)
+
+        # Bold phone numbers
+        text = re.sub(r'(\+?\d{2,3}[\s-]?\d{4,5}[\s-]?\d{4})', r'<strong>\1</strong>', text)
+
+        return text.strip()
+
+    @api.model
+    def _check_duplicate(self, channel, message):
+        """
+        Check if message already processed (duplicate prevention)
+
+        Args:
+            channel: discuss.channel
+            message: mail.message
+
+        Returns:
+            bool: True if duplicate, False if new
+        """
+        key = f"{channel.id}_{message.id}"
+
+        if key in _PROCESSED_MESSAGES:
+            _logger.warning(f"Skipping duplicate message: {key}")
+            return True
+
+        _PROCESSED_MESSAGES.append(key)
+
+        # Clear cache if too large
+        if len(_PROCESSED_MESSAGES) > 200:
+            _PROCESSED_MESSAGES.clear()
+
+        return False
 
 
 class AIResponseHistory(models.Model):
