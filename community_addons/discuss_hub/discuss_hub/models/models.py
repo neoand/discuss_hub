@@ -44,9 +44,13 @@ class DiscussHubConnector(models.Model):
             ("evolution", "Evolution"),
             ("notificame", "NotificaMe"),
             ("whatsapp_cloud", "Whatsapp Cloud"),
+            ("telegram", "Telegram"),
         ],
         default="evolution",
         required=True,
+        ondelete={
+            'telegram': 'cascade',
+        },
     )
     url = fields.Char(required=False)
     api_key = fields.Char(required=False)

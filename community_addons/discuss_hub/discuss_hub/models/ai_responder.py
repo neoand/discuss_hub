@@ -485,7 +485,7 @@ Guidelines:
             'type': 'ir.actions.act_window',
             'name': _('AI Response History'),
             'res_model': 'discuss_hub.ai_response_history',
-            'view_mode': 'tree,form',
+            'view_mode': 'list,form',
             'domain': [('responder_id', '=', self.id)],
             'context': {'create': False},
         }

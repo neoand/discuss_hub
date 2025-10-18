@@ -393,7 +393,7 @@ class DiscussHubMessageTemplate(models.Model):
             'name': _('Template Attachments'),
             'type': 'ir.actions.act_window',
             'res_model': 'ir.attachment',
-            'view_mode': 'tree,form',
+            'view_mode': 'list,form',
             'domain': [
                 ('id', 'in', self.attachment_ids.ids),
             ],

@@ -4,7 +4,7 @@
     "author": "Discuss Hub Community",
     "website": "https://github.com/discusshub/discuss_hub",
     "category": "marketing",
-    "version": "18.0.0.0.11",
+    "version": "18.0.2.0.0",
     "license": "AGPL-3",
     "application": True,
     "installable": True,
@@ -25,12 +25,21 @@
         "views/analytics_views.xml",
         # Phase 3 Advanced: Automated triggers
         "views/automated_trigger_views.xml",
+        # Phase 5: AI Features with Google Gemini
+        "views/ai_responder_views.xml",
+        "views/ai_response_history_views.xml",
         # initial base_automation
         "datas/base_automation.xml",
         # wizards
         "wizard/mail_discuss_channel_forward.xml",
         "wizard/mail_discuss_channel_archive.xml",
     ],
+    "external_dependencies": {
+        "python": [
+            "google-generativeai",
+            "textblob",
+        ],
+    },
     "assets": {
         "web.assets_backend": [
             "discuss_hub/static/src/js/discuss_channel_actions.esm.js",

@@ -17,3 +17,7 @@ access_discuss_hub_analytics,discuss_hub Analytics,model_discuss_hub_analytics,b
 access_discuss_hub_dashboard,discuss_hub Dashboard,model_discuss_hub_dashboard,base.group_user,1,0,0,0
 access_discuss_hub_automated_trigger_user,discuss_hub Automated Trigger User,model_discuss_hub_automated_trigger,base.group_user,1,0,0,0
 access_discuss_hub_automated_trigger_manager,discuss_hub Automated Trigger Manager,model_discuss_hub_automated_trigger,base.group_system,1,1,1,1
+access_discuss_hub_ai_responder_user,discuss_hub AI Responder User,model_discuss_hub_ai_responder,base.group_user,1,0,0,0
+access_discuss_hub_ai_responder_manager,discuss_hub AI Responder Manager,model_discuss_hub_ai_responder,base.group_system,1,1,1,1
+access_discuss_hub_ai_response_history_user,discuss_hub AI Response History User,model_discuss_hub_ai_response_history,base.group_user,1,0,0,0
+access_discuss_hub_ai_response_history_manager,discuss_hub AI Response History Manager,model_discuss_hub_ai_response_history,base.group_system,1,1,1,1

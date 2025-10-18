@@ -471,7 +471,7 @@ class DiscussHubDashboard(models.Model):
             'name': _('Message Templates'),
             'type': 'ir.actions.act_window',
             'res_model': 'discuss_hub.message_template',
-            'view_mode': 'tree,form',
+            'view_mode': 'list,form',
             'domain': [],
             'context': {'search_default_active': 1},
         }
@@ -484,7 +484,7 @@ class DiscussHubDashboard(models.Model):
             'name': _('Active Channels'),
             'type': 'ir.actions.act_window',
             'res_model': 'discuss.channel',
-            'view_mode': 'tree,form',
+            'view_mode': 'list,form',
             'domain': [
                 ('discuss_hub_connector', '!=', False),
                 ('message_ids.create_date', '>=', date_from),

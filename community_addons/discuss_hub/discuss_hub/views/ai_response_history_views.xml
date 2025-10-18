@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- AI Response History List View - Odoo 18 Standard -->
+    <record id="view_ai_response_history_list" model="ir.ui.view">
+        <field name="name">discuss_hub.ai_response_history.view.list</field>
+        <field name="model">discuss_hub.ai_response_history</field>
+        <field name="arch" type="xml">
+            <list string="AI Response History" create="0">
+                <field name="create_date"/>
+                <field name="responder_id"/>
+                <field name="channel_id"/>
+                <field name="message_text" optional="hide"/>
+                <field name="response_text" optional="show"/>
+                <field name="confidence" widget="percentage"/>
+                <field name="auto_responded" widget="boolean_toggle"/>
+                <field name="was_helpful" widget="boolean_toggle" optional="hide"/>
+                <field name="model_used" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- AI Response History Form View - Odoo 18 Standard -->
+    <record id="view_ai_response_history_form" model="ir.ui.view">
+        <field name="name">discuss_hub.ai_response_history.view.form</field>
+        <field name="model">discuss_hub.ai_response_history</field>
+        <field name="arch" type="xml">
+            <form string="AI Response History" create="0" edit="0">
+                <header>
+                    <button name="action_mark_helpful"
+                            string="Mark as Helpful"
+                            type="object"
+                            class="btn-success"
+                            invisible="was_helpful"/>
+                    <button name="action_mark_unhelpful"
+                            string="Mark as Unhelpful"
+                            type="object"
+                            class="btn-warning"
+                            invisible="not was_helpful or was_helpful == False"/>
+                    <field name="was_helpful" widget="badge"
+                           decoration-success="was_helpful == True"
+                           decoration-danger="was_helpful == False"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="responder_id"/>
+                            <field name="channel_id"/>
+                            <field name="create_date"/>
+                        </group>
+                        <group>
+                            <field name="model_used"/>
+                            <field name="confidence" widget="percentage"/>
+                            <field name="auto_responded" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+
+                    <group string="Customer Message">
+                        <field name="message_text" nolabel="1" widget="text"/>
+                    </group>
+
+                    <group string="AI Response">
+                        <field name="response_text" nolabel="1" widget="text"/>
+                    </group>
+
+                    <group string="Feedback" invisible="not was_helpful and was_helpful != False">
+                        <field name="feedback_notes" nolabel="1" widget="text"
+                               placeholder="Add notes about why this response was helpful or not..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View - Odoo 18 Standard -->
+    <record id="view_ai_response_history_search" model="ir.ui.view">
+        <field name="name">discuss_hub.ai_response_history.view.search</field>
+        <field name="model">discuss_hub.ai_response_history</field>
+        <field name="arch" type="xml">
+            <search string="AI Response History">
+                <field name="responder_id"/>
+                <field name="channel_id"/>
+                <field name="message_text"/>
+                <field name="response_text"/>
+                <separator/>
+                <filter string="Auto-Responded" name="filter_auto_responded"
+                        domain="[('auto_responded', '=', True)]"/>
+                <filter string="Escalated" name="filter_escalated"
+                        domain="[('auto_responded', '=', False)]"/>
+                <separator/>
+                <filter string="Helpful" name="filter_helpful"
+                        domain="[('was_helpful', '=', True)]"/>
+                <filter string="Unhelpful" name="filter_unhelpful"
+                        domain="[('was_helpful', '=', False)]"/>
+                <filter string="Not Rated" name="filter_not_rated"
+                        domain="[('was_helpful', '=', False)]"/>
+                <separator/>
+                <filter string="High Confidence" name="filter_high_confidence"
+                        domain="[('confidence', '>=', 0.8)]"/>
+                <filter string="Low Confidence" name="filter_low_confidence"
+                        domain="[('confidence', '&lt;', 0.6)]"/>
+                <separator/>
+                <filter string="Today" name="filter_today"
+                        domain="[('create_date', '>=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter string="Last 7 Days" name="filter_week"
+                        domain="[('create_date', '>=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter string="AI Responder" name="group_responder"
+                            context="{'group_by': 'responder_id'}"/>
+                    <filter string="Channel" name="group_channel"
+                            context="{'group_by': 'channel_id'}"/>
+                    <filter string="Model Used" name="group_model"
+                            context="{'group_by': 'model_used'}"/>
+                    <filter string="Date" name="group_date"
+                            context="{'group_by': 'create_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action - USE "list" NOT "tree" -->
+    <record id="action_ai_response_history" model="ir.actions.act_window">
+        <field name="name">AI Response History</field>
+        <field name="res_model">discuss_hub.ai_response_history</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_week': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">
+                No AI responses yet
+            </p>
+            <p>
+                AI response history will appear here after the AI Responder starts processing messages.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_ai_response_history"
+              name="AI Response History"
+              parent="menu_discuss_hub_analytics"
+              action="action_ai_response_history"
+              sequence="60"/>
+
+</odoo>
