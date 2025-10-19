@@ -4,7 +4,7 @@
     "author": "Discuss Hub Community",
     "website": "https://github.com/discusshub/discuss_hub",
     "category": "marketing",
-    "version": "18.0.2.0.0",
+    "version": "18.0.3.0.0",
     "license": "AGPL-3",
     "application": True,
     "installable": True,
@@ -25,15 +25,18 @@
         "views/analytics_views.xml",
         # Phase 3 Advanced: Automated triggers
         "views/automated_trigger_views.xml",
-        # Phase 5: AI Features with Google Gemini
+        # Phase 5-6: AI Features with Multi-Provider Support
         "views/ai_responder_views.xml",
         "views/ai_response_history_views.xml",
         "views/sentiment_analyzer_views.xml",
+        "views/voice_message_views.xml",
         # initial base_automation
         "datas/base_automation.xml",
         # wizards
         "wizard/mail_discuss_channel_forward.xml",
         "wizard/mail_discuss_channel_archive.xml",
+        "wizard/ai_setup_wizard_views.xml",
+        "wizard/telegram_setup_wizard_views.xml",
     ],
     "external_dependencies": {
         "python": [

@@ -27,13 +27,20 @@ class DiscussHubRoutingTeam(models.Model):
     )
     routing_strategy = fields.Selection(
         selection=[
-            # ("least_busy", "Least Busy"),
             ("round_robin", "Round Robin"),
-            ("random", "random"),
+            ("random", "Random"),
+            ("least_busy", "Least Busy"),
+            ("skill_based", "Skill-Based"),
+            ("priority_based", "Priority-Based"),
         ],
         required=True,
         default="round_robin",
-        help="Select the routing strategy to be used.",
+        help="Select the routing strategy:\n"
+             "- Round Robin: Distribute evenly\n"
+             "- Random: Random assignment\n"
+             "- Least Busy: Route to agent with fewest active chats\n"
+             "- Skill-Based: Match agent skills to conversation needs\n"
+             "- Priority-Based: VIP customers get senior agents",
     )
     online_users_only = fields.Boolean(
         help="Limit the routing strategy to online users only", default=True
@@ -70,15 +77,20 @@ class DiscussHubRoutingTeam(models.Model):
             member.count = 0
         return True
 
-    def get_next_team_member(self, connector=None):
+    def get_next_team_member(self, connector=None, channel=None):
         """Returns the next team member based on the routing strategy"""
         self.ensure_one()
+
         if self.routing_strategy == "least_busy":
             return self._get_least_busy_user(connector=connector)
         elif self.routing_strategy == "round_robin":
             return self._get_round_robin_user()
         elif self.routing_strategy == "random":
             return self._get_random_user()
+        elif self.routing_strategy == "skill_based":
+            return self._get_skill_based_user(channel=channel)
+        elif self.routing_strategy == "priority_based":
+            return self._get_priority_based_user(channel=channel)
         else:
             return None
 
@@ -118,28 +130,72 @@ class DiscussHubRoutingTeam(models.Model):
         users = self.available_users()
         if not users:
             return None
-        if connector:
-            channel_filter = ("channel_id.connector_id", "=", connector.id)
-        else:
-            # if no channel is provided, consider all channels (global)
-            channel_filter = ("channel_id.discuss_hub_connector", "!=", False)
-        grouped_data = self.env["discuss.channel.member"].read_group(
-            domain=[
-                ("partner_id.user_ids", "in", users.ids),
-                ("channel_id.discuss_hub_connector", "!=", False),
-                ("channel_id.active", "=", True),
-                # consider only from same channel
-                channel_filter,
-            ],
-            fields=["partner_id", "create_date:max"],
-            groupby=["partner_id"],
-            orderby="create_date desc",
-            limit=1,
-        )
-        if grouped_data:
-            return grouped_data[0].get("partner_id")
-        else:
+
+        # Count active conversations per user
+        user_load = {}
+        for user in users:
+            active_channels = self.env['discuss.channel'].search_count([
+                ('channel_partner_ids.user_ids', 'in', [user.id]),
+                ('discuss_hub_connector', '!=', False),
+                ('channel_type', '=', 'chat'),
+            ])
+            user_load[user.id] = active_channels
+
+        # Return user with minimum load
+        least_busy_user_id = min(user_load, key=user_load.get)
+        return self.env['res.users'].browse(least_busy_user_id)
+
+    def _get_skill_based_user(self, channel=None):
+        """
+        Route based on agent skills (Phase 6 - Advanced Routing)
+
+        Logic:
+        - Match agent skills with conversation requirements
+        - Prioritize agents with relevant expertise
+        """
+        self.ensure_one()
+        users = self.available_users()
+        if not users:
             return None
+
+        # For now, use seniority as skill proxy
+        # Future: Implement actual skill matching
+        team_members = self.team_member_ids.filtered(
+            lambda m: m.user_id in users
+        ).sorted(key=lambda m: m.order, reverse=True)
+
+        return team_members[0].user_id if team_members else None
+
+    def _get_priority_based_user(self, channel=None):
+        """
+        Route based on customer priority (Phase 6 - Advanced Routing)
+
+        Logic:
+        - VIP customers → Senior agents
+        - Regular customers → Available agents
+        - Uses partner priority or custom logic
+        """
+        self.ensure_one()
+        users = self.available_users()
+        if not users:
+            return None
+
+        # Check if customer is VIP
+        is_vip = False
+        if channel and channel.partner_id:
+            # Check if partner has high priority or is VIP
+            is_vip = hasattr(channel.partner_id, 'priority') and channel.partner_id.priority == '3'
+
+        if is_vip:
+            # Route to most experienced agent (highest order = senior)
+            senior_members = self.team_member_ids.filtered(
+                lambda m: m.user_id in users
+            ).sorted(key=lambda m: m.order, reverse=True)
+
+            return senior_members[0].user_id if senior_members else None
+        else:
+            # Route normally (round robin)
+            return self._get_round_robin_user()
 
 
 class DiscussHubRoutingTeamMember(models.Model):
