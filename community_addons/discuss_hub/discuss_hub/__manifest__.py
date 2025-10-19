@@ -4,7 +4,7 @@
     "author": "Discuss Hub Community",
     "website": "https://github.com/discusshub/discuss_hub",
     "category": "marketing",
-    "version": "18.0.3.0.0",
+    "version": "18.0.4.0.0",
     "license": "AGPL-3",
     "application": True,
     "installable": True,
@@ -30,6 +30,7 @@
         "views/ai_response_history_views.xml",
         "views/sentiment_analyzer_views.xml",
         "views/voice_message_views.xml",
+        "views/image_analyzer_views.xml",
         # initial base_automation
         "datas/base_automation.xml",
         # wizards
@@ -44,6 +45,7 @@
             "textblob",
             "SpeechRecognition",
             "pydub",
+            "Pillow",
         ],
     },
     "assets": {

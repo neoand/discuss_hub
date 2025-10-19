@@ -29,3 +29,5 @@ access_discuss_hub_message_template_translation_user,discuss_hub Template Transl
 access_discuss_hub_message_template_translation_manager,discuss_hub Template Translation Manager,model_discuss_hub_message_template_translation,base.group_system,1,1,1,1
 access_discuss_hub_ai_setup_wizard,discuss_hub AI Setup Wizard,model_discuss_hub_ai_setup_wizard,base.group_user,1,1,1,1
 access_discuss_hub_telegram_setup_wizard,discuss_hub Telegram Setup Wizard,model_discuss_hub_telegram_setup_wizard,base.group_user,1,1,1,1
+access_discuss_hub_image_analyzer_user,discuss_hub Image Analyzer User,model_discuss_hub_image_analyzer,base.group_user,1,0,0,0
+access_discuss_hub_image_analyzer_manager,discuss_hub Image Analyzer Manager,model_discuss_hub_image_analyzer,base.group_system,1,1,1,1

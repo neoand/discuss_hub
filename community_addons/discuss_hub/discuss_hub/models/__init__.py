@@ -13,3 +13,4 @@ from . import ai_responder  # Phase 5: AI with Google Gemini + HuggingFace
 from . import sentiment_analyzer  # Phase 5: Sentiment analysis
 from . import voice_message  # Phase 5: Voice transcription
 from . import message_template_translation  # Phase 6: Multi-language templates
+from . import image_analyzer  # Phase 7: Multi-modal AI (Gemini Vision)
