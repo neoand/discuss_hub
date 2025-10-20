@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Bulk Send Wizard Form View -->
+    <!-- ============================================================ -->
+
+    <record id="view_bulk_send_wizard_form" model="ir.ui.view">
+        <field name="name">discuss_hub.bulk_send_wizard.form</field>
+        <field name="model">discuss_hub.bulk_send_wizard</field>
+        <field name="arch" type="xml">
+            <form string="Bulk Send WhatsApp Template">
+                <header>
+                    <!-- Draft state buttons -->
+                    <button name="action_send"
+                            string="Send to All"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state != 'draft'"
+                            confirm="This will send the selected template to all records. Continue?"/>
+
+                    <!-- Done state button -->
+                    <button name="action_close"
+                            string="Close"
+                            type="object"
+                            class="oe_highlight"
+                            invisible="state != 'done'"/>
+
+                    <field name="state" widget="statusbar" statusbar_visible="draft,sending,done"/>
+                </header>
+
+                <sheet>
+                    <!-- Draft State: Template Selection -->
+                    <div invisible="state != 'draft'">
+                        <div class="oe_title">
+                            <h1>
+                                <i class="fa fa-paper-plane-o"/> Bulk Send WhatsApp Template
+                            </h1>
+                        </div>
+
+                        <group>
+                            <group name="template_selection">
+                                <field name="template_id"
+                                       options="{'no_create': True}"
+                                       domain="[('active', '=', True)]"/>
+                                <field name="res_model" invisible="1"/>
+                                <field name="res_ids" invisible="1"/>
+                            </group>
+
+                            <group name="options">
+                                <field name="rate_limit"
+                                       widget="integer"
+                                       help="Messages per minute. Lower values are safer but slower."/>
+                                <field name="skip_without_channel"/>
+                            </group>
+                        </group>
+
+                        <group>
+                            <group name="statistics" string="Statistics">
+                                <label for="total_records" string="Selected Records"/>
+                                <div>
+                                    <field name="total_records" class="oe_inline"/> records
+                                </div>
+
+                                <label for="records_with_channel" string="With WhatsApp"/>
+                                <div>
+                                    <field name="records_with_channel" class="oe_inline"/>
+                                    <span class="text-success">✓</span>
+                                </div>
+
+                                <label for="records_without_channel" string="Without WhatsApp"/>
+                                <div>
+                                    <field name="records_without_channel" class="oe_inline"/>
+                                    <span class="text-warning" invisible="records_without_channel == 0">⚠</span>
+                                </div>
+
+                                <field name="estimated_time"/>
+                            </group>
+
+                            <group name="info" string="Information">
+                                <div class="alert alert-info" role="alert" style="margin-bottom: 0;">
+                                    <p><strong>How it works:</strong></p>
+                                    <ul style="margin-bottom: 0;">
+                                        <li>The template will be rendered for each record</li>
+                                        <li>Messages will be sent sequentially with rate limiting</li>
+                                        <li>Records without WhatsApp channel will be skipped (if enabled)</li>
+                                        <li>You can track progress in real-time</li>
+                                    </ul>
+                                </div>
+                            </group>
+                        </group>
+
+                        <!-- Warning for records without channel -->
+                        <div class="alert alert-warning"
+                             role="alert"
+                             invisible="records_without_channel == 0 or skip_without_channel">
+                            <p>
+                                <i class="fa fa-warning"/>
+                                <strong>Warning:</strong>
+                                <field name="records_without_channel" class="oe_inline"/>
+                                record(s) do not have a WhatsApp channel configured.
+                                These will fail unless you enable "Skip Records Without WhatsApp".
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Sending State: Progress Bar -->
+                    <div invisible="state != 'sending'">
+                        <div class="oe_title">
+                            <h1>
+                                <i class="fa fa-spinner fa-spin"/> Sending Messages...
+                            </h1>
+                        </div>
+
+                        <group>
+                            <field name="progress" widget="progressbar"/>
+                        </group>
+
+                        <group>
+                            <group name="progress_stats">
+                                <label for="sent_count" string="Sent"/>
+                                <div>
+                                    <field name="sent_count" class="oe_inline"/>
+                                    <span class="text-success">✓</span>
+                                </div>
+
+                                <label for="failed_count" string="Failed"/>
+                                <div>
+                                    <field name="failed_count" class="oe_inline"/>
+                                    <span class="text-danger" invisible="failed_count == 0">✗</span>
+                                </div>
+
+                                <label for="skipped_count" string="Skipped"/>
+                                <div>
+                                    <field name="skipped_count" class="oe_inline"/>
+                                    <span class="text-warning" invisible="skipped_count == 0">⊘</span>
+                                </div>
+                            </group>
+                        </group>
+
+                        <div class="alert alert-info" role="alert">
+                            <p>
+                                <i class="fa fa-info-circle"/>
+                                <strong>Please wait...</strong>
+                                Messages are being sent. This may take a few minutes depending on the number of records.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Done State: Results -->
+                    <div invisible="state != 'done'">
+                        <div class="oe_title">
+                            <h1>
+                                <i class="fa fa-check-circle text-success"/> Bulk Send Complete
+                            </h1>
+                        </div>
+
+                        <group>
+                            <field name="result_message" nolabel="1" colspan="2"/>
+                        </group>
+                    </div>
+                </sheet>
+
+                <footer>
+                    <button string="Cancel"
+                            class="btn-secondary"
+                            special="cancel"
+                            invisible="state != 'draft'"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Bulk Send Action (called from tree views) -->
+    <!-- ============================================================ -->
+
+    <record id="action_bulk_send_wizard" model="ir.actions.act_window">
+        <field name="name">Bulk Send WhatsApp Template</field>
+        <field name="res_model">discuss_hub.bulk_send_wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_discuss_hub_bulk_send_wizard"/>
+    </record>
+
+</odoo>

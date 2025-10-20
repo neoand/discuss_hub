@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Analytics Views -->
+    <!-- ============================================================ -->
+
+    <!-- Graph View -->
+    <record id="view_discuss_hub_analytics_graph" model="ir.ui.view">
+        <field name="name">discuss_hub.analytics.graph</field>
+        <field name="model">discuss_hub.analytics</field>
+        <field name="arch" type="xml">
+            <graph string="WhatsApp Analytics" type="line" stacked="False">
+                <field name="date" type="row" interval="day"/>
+                <field name="sent_count" type="measure"/>
+                <field name="received_count" type="measure"/>
+                <field name="message_count" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Pivot View -->
+    <record id="view_discuss_hub_analytics_pivot" model="ir.ui.view">
+        <field name="name">discuss_hub.analytics.pivot</field>
+        <field name="model">discuss_hub.analytics</field>
+        <field name="arch" type="xml">
+            <pivot string="WhatsApp Analytics">
+                <field name="date" type="row" interval="month"/>
+                <field name="message_count" type="measure"/>
+                <field name="sent_count" type="measure"/>
+                <field name="received_count" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_discuss_hub_analytics_search" model="ir.ui.view">
+        <field name="name">discuss_hub.analytics.search</field>
+        <field name="model">discuss_hub.analytics</field>
+        <field name="arch" type="xml">
+            <search string="WhatsApp Analytics">
+                <field name="date"/>
+                <field name="channel_id"/>
+                <field name="connector_id"/>
+
+                <filter name="filter_today"
+                        string="Today"
+                        domain="[('date', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="filter_this_week"
+                        string="This Week"
+                        domain="[('date', '&gt;=', (context_today() - datetime.timedelta(days=context_today().weekday())).strftime('%Y-%m-%d'))]"/>
+                <filter name="filter_this_month"
+                        string="This Month"
+                        domain="[('date', '&gt;=', context_today().strftime('%Y-%m-01'))]"/>
+
+                <separator/>
+                <filter name="group_by_date"
+                        string="Date"
+                        context="{'group_by': 'date:day'}"/>
+                <filter name="group_by_month"
+                        string="Month"
+                        context="{'group_by': 'date:month'}"/>
+                <filter name="group_by_channel"
+                        string="Channel"
+                        context="{'group_by': 'channel_id'}"/>
+                <filter name="group_by_connector"
+                        string="Connector"
+                        context="{'group_by': 'connector_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_discuss_hub_analytics" model="ir.actions.act_window">
+        <field name="name">WhatsApp Analytics</field>
+        <field name="res_model">discuss_hub.analytics</field>
+        <field name="view_mode">graph,pivot</field>
+        <field name="context">{'search_default_filter_this_month': 1, 'search_default_group_by_date': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">
+                No analytics data available yet
+            </p>
+            <p>
+                Start sending and receiving WhatsApp messages to see analytics here.
+            </p>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Dashboard Views -->
+    <!-- ============================================================ -->
+
+    <!-- Form View (Dashboard) -->
+    <record id="view_discuss_hub_dashboard_form" model="ir.ui.view">
+        <field name="name">discuss_hub.dashboard.form</field>
+        <field name="model">discuss_hub.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="WhatsApp Dashboard" create="false" edit="false" delete="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <i class="fa fa-dashboard"/> WhatsApp Analytics Dashboard
+                        </h1>
+                    </div>
+
+                    <group>
+                        <field name="period" widget="radio" options="{'horizontal': true}"/>
+                    </group>
+
+                    <div class="o_hr_skills_group" style="margin-top: 20px;">
+                        <!-- Overview Cards -->
+                        <div class="row">
+                            <div class="col-lg-3 col-md-6">
+                                <div class="card bg-primary text-white mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <i class="fa fa-comments"/> Total Messages
+                                        </h5>
+                                        <h2>
+                                            <field name="total_messages" widget="integer"/>
+                                        </h2>
+                                        <div>
+                                            <small>
+                                                <i class="fa fa-arrow-up text-success" invisible="messages_vs_last_period &lt; 0"/>
+                                                <i class="fa fa-arrow-down text-danger" invisible="messages_vs_last_period &gt;= 0"/>
+                                                <field name="messages_vs_last_period" widget="float"/>% vs last period
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="card bg-success text-white mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <i class="fa fa-paper-plane"/> Sent Messages
+                                        </h5>
+                                        <h2>
+                                            <field name="sent_messages" widget="integer"/>
+                                        </h2>
+                                        <div>
+                                            <small>
+                                                Avg: <field name="avg_messages_per_day" widget="float"/> msgs/day
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="card bg-info text-white mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <i class="fa fa-inbox"/> Received Messages
+                                        </h5>
+                                        <h2>
+                                            <field name="received_messages" widget="integer"/>
+                                        </h2>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="card bg-warning text-white mb-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <i class="fa fa-users"/> Active Channels
+                                        </h5>
+                                        <h2>
+                                            <field name="active_channels" widget="integer"/> / <field name="total_channels" widget="integer"/>
+                                        </h2>
+                                        <div>
+                                            <small>Total channels</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Template Stats -->
+                        <group string="Template Statistics" col="2">
+                            <group>
+                                <field name="most_used_template_id" readonly="1"/>
+                                <label for="most_used_template_count" string="Uses"/>
+                                <div>
+                                    <field name="most_used_template_count" class="oe_inline"/> times
+                                </div>
+                            </group>
+                            <group>
+                                <field name="total_templates" readonly="1"/>
+                                <field name="active_templates" readonly="1"/>
+                            </group>
+                        </group>
+
+                        <!-- Channel Stats -->
+                        <group string="Channel Statistics" col="2">
+                            <group>
+                                <field name="most_active_channel_id" readonly="1"/>
+                                <label for="most_active_channel_messages" string="Messages"/>
+                                <div>
+                                    <field name="most_active_channel_messages" class="oe_inline"/> messages
+                                </div>
+                            </group>
+                        </group>
+
+                        <!-- Action Buttons -->
+                        <group string="Quick Actions">
+                            <button name="action_view_analytics"
+                                    string="View Detailed Analytics"
+                                    type="object"
+                                    class="btn-primary"
+                                    icon="fa-line-chart"/>
+                            <button name="action_view_templates"
+                                    string="Manage Templates"
+                                    type="object"
+                                    class="btn-secondary"
+                                    icon="fa-file-text-o"/>
+                            <button name="action_view_channels"
+                                    string="View Active Channels"
+                                    type="object"
+                                    class="btn-secondary"
+                                    icon="fa-comments"/>
+                        </group>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Dashboard Action -->
+    <record id="action_discuss_hub_dashboard" model="ir.actions.act_window">
+        <field name="name">WhatsApp Dashboard</field>
+        <field name="res_model">discuss_hub.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{}</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Menu Items -->
+    <!-- ============================================================ -->
+
+    <!-- Add Dashboard menu item under DiscussHub -->
+    <menuitem id="menu_discuss_hub_dashboard"
+              name="Dashboard"
+              parent="discuss_hub.menu_discuss_hub"
+              action="action_discuss_hub_dashboard"
+              sequence="1"/>
+
+    <menuitem id="menu_discuss_hub_analytics"
+              name="Analytics"
+              parent="discuss_hub.menu_discuss_hub"
+              action="action_discuss_hub_analytics"
+              sequence="2"/>
+
+</odoo>

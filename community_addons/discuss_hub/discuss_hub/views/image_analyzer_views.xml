@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Image Analyzer List View - Odoo 18 Standard -->
+    <record id="view_image_analyzer_list" model="ir.ui.view">
+        <field name="name">discuss_hub.image_analyzer.view.list</field>
+        <field name="model">discuss_hub.image_analyzer</field>
+        <field name="arch" type="xml">
+            <list string="Image Analysis" create="0">
+                <field name="create_date"/>
+                <field name="channel_id"/>
+                <field name="image_name"/>
+                <field name="analysis_prompt" widget="badge"/>
+                <field name="analysis_status" widget="badge"
+                       decoration-info="analysis_status == 'pending'"
+                       decoration-warning="analysis_status == 'processing'"
+                       decoration-success="analysis_status == 'completed'"
+                       decoration-danger="analysis_status == 'failed'"/>
+                <field name="confidence" widget="percentage" optional="hide"/>
+                <field name="analysis_language" optional="hide"/>
+                <button name="action_analyze"
+                        type="object"
+                        icon="fa-search"
+                        title="Analyze Image"
+                        invisible="analysis_status in ['processing', 'completed']"/>
+                <button name="action_retry_analysis"
+                        type="object"
+                        icon="fa-refresh"
+                        title="Retry Analysis"
+                        invisible="analysis_status != 'failed'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Image Analyzer Form View - Odoo 18 Standard -->
+    <record id="view_image_analyzer_form" model="ir.ui.view">
+        <field name="name">discuss_hub.image_analyzer.view.form</field>
+        <field name="model">discuss_hub.image_analyzer</field>
+        <field name="arch" type="xml">
+            <form string="Image Analysis">
+                <header>
+                    <button name="action_analyze"
+                            string="Analyze Now"
+                            type="object"
+                            class="btn-primary"
+                            invisible="analysis_status in ['processing', 'completed']"/>
+                    <button name="action_retry_analysis"
+                            string="Retry"
+                            type="object"
+                            class="btn-warning"
+                            invisible="analysis_status != 'failed'"/>
+                    <field name="analysis_status" widget="badge"
+                           decoration-info="analysis_status == 'pending'"
+                           decoration-warning="analysis_status == 'processing'"
+                           decoration-success="analysis_status == 'completed'"
+                           decoration-danger="analysis_status == 'failed'"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="message_id"/>
+                            <field name="channel_id"/>
+                            <field name="create_date"/>
+                        </group>
+                        <group>
+                            <field name="attachment_id"/>
+                            <field name="image_name"/>
+                            <field name="image_size" widget="integer"/>
+                            <field name="image_mimetype"/>
+                        </group>
+                    </group>
+
+                    <group string="Image Preview">
+                        <field name="attachment_id" widget="image" nolabel="1"/>
+                    </group>
+
+                    <group string="Analysis Configuration">
+                        <group>
+                            <field name="ai_responder_id"
+                                   domain="[('ai_provider', '=', 'gemini'), ('supports_vision', '=', True)]"/>
+                            <field name="analysis_prompt"/>
+                            <field name="custom_prompt"
+                                   invisible="analysis_prompt != 'custom'"
+                                   placeholder="What do you want to know about this image?"/>
+                        </group>
+                        <group>
+                            <field name="analysis_language"/>
+                            <field name="confidence" widget="percentage" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook invisible="analysis_status not in ['completed', 'failed']">
+                        <page string="Analysis Result" name="result"
+                              invisible="analysis_status != 'completed'">
+                            <group>
+                                <field name="analysis_result" nolabel="1" widget="text"/>
+                            </group>
+
+                            <group string="Extracted Text" invisible="not extracted_text">
+                                <field name="extracted_text" nolabel="1" widget="text"/>
+                            </group>
+
+                            <group string="Detected Objects" invisible="not detected_objects">
+                                <field name="detected_objects" nolabel="1" widget="text"/>
+                            </group>
+                        </page>
+
+                        <page string="Error" name="error"
+                              invisible="analysis_status != 'failed'">
+                            <group>
+                                <field name="error_message" nolabel="1" widget="text"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View - Odoo 18 Standard -->
+    <record id="view_image_analyzer_search" model="ir.ui.view">
+        <field name="name">discuss_hub.image_analyzer.view.search</field>
+        <field name="model">discuss_hub.image_analyzer</field>
+        <field name="arch" type="xml">
+            <search string="Image Analysis">
+                <field name="channel_id"/>
+                <field name="image_name"/>
+                <field name="analysis_result"/>
+                <separator/>
+                <filter string="Pending" name="filter_pending"
+                        domain="[('analysis_status', '=', 'pending')]"/>
+                <filter string="Processing" name="filter_processing"
+                        domain="[('analysis_status', '=', 'processing')]"/>
+                <filter string="Completed" name="filter_completed"
+                        domain="[('analysis_status', '=', 'completed')]"/>
+                <filter string="Failed" name="filter_failed"
+                        domain="[('analysis_status', '=', 'failed')]"/>
+                <separator/>
+                <filter string="Today" name="filter_today"
+                        domain="[('create_date', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="group_status"
+                            context="{'group_by': 'analysis_status'}"/>
+                    <filter string="Analysis Type" name="group_type"
+                            context="{'group_by': 'analysis_prompt'}"/>
+                    <filter string="Channel" name="group_channel"
+                            context="{'group_by': 'channel_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action - USE "list" NOT "tree" -->
+    <record id="action_image_analyzer" model="ir.actions.act_window">
+        <field name="name">Image Analysis</field>
+        <field name="res_model">discuss_hub.image_analyzer</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_completed': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">
+                No image analyses yet
+            </p>
+            <p>
+                Images will be analyzed automatically when received (if enabled),
+                or you can trigger analysis manually.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_image_analyzer"
+              name="Image Analysis"
+              parent="menu_discuss_hub_analytics"
+              action="action_image_analyzer"
+              sequence="90"/>
+
+</odoo>

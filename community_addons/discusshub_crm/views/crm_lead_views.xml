@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- DiscussHub CRM Integration Views -->
+
+    <!-- Form View: Add WhatsApp Tab to CRM Lead -->
+    <record id="view_crm_lead_form_discusshub" model="ir.ui.view">
+        <field name="name">crm.lead.form.discusshub</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Add WhatsApp smart button in header -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_discusshub_channel"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-whatsapp"
+                        invisible="not discusshub_channel_id"
+                        help="Open WhatsApp channel for this lead">
+                    <field name="discusshub_message_count" widget="statinfo" string="Messages"/>
+                </button>
+            </xpath>
+
+            <!-- Add WhatsApp page in notebook -->
+            <xpath expr="//notebook" position="inside">
+                <page string="WhatsApp" name="discusshub" invisible="not discusshub_channel_id and not partner_id">
+                    <group>
+                        <group string="WhatsApp Channel" name="channel_info">
+                            <field name="discusshub_channel_id" readonly="1" options="{'no_create': True}"/>
+                            <field name="discusshub_message_count" readonly="1"/>
+                            <field name="discusshub_last_message_date" readonly="1"/>
+                        </group>
+                        <group string="Actions" name="channel_actions">
+                            <!-- Create Channel Button -->
+                            <button name="action_create_discusshub_channel"
+                                    string="Create WhatsApp Channel"
+                                    type="object"
+                                    class="btn-primary"
+                                    icon="fa-plus-circle"
+                                    invisible="discusshub_channel_id"
+                                    help="Create a new WhatsApp channel linked to this lead"/>
+
+                            <!-- Send Message Button -->
+                            <button name="action_send_discusshub_message"
+                                    string="Send Message"
+                                    type="object"
+                                    class="btn-success"
+                                    icon="fa-paper-plane"
+                                    invisible="not discusshub_channel_id"
+                                    help="Open WhatsApp channel to send a message"/>
+
+                            <!-- Open Channel Button -->
+                            <button name="action_open_discusshub_channel"
+                                    string="Open Channel"
+                                    type="object"
+                                    class="btn-secondary"
+                                    icon="fa-external-link"
+                                    invisible="not discusshub_channel_id"
+                                    help="Open WhatsApp channel in new window"/>
+                        </group>
+                    </group>
+
+                    <!-- Help text when no channel exists -->
+                    <group invisible="discusshub_channel_id" string="Getting Started">
+                        <div class="alert alert-info" role="alert">
+                            <h4>Connect this lead to WhatsApp</h4>
+                            <p>
+                                Create a WhatsApp channel to communicate with this lead's contact.
+                                All messages will be synchronized automatically.
+                            </p>
+                            <p>
+                                <strong>Requirements:</strong>
+                            </p>
+                            <ul>
+                                <li>Contact must have a valid phone number (mobile preferred)</li>
+                                <li>At least one DiscussHub connector must be configured</li>
+                            </ul>
+                        </div>
+                    </group>
+
+                    <!-- Show channel chatter if channel exists -->
+                    <group invisible="not discusshub_channel_id" string="Recent Messages">
+                        <div class="alert alert-success" role="alert">
+                            <p>
+                                <i class="fa fa-check-circle"></i>
+                                <strong>WhatsApp channel is active!</strong>
+                                All messages are synchronized in real-time.
+                            </p>
+                            <p>
+                                Click <strong>"Send Message"</strong> to open the channel and compose a new message.
+                            </p>
+                        </div>
+                    </group>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Tree View: Add WhatsApp indicator column -->
+    <record id="view_crm_lead_tree_discusshub" model="ir.ui.view">
+        <field name="name">crm.lead.tree.discusshub</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_case_tree_view_oppor"/>
+        <field name="arch" type="xml">
+            <!-- Add WhatsApp column after name -->
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="discusshub_channel_id"
+                       string="WhatsApp"
+                       widget="boolean_button"
+                       optional="show"
+                       help="WhatsApp channel linked"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Kanban View: Add WhatsApp badge -->
+    <record id="view_crm_lead_kanban_discusshub" model="ir.ui.view">
+        <field name="name">crm.lead.kanban.discusshub</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_case_kanban_view_leads"/>
+        <field name="arch" type="xml">
+            <!-- Add WhatsApp badge in kanban card -->
+            <xpath expr="//div[hasclass('o_kanban_record_bottom')]" position="inside">
+                <div class="o_kanban_record_bottom">
+                    <div class="oe_kanban_bottom_left">
+                        <field name="discusshub_channel_id" invisible="1"/>
+                        <span invisible="not discusshub_channel_id"
+                              class="badge badge-success"
+                              title="WhatsApp Connected">
+                            <i class="fa fa-whatsapp"/> WhatsApp
+                        </span>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Search View: Add WhatsApp filters -->
+    <record id="view_crm_lead_search_discusshub" model="ir.ui.view">
+        <field name="name">crm.lead.search.discusshub</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.view_crm_case_leads_filter"/>
+        <field name="arch" type="xml">
+            <!-- Add filters after existing filters -->
+            <xpath expr="//filter[@name='unassigned']" position="after">
+                <separator/>
+                <filter name="with_whatsapp"
+                        string="With WhatsApp"
+                        domain="[('discusshub_channel_id', '!=', False)]"
+                        help="Leads with WhatsApp channel"/>
+                <filter name="without_whatsapp"
+                        string="Without WhatsApp"
+                        domain="[('discusshub_channel_id', '=', False)]"
+                        help="Leads without WhatsApp channel"/>
+            </xpath>
+
+            <!-- Add group by -->
+            <xpath expr="//group" position="inside">
+                <filter name="group_discusshub"
+                        string="WhatsApp Status"
+                        context="{'group_by': 'discusshub_channel_id'}"
+                        help="Group by WhatsApp channel status"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Bulk Send Action for CRM Leads -->
+    <!-- ============================================================ -->
+
+    <record id="action_crm_lead_bulk_send_whatsapp" model="ir.actions.server">
+        <field name="name">Send WhatsApp Template (Bulk)</field>
+        <field name="model_id" ref="crm.model_crm_lead"/>
+        <field name="binding_model_id" ref="crm.model_crm_lead"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+# Get selected record IDs
+if records:
+    res_ids = ','.join(str(rec.id) for rec in records)
+
+    action = {
+        'name': 'Bulk Send WhatsApp Template',
+        'type': 'ir.actions.act_window',
+        'res_model': 'discuss_hub.bulk_send_wizard',
+        'view_mode': 'form',
+        'target': 'new',
+        'context': {
+            'default_res_model': 'crm.lead',
+            'default_res_ids': res_ids,
+        },
+    }
+else:
+    raise UserError('Please select at least one lead.')
+        ]]></field>
+    </record>
+
+</odoo>

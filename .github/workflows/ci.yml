@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  fast-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Neodoo doctor (non-interactive)
+        run: |
+          python3 framework/cli/neodoo.py doctor --no-input
+
+      - name: Run migration analyzer on demo project
+        run: |
+          python3 framework/migration/cli.py examples/demo_project --from-version 17 --json
+
+      - name: Verify generator lists templates
+        run: |
+          python3 framework/generator/create_project.py --name tmp --list-templates
+
+      - name: Generate minimal module (no network)
+        run: |
+          mkdir -p /tmp/neodoo_ci
+          python3 framework/generator/create_project.py --name ci_mod --type minimal --output /tmp
+
+      - name: Validate generated module (strict)
+        run: |
+          python3 framework/validator/validate.py /tmp/ci_mod --strict --auto-fix
+
+  smoke-test:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run quick sanity script (heavier, uses network)
+        run: |
+          bash scripts/dev/quick_sanity.sh
