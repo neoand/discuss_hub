@@ -1,0 +1,43 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+access_discuss_hub_social_network_type,discuss_hub Social Network Type Acess,model_discuss_hub_social_network_type,base.group_system,1,1,1,1
+access_discuss_hub.connector,discuss_hub Connector Access,discuss_hub.model_discuss_hub_connector,base.group_system,1,1,1,1
+access_discuss_hub.connector_public,discuss_hub Connector Public Read,discuss_hub.model_discuss_hub_connector,base.group_system,1,0,0,0
+acess_discuss_hub.connector_status_modal,discuss_hub Start / Status Modal,discuss_hub.model_discuss_hub_connector_status,base.group_system,1,1,1,1
+acess_discuss_hub.routing_manager,discuss_hub Routing Manager / Forward,discuss_hub.model_discuss_hub_routing_manager,base.group_system,1,1,1,1
+acess_discuss_hub.archive_manager,discuss_hub Archive Manager / Forward,discuss_hub.model_discuss_hub_archive_manager,base.group_system,1,1,1,1
+acess_discuss_hub.routing_team,discuss_hub Routing Team,discuss_hub.model_discuss_hub_routing_team,base.group_system,1,1,1,1
+acess_discuss_hub.routing_team_member,discuss_hub Routing Team Member,discuss_hub.model_discuss_hub_routing_team_member,base.group_system,1,1,1,1
+acess_discuss_hub.bot_manager,discuss_hub Bot Manager,discuss_hub.model_discuss_hub_bot_manager,base.group_system,1,1,1,1
+access_discuss_hub_message_template_user,discuss_hub Message Template User,model_discuss_hub_message_template,base.group_user,1,0,0,0
+access_discuss_hub_message_template_manager,discuss_hub Message Template Manager,model_discuss_hub_message_template,base.group_system,1,1,1,1
+access_discuss_hub_send_template_wizard,discuss_hub Send Template Wizard,model_discuss_hub_send_template_wizard,base.group_user,1,1,1,1
+access_discuss_hub_template_preview_wizard,discuss_hub Template Preview Wizard,model_discuss_hub_template_preview_wizard,base.group_user,1,1,1,1
+access_discuss_hub_bulk_send_wizard,discuss_hub Bulk Send Wizard,model_discuss_hub_bulk_send_wizard,base.group_user,1,1,1,1
+access_discuss_hub_analytics,discuss_hub Analytics,model_discuss_hub_analytics,base.group_user,1,0,0,0
+access_discuss_hub_dashboard,discuss_hub Dashboard,model_discuss_hub_dashboard,base.group_user,1,0,0,0
+access_discuss_hub_automated_trigger_user,discuss_hub Automated Trigger User,model_discuss_hub_automated_trigger,base.group_user,1,0,0,0
+access_discuss_hub_automated_trigger_manager,discuss_hub Automated Trigger Manager,model_discuss_hub_automated_trigger,base.group_system,1,1,1,1
+access_discuss_hub_ai_responder_user,discuss_hub AI Responder User,model_discuss_hub_ai_responder,base.group_user,1,0,0,0
+access_discuss_hub_ai_responder_manager,discuss_hub AI Responder Manager,model_discuss_hub_ai_responder,base.group_system,1,1,1,1
+access_discuss_hub_ai_response_history_user,discuss_hub AI Response History User,model_discuss_hub_ai_response_history,base.group_user,1,0,0,0
+access_discuss_hub_ai_response_history_manager,discuss_hub AI Response History Manager,model_discuss_hub_ai_response_history,base.group_system,1,1,1,1
+access_discuss_hub_sentiment_analyzer_user,discuss_hub Sentiment Analyzer User,model_discuss_hub_sentiment_analyzer,base.group_user,1,0,0,0
+access_discuss_hub_sentiment_analyzer_manager,discuss_hub Sentiment Analyzer Manager,model_discuss_hub_sentiment_analyzer,base.group_system,1,1,1,1
+access_discuss_hub_voice_message_user,discuss_hub Voice Message User,model_discuss_hub_voice_message,base.group_user,1,0,0,0
+access_discuss_hub_voice_message_manager,discuss_hub Voice Message Manager,model_discuss_hub_voice_message,base.group_system,1,1,1,1
+access_discuss_hub_message_template_translation_user,discuss_hub Template Translation User,model_discuss_hub_message_template_translation,base.group_user,1,0,0,0
+access_discuss_hub_message_template_translation_manager,discuss_hub Template Translation Manager,model_discuss_hub_message_template_translation,base.group_system,1,1,1,1
+access_discuss_hub_ai_setup_wizard,discuss_hub AI Setup Wizard,model_discuss_hub_ai_setup_wizard,base.group_user,1,1,1,1
+access_discuss_hub_telegram_setup_wizard,discuss_hub Telegram Setup Wizard,model_discuss_hub_telegram_setup_wizard,base.group_user,1,1,1,1
+access_discuss_hub_image_analyzer_user,discuss_hub Image Analyzer User,model_discuss_hub_image_analyzer,base.group_user,1,0,0,0
+access_discuss_hub_image_analyzer_manager,discuss_hub Image Analyzer Manager,model_discuss_hub_image_analyzer,base.group_system,1,1,1,1
+access_discuss_hub_webhook_manager_user,discuss_hub Webhook Manager User,model_discuss_hub_webhook_manager,base.group_user,1,0,0,0
+access_discuss_hub_webhook_manager_admin,discuss_hub Webhook Manager Admin,model_discuss_hub_webhook_manager,base.group_system,1,1,1,1
+access_discuss_hub_webhook_queue_user,discuss_hub Webhook Queue User,model_discuss_hub_webhook_queue,base.group_user,1,0,0,0
+access_discuss_hub_webhook_queue_admin,discuss_hub Webhook Queue Admin,model_discuss_hub_webhook_queue,base.group_system,1,1,1,1
+access_discuss_hub_webhook_log_user,discuss_hub Webhook Log User,model_discuss_hub_webhook_log,base.group_user,1,0,0,0
+access_discuss_hub_webhook_log_admin,discuss_hub Webhook Log Admin,model_discuss_hub_webhook_log,base.group_system,1,1,1,1
+access_discuss_hub_message_batch_user,discuss_hub Message Batch User,model_discuss_hub_message_batch,base.group_user,1,0,0,0
+access_discuss_hub_message_batch_admin,discuss_hub Message Batch Admin,model_discuss_hub_message_batch,base.group_system,1,1,1,1
+access_discuss_hub_async_task_user,discuss_hub Async Task User,model_discuss_hub_async_task,base.group_user,1,0,0,0
+access_discuss_hub_async_task_admin,discuss_hub Async Task Admin,model_discuss_hub_async_task,base.group_system,1,1,1,1

@@ -1,0 +1,121 @@
+services:
+  db:
+    image: postgres:16
+    user: root
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=postgres
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    ports:
+      - 5432:5432
+
+  odoo:
+    image: discusshub/discuss_hub:latest
+    depends_on:
+      - db
+    tty: true
+    command: odoo -d odoo -i discuss_hub -u discuss_hub
+    environment:
+      - ODOO_RC=/etc/odoo/odoo.conf
+      - HOST=db
+      - USER=admin
+      - PASSWORD=admin
+      - ADMIN_PASSWORD=admin
+      - SMTP_SERVER=mailpit
+      - SMTP_PORT=1025
+      - DISCUSS_HUB_INTERNAL_HOST=http://odoo:8069
+      - DISCUSS_HUB_EVOLUTION_URL=http://evolution:8080
+      - DISCUSS_HUB_EVOLUTION_APIKEY=1369429683C4C977415CAAFCCE10F7D57E11
+    volumes:
+      - odoo_conf:/etc/odoo
+      - odoo_data:/var/lib/odoo
+    ports:
+      - "8069:8069"
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  evolution:
+    image: atendai/evolution-api
+    restart: always
+    depends_on:
+      - redis
+      - db
+    ports:
+      - 8080:8080
+    volumes:
+      - evolution_instances:/evolution/instances
+    expose:
+      - 8080
+    environment:
+      - SERVER_URL=http://localhost:8080
+      - DATABASE_PROVIDER=postgresql
+      - DATABASE_CONNECTION_URI=postgresql://admin:admin@db:5432/admin?schema=public
+      - DATABASE_SAVE_DATA_INSTANCE=true
+      - DATABASE_SAVE_DATA_NEW_MESSAGE=true
+      - DATABASE_SAVE_MESSAGE_UPDATE=true
+      - DATABASE_SAVE_DATA_CONTACTS=true
+      - DATABASE_SAVE_DATA_CHATS=true
+      - DATABASE_SAVE_DATA_LABELS=true
+      - DATABASE_SAVE_DATA_HISTORIC=true
+      - DATABASE_SAVE_IS_ON_WHATSAPP=true
+      - DATABASE_SAVE_IS_ON_WHATSAPP_DAYS=14
+      - DATABASE_DELETE_MESSAGE=true
+      - CACHE_REDIS_ENABLED=true
+      - CACHE_REDIS_URI=redis://redis:6379/6
+      - CACHE_REDIS_TTL=604800
+      - CACHE_REDIS_PREFIX_KEY=evolution
+      - CACHE_REDIS_SAVE_INSTANCES=false
+      - CACHE_LOCAL_ENABLED=false
+      - CONFIG_SESSION_PHONE_CLIENT=Conexao Azul
+      - CONFIG_SESSION_PHONE_NAME=Chrome
+      - CONFIG_SESSION_PHONE_VERSION=2.3000.1020885143
+      - AUTHENTICATION_API_KEY=1369429683C4C977415CAAFCCE10F7D57E11
+      - WA_BUSINESS_TOKEN_WEBHOOK=evolution
+      - WA_BUSINESS_URL=https://graph.facebook.com
+      - WA_BUSINESS_VERSION=v21.0
+      - WA_BUSINESS_LANGUAGE=pt_BR
+      - OPENAI_ENABLED=true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    image: redis:latest
+    command: redis-server --port 6379 --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - 6379
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  mailpit:
+    image: docker.io/axllent/mailpit:latest
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+volumes:
+  db_data:
+  odoo_data:
+  odoo_conf:
+  evolution_instances:
+  redis_data:

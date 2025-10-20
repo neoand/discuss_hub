@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- AI Setup Wizard Form View - Odoo 18 Standard -->
+    <record id="view_ai_setup_wizard_form" model="ir.ui.view">
+        <field name="name">discuss_hub.ai_setup_wizard.view.form</field>
+        <field name="model">discuss_hub.ai_setup_wizard</field>
+        <field name="arch" type="xml">
+            <form string="AI Responder Setup Wizard">
+                <field name="step" invisible="1"/>
+
+                <!-- Step 1: Choose Provider -->
+                <group invisible="step != 'provider'">
+                    <group colspan="2">
+                        <div class="alert alert-info" role="alert">
+                            <h4>Choose Your AI Provider</h4>
+                            <p>Select the AI service you want to use for auto-responses.</p>
+                        </div>
+                    </group>
+                    <group>
+                        <field name="ai_provider" widget="radio" nolabel="1"/>
+                    </group>
+                    <group colspan="2">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Google Gemini</strong>
+                                <ul>
+                                    <li>Best response quality</li>
+                                    <li>Free tier: 60 requests/minute</li>
+                                    <li>Get key: <a href="https://makersuite.google.com/app/apikey" target="_blank">makersuite.google.com</a></li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Hugging Face</strong>
+                                <ul>
+                                    <li>Unlimited free usage</li>
+                                    <li>Open source models</li>
+                                    <li>Get token: <a href="https://huggingface.co/settings/tokens" target="_blank">huggingface.co/settings/tokens</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </group>
+                </group>
+
+                <!-- Step 2: Configure API -->
+                <group invisible="step != 'configure'">
+                    <group colspan="2">
+                        <div class="alert alert-info" role="alert">
+                            <h4>API Configuration</h4>
+                            <p>Enter your API credentials for <field name="ai_provider" readonly="1" nolabel="1"/>.</p>
+                        </div>
+                    </group>
+                    <group>
+                        <field name="api_key" password="True" required="1"
+                               placeholder="Paste your API key here..."/>
+                        <field name="gemini_model" invisible="ai_provider != 'gemini'"/>
+                        <field name="hf_model" invisible="ai_provider != 'huggingface'"/>
+                    </group>
+                </group>
+
+                <!-- Step 3: System Instructions -->
+                <group invisible="step != 'prompts'">
+                    <group colspan="2">
+                        <div class="alert alert-info" role="alert">
+                            <h4>System Instructions</h4>
+                            <p>Define how your AI assistant should behave and respond.</p>
+                        </div>
+                    </group>
+                    <group colspan="2">
+                        <field name="name" placeholder="e.g., Customer Support AI"/>
+                        <field name="confidence_threshold" widget="percentage"/>
+                        <field name="system_prompt" widget="text" nolabel="1"
+                               placeholder="Describe the AI assistant's personality and responsibilities..."/>
+                    </group>
+                    <group colspan="2">
+                        <field name="connector_ids" widget="many2many_tags"/>
+                    </group>
+                </group>
+
+                <!-- Step 4: Test & Finish -->
+                <group invisible="step != 'test'">
+                    <group colspan="2">
+                        <div class="alert alert-success" role="alert">
+                            <h4>Test Your Configuration</h4>
+                            <p>Send a test message to verify everything works correctly.</p>
+                        </div>
+                    </group>
+                    <group>
+                        <field name="test_message" placeholder="Type a test question..."/>
+                        <button name="action_test_ai"
+                                string="Test AI Response"
+                                type="object"
+                                class="btn-primary"/>
+                    </group>
+                    <group string="Test Result" invisible="not test_response">
+                        <field name="test_response" widget="text" nolabel="1"/>
+                        <field name="test_confidence" widget="percentage"/>
+                    </group>
+                </group>
+
+                <footer>
+                    <button name="action_previous_step"
+                            string="Previous"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="step == 'provider'"/>
+                    <button name="action_next_step"
+                            string="Next"
+                            type="object"
+                            class="btn-primary"
+                            invisible="step == 'test'"/>
+                    <button name="action_create_ai_responder"
+                            string="Create AI Responder"
+                            type="object"
+                            class="btn-success"
+                            invisible="step != 'test'"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action to Open Wizard -->
+    <record id="action_ai_setup_wizard" model="ir.actions.act_window">
+        <field name="name">AI Setup Wizard</field>
+        <field name="res_model">discuss_hub.ai_setup_wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

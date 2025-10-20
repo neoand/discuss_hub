@@ -1,0 +1,387 @@
+# Portuguese (Brazil) translation for DiscussHub
+# Phase 6: Multi-language support
+msgid ""
+msgstr ""
+"Project-Id-Version: DiscussHub 18.0\n"
+"POT-Creation-Date: 2025-01-19 00:00:00\n"
+"PO-Revision-Date: 2025-01-19 00:00:00\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_connector_name
+msgid "Connector Name"
+msgstr "Nome do Conector"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_connector_enabled
+msgid "Enabled"
+msgstr "Habilitado"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_connector_provider
+msgid "Provider"
+msgstr "Provedor"
+
+#. module: discuss_hub
+#: selection:discuss_hub.connector,provider:0
+msgid "Evolution API"
+msgstr "Evolution API"
+
+#. module: discuss_hub
+#: selection:discuss_hub.connector,provider:0
+msgid "WhatsApp Cloud API"
+msgstr "WhatsApp Cloud API"
+
+#. module: discuss_hub
+#: selection:discuss_hub.connector,provider:0
+msgid "Telegram"
+msgstr "Telegram"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_connector_url
+msgid "API URL"
+msgstr "URL da API"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_connector_api_key
+msgid "API Key"
+msgstr "Chave da API"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_connector_instance_name
+msgid "Instance Name"
+msgstr "Nome da Instância"
+
+#. module: discuss_hub
+#: model:ir.actions.act_window,name:discuss_hub.action_discuss_hub_connector
+#: model:ir.ui.menu,name:discuss_hub.menu_discuss_hub_connector
+msgid "Connectors"
+msgstr "Conectores"
+
+#. module: discuss_hub
+#: model:ir.ui.view,arch_db:discuss_hub.view_discuss_hub_connector_form
+msgid "Test Connection"
+msgstr "Testar Conexão"
+
+#. module: discuss_hub
+#: code:addons/discuss_hub/models/models.py:100
+#, python-format
+msgid "Connection test successful!"
+msgstr "Teste de conexão bem-sucedido!"
+
+#. module: discuss_hub
+#: code:addons/discuss_hub/models/models.py:105
+#, python-format
+msgid "Connection test failed: %s"
+msgstr "Teste de conexão falhou: %s"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_ai_responder_name
+msgid "AI Responder Name"
+msgstr "Nome do Respondedor IA"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_ai_responder_enabled
+msgid "Enable AI Responses"
+msgstr "Habilitar Respostas IA"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_ai_responder_provider
+msgid "AI Provider"
+msgstr "Provedor de IA"
+
+#. module: discuss_hub
+#: selection:discuss_hub.ai_responder,provider:0
+msgid "Google Gemini"
+msgstr "Google Gemini"
+
+#. module: discuss_hub
+#: selection:discuss_hub.ai_responder,provider:0
+msgid "OpenAI GPT"
+msgstr "OpenAI GPT"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_ai_responder_api_key
+msgid "API Key"
+msgstr "Chave da API"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_ai_responder_model_name
+msgid "Model Name"
+msgstr "Nome do Modelo"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_ai_responder_temperature
+msgid "Temperature"
+msgstr "Temperatura"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_ai_responder_max_tokens
+msgid "Max Tokens"
+msgstr "Máximo de Tokens"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_ai_responder_system_prompt
+msgid "System Prompt"
+msgstr "Prompt do Sistema"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_sentiment_analyzer_enabled
+msgid "Enable Sentiment Analysis"
+msgstr "Habilitar Análise de Sentimentos"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_sentiment_analyzer_threshold_positive
+msgid "Positive Threshold"
+msgstr "Limite Positivo"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_sentiment_analyzer_threshold_negative
+msgid "Negative Threshold"
+msgstr "Limite Negativo"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_voice_message_enabled
+msgid "Enable Voice Transcription"
+msgstr "Habilitar Transcrição de Voz"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_voice_message_language
+msgid "Default Language"
+msgstr "Idioma Padrão"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_image_analyzer_enabled
+msgid "Enable Image Analysis"
+msgstr "Habilitar Análise de Imagens"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_image_analyzer_auto_describe
+msgid "Auto-describe Images"
+msgstr "Descrever Imagens Automaticamente"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_message_template_name
+msgid "Template Name"
+msgstr "Nome do Modelo"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_message_template_content
+msgid "Template Content"
+msgstr "Conteúdo do Modelo"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_message_template_language
+msgid "Language"
+msgstr "Idioma"
+
+#. module: discuss_hub
+#: selection:discuss_hub.message_template,language:0
+msgid "English"
+msgstr "Inglês"
+
+#. module: discuss_hub
+#: selection:discuss_hub.message_template,language:0
+msgid "Portuguese (Brazil)"
+msgstr "Português (Brasil)"
+
+#. module: discuss_hub
+#: selection:discuss_hub.message_template,language:0
+msgid "Spanish (Latin America)"
+msgstr "Espanhol (América Latina)"
+
+#. module: discuss_hub
+#: model:ir.actions.act_window,name:discuss_hub.action_message_templates
+#: model:ir.ui.menu,name:discuss_hub.menu_message_templates
+msgid "Message Templates"
+msgstr "Modelos de Mensagem"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_webhook_manager_name
+msgid "Webhook Name"
+msgstr "Nome do Webhook"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_webhook_manager_url
+msgid "Webhook URL"
+msgstr "URL do Webhook"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_webhook_manager_method
+msgid "HTTP Method"
+msgstr "Método HTTP"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_webhook_manager_max_retries
+msgid "Max Retries"
+msgstr "Máximo de Tentativas"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_webhook_manager_retry_delay
+msgid "Retry Delay (seconds)"
+msgstr "Atraso entre Tentativas (segundos)"
+
+#. module: discuss_hub
+#: model:ir.ui.view,arch_db:discuss_hub.view_webhook_manager_form
+msgid "Test Webhook"
+msgstr "Testar Webhook"
+
+#. module: discuss_hub
+#: code:addons/discuss_hub/models/webhook_manager.py:400
+#, python-format
+msgid "Webhook test successful!"
+msgstr "Teste de webhook bem-sucedido!"
+
+#. module: discuss_hub
+#: code:addons/discuss_hub/models/webhook_manager.py:410
+#, python-format
+msgid "Webhook test failed. Check logs for details."
+msgstr "Teste de webhook falhou. Verifique os logs para detalhes."
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_webhook_manager_total_calls
+msgid "Total Calls"
+msgstr "Total de Chamadas"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_webhook_manager_success_count
+msgid "Successful Calls"
+msgstr "Chamadas Bem-Sucedidas"
+
+#. module: discuss_hub
+#: model:ir.model.fields,field_description:discuss_hub.field_discuss_hub_webhook_manager_failure_count
+msgid "Failed Calls"
+msgstr "Chamadas Falhadas"
+
+#. module: discuss_hub
+#: model:ir.actions.server,name:discuss_hub.action_process_webhook_queue
+msgid "Process Webhook Queue"
+msgstr "Processar Fila de Webhooks"
+
+#. module: discuss_hub
+#: model:ir.cron,name:discuss_hub.cron_process_webhook_queue
+msgid "DiscussHub: Process Webhook Queue"
+msgstr "DiscussHub: Processar Fila de Webhooks"
+
+#. module: discuss_hub
+#: model:mail.message.subtype,name:discuss_hub.mt_connector_connected
+msgid "Connector Connected"
+msgstr "Conector Conectado"
+
+#. module: discuss_hub
+#: model:mail.message.subtype,name:discuss_hub.mt_connector_disconnected
+msgid "Connector Disconnected"
+msgstr "Conector Desconectado"
+
+#. module: discuss_hub
+#: model:mail.message.subtype,name:discuss_hub.mt_message_received
+msgid "Message Received"
+msgstr "Mensagem Recebida"
+
+#. module: discuss_hub
+#: model:mail.message.subtype,name:discuss_hub.mt_message_sent
+msgid "Message Sent"
+msgstr "Mensagem Enviada"
+
+#. module: discuss_hub
+#: code:addons/discuss_hub/models/models.py:200
+#, python-format
+msgid "New message from %s"
+msgstr "Nova mensagem de %s"
+
+#. module: discuss_hub
+#: code:addons/discuss_hub/models/models.py:250
+#, python-format
+msgid "Message sent to %s"
+msgstr "Mensagem enviada para %s"
+
+#. module: discuss_hub
+#: model:ir.ui.view,arch_db:discuss_hub.view_discuss_hub_connector_tree
+msgid "Status"
+msgstr "Status"
+
+#. module: discuss_hub
+#: model:ir.ui.view,arch_db:discuss_hub.view_discuss_hub_connector_tree
+msgid "Connected"
+msgstr "Conectado"
+
+#. module: discuss_hub
+#: model:ir.ui.view,arch_db:discuss_hub.view_discuss_hub_connector_tree
+msgid "Disconnected"
+msgstr "Desconectado"
+
+#. module: discuss_hub
+#: model:ir.model.fields.selection,name:discuss_hub.selection__discuss_hub_sentiment__sentiment__positive
+msgid "Positive"
+msgstr "Positivo"
+
+#. module: discuss_hub
+#: model:ir.model.fields.selection,name:discuss_hub.selection__discuss_hub_sentiment__sentiment__neutral
+msgid "Neutral"
+msgstr "Neutro"
+
+#. module: discuss_hub
+#: model:ir.model.fields.selection,name:discuss_hub.selection__discuss_hub_sentiment__sentiment__negative
+msgid "Negative"
+msgstr "Negativo"
+
+#. module: discuss_hub
+#: model:ir.ui.view,arch_db:discuss_hub.view_bulk_send_wizard
+msgid "Send Bulk Messages"
+msgstr "Enviar Mensagens em Massa"
+
+#. module: discuss_hub
+#: model:ir.ui.view,arch_db:discuss_hub.view_bulk_send_wizard
+msgid "Select recipients and compose your message"
+msgstr "Selecione os destinatários e componha sua mensagem"
+
+#. module: discuss_hub
+#: model:ir.ui.view,arch_db:discuss_hub.view_bulk_send_wizard
+msgid "Send"
+msgstr "Enviar"
+
+#. module: discuss_hub
+#: model:ir.ui.view,arch_db:discuss_hub.view_bulk_send_wizard
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: discuss_hub
+#: code:addons/discuss_hub/wizard/bulk_send_wizard.py:50
+#, python-format
+msgid "Messages queued successfully!"
+msgstr "Mensagens enfileiradas com sucesso!"
+
+#. module: discuss_hub
+#: code:addons/discuss_hub/wizard/bulk_send_wizard.py:55
+#, python-format
+msgid "%d messages will be sent"
+msgstr "%d mensagens serão enviadas"
+
+#. module: discuss_hub
+#: model:ir.actions.act_window,name:discuss_hub.action_analytics_dashboard
+#: model:ir.ui.menu,name:discuss_hub.menu_analytics_dashboard
+msgid "Analytics Dashboard"
+msgstr "Painel de Análise"
+
+#. module: discuss_hub
+#: model:ir.ui.view,arch_db:discuss_hub.view_analytics_dashboard
+msgid "Messages Today"
+msgstr "Mensagens Hoje"
+
+#. module: discuss_hub
+#: model:ir.ui.view,arch_db:discuss_hub.view_analytics_dashboard
+msgid "Active Conversations"
+msgstr "Conversas Ativas"
+
+#. module: discuss_hub
+#: model:ir.ui.view,arch_db:discuss_hub.view_analytics_dashboard
+msgid "Response Rate"
+msgstr "Taxa de Resposta"
+
+#. module: discuss_hub
+#: model:ir.ui.view,arch_db:discuss_hub.view_analytics_dashboard
+msgid "Average Response Time"
+msgstr "Tempo Médio de Resposta"

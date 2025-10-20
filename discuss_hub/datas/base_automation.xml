@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!-- Messages -->
+    <record model="base.automation" id="rule_discuss_hub_outgo_message">
+        <field name="name">discuss_hub message outgo</field>
+        <field name="model_id" ref="mail.model_discuss_channel" />
+        <field name="active">1</field>
+        <field name="trigger">on_message_sent</field>
+        <field name="filter_domain">[("discuss_hub_connector", "!=", False)]</field>
+    </record>
+    <record model="ir.actions.server" id="discuss_hub_outgo_message">
+        <field name="name">discuss_hub outgo message</field>
+        <field name="model_id" ref="mail.model_discuss_channel" />
+        <field name="sequence">1</field>
+        <field name="type">ir.actions.server</field>
+        <field name="state">code</field>
+        <field name="code">
+last_message = record.message_ids[0]
+_logger.info(f"automation_base: running outgo message ({last_message}) to {record}")
+record.discuss_hub_connector.outgo_message(channel=record, message=last_message)
+        </field>
+        <field name="base_automation_id" ref="rule_discuss_hub_outgo_message" />
+    </record>
+    <!-- Reactions -->
+    <record model="base.automation" id="rule_discuss_hub_outgo_reaction">
+        <field name="name">discuss_hub reaction outgo</field>
+        <field name="model_id" ref="mail.model_mail_message_reaction" />
+        <field name="active">1</field>
+        <field name="trigger">on_create_or_write</field>
+        <field
+            name="filter_domain"
+        >[("message_id.discuss_hub_message_id", "!=", "")]</field>
+    </record>
+    <record model="ir.actions.server" id="discuss_hub_outgo_reaction">
+        <field name="name">discuss_hub reaction outgo</field>
+        <field name="model_id" ref="mail.model_mail_message_reaction" />
+        <field name="sequence">1</field>
+        <field name="type">ir.actions.server</field>
+        <field name="state">code</field>
+        <field name="code">
+channel = env['discuss.channel'].search([('id', '=', record.message_id.res_id)])
+channel.discuss_hub_connector.outgo_reaction(channel, record.message_id, record)
+_logger.info(f"automation_base: connector:{channel.discuss_hub_connector} channel:{channel} reaction {record} to message {record.message_id}")
+        </field>
+        <field name="base_automation_id" ref="rule_discuss_hub_outgo_reaction" />
+    </record>
+    <!-- AGENTS/BOT -->
+    <record model="base.automation" id="rule_discuss_hub_outgo_bot">
+        <field name="name">discuss_hub bot outgo</field>
+        <field name="model_id" ref="mail.model_discuss_channel" />
+        <field name="active">1</field>
+        <field name="trigger">on_message_received</field>
+        <field name="filter_domain">[("channel_partner_ids.bot", "!=", False)]</field>
+    </record>
+    <record model="ir.actions.server" id="discuss_hub_outgo_bot">
+        <field name="name">discuss_hub outgo bot</field>
+        <field name="model_id" ref="mail.model_discuss_channel" />
+        <field name="sequence">1</field>
+        <field name="type">ir.actions.server</field>
+        <field name="state">code</field>
+        <field name="code">
+partners_with_bot = record.channel_partner_ids.filtered(lambda p: p.bot)
+for partner in partners_with_bot:
+    partner.bot.outgo(record, partner)
+        </field>
+        <field name="base_automation_id" ref="rule_discuss_hub_outgo_bot" />
+    </record>
+</odoo>

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Voice Message List View - Odoo 18 Standard -->
+    <record id="view_voice_message_list" model="ir.ui.view">
+        <field name="name">discuss_hub.voice_message.view.list</field>
+        <field name="model">discuss_hub.voice_message</field>
+        <field name="arch" type="xml">
+            <list string="Voice Messages" create="0">
+                <field name="create_date"/>
+                <field name="channel_id"/>
+                <field name="audio_filename"/>
+                <field name="duration" widget="float_time"/>
+                <field name="transcription_language"/>
+                <field name="transcription_status" widget="badge"
+                       decoration-info="transcription_status == 'pending'"
+                       decoration-warning="transcription_status == 'processing'"
+                       decoration-success="transcription_status == 'completed'"
+                       decoration-danger="transcription_status == 'failed'"/>
+                <field name="transcription_confidence" widget="percentage" optional="hide"/>
+                <button name="action_retry_transcription"
+                        type="object"
+                        icon="fa-refresh"
+                        title="Retry Transcription"
+                        invisible="transcription_status != 'failed'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Voice Message Form View - Odoo 18 Standard -->
+    <record id="view_voice_message_form" model="ir.ui.view">
+        <field name="name">discuss_hub.voice_message.view.form</field>
+        <field name="model">discuss_hub.voice_message</field>
+        <field name="arch" type="xml">
+            <form string="Voice Message" create="0">
+                <header>
+                    <button name="download_and_transcribe"
+                            string="Transcribe Now"
+                            type="object"
+                            class="btn-primary"
+                            invisible="transcription_status in ['completed', 'processing']"/>
+                    <button name="action_retry_transcription"
+                            string="Retry"
+                            type="object"
+                            class="btn-warning"
+                            invisible="transcription_status != 'failed'"/>
+                    <field name="transcription_status" widget="badge"
+                           decoration-info="transcription_status == 'pending'"
+                           decoration-warning="transcription_status == 'processing'"
+                           decoration-success="transcription_status == 'completed'"
+                           decoration-danger="transcription_status == 'failed'"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="message_id"/>
+                            <field name="channel_id"/>
+                            <field name="create_date"/>
+                        </group>
+                        <group>
+                            <field name="audio_filename"/>
+                            <field name="duration" widget="float_time"/>
+                            <field name="transcription_language"/>
+                        </group>
+                    </group>
+
+                    <group string="Audio File">
+                        <field name="audio_url" widget="url"/>
+                        <field name="audio_data" filename="audio_filename"/>
+                    </group>
+
+                    <group string="Transcription"
+                           invisible="transcription_status in ['pending', 'processing']">
+                        <group>
+                            <field name="transcription_confidence" widget="percentage"/>
+                        </group>
+                        <group string="Transcribed Text" colspan="2">
+                            <field name="transcription" nolabel="1" widget="text"/>
+                        </group>
+                    </group>
+
+                    <group string="Error Details" invisible="transcription_status != 'failed'">
+                        <field name="error_message" nolabel="1" widget="text"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View - Odoo 18 Standard -->
+    <record id="view_voice_message_search" model="ir.ui.view">
+        <field name="name">discuss_hub.voice_message.view.search</field>
+        <field name="model">discuss_hub.voice_message</field>
+        <field name="arch" type="xml">
+            <search string="Voice Messages">
+                <field name="channel_id"/>
+                <field name="audio_filename"/>
+                <field name="transcription"/>
+                <separator/>
+                <filter string="Pending" name="filter_pending"
+                        domain="[('transcription_status', '=', 'pending')]"/>
+                <filter string="Processing" name="filter_processing"
+                        domain="[('transcription_status', '=', 'processing')]"/>
+                <filter string="Completed" name="filter_completed"
+                        domain="[('transcription_status', '=', 'completed')]"/>
+                <filter string="Failed" name="filter_failed"
+                        domain="[('transcription_status', '=', 'failed')]"/>
+                <separator/>
+                <filter string="English" name="filter_english"
+                        domain="[('transcription_language', '=', 'en-US')]"/>
+                <filter string="Portuguese" name="filter_portuguese"
+                        domain="[('transcription_language', '=', 'pt-BR')]"/>
+                <filter string="Spanish" name="filter_spanish"
+                        domain="[('transcription_language', 'in', ['es-ES', 'es-MX'])]"/>
+                <separator/>
+                <filter string="Today" name="filter_today"
+                        domain="[('create_date', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="group_status"
+                            context="{'group_by': 'transcription_status'}"/>
+                    <filter string="Language" name="group_language"
+                            context="{'group_by': 'transcription_language'}"/>
+                    <filter string="Channel" name="group_channel"
+                            context="{'group_by': 'channel_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action - USE "list" NOT "tree" -->
+    <record id="action_voice_message" model="ir.actions.act_window">
+        <field name="name">Voice Messages</field>
+        <field name="res_model">discuss_hub.voice_message</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_completed': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">
+                No voice messages yet
+            </p>
+            <p>
+                Voice messages will be transcribed automatically when received.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_voice_message"
+              name="Voice Messages"
+              parent="menu_discuss_hub_analytics"
+              action="action_voice_message"
+              sequence="80"/>
+
+</odoo>

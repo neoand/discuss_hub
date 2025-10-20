@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Webhook Manager Form View -->
+    <record id="view_webhook_manager_form" model="ir.ui.view">
+        <field name="name">discuss_hub.webhook_manager.form</field>
+        <field name="model">discuss_hub.webhook_manager</field>
+        <field name="arch" type="xml">
+            <form string="Webhook Configuration">
+                <header>
+                    <button name="test_webhook" type="object" string="Test Webhook" class="btn-primary" invisible="not active"/>
+                    <button name="process_batch" type="object" string="Process Batch" invisible="batch_size == 1"/>
+                    <field name="active" widget="boolean_toggle" nolabel="1"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" name="action_view_logs" icon="fa-list">
+                            <field string="Logs" name="webhook_log_ids" widget="statinfo"/>
+                        </button>
+                        <button class="oe_stat_button" type="object" name="action_view_queue" icon="fa-tasks">
+                            <field string="Queue" name="webhook_queue_ids" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Inactive" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name" string="Webhook Name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g., Order Created Webhook"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Configuration">
+                            <field name="url" widget="url" placeholder="https://example.com/webhook"/>
+                            <field name="method"/>
+                            <field name="uuid" readonly="1"/>
+                            <field name="connector_id" options="{'no_create': True}"/>
+                        </group>
+                        <group string="Authentication">
+                            <field name="auth_type"/>
+                            <field name="auth_username" invisible="auth_type != 'basic'" required="auth_type == 'basic'"/>
+                            <field name="auth_password" password="True" invisible="auth_type != 'basic'" required="auth_type == 'basic'"/>
+                            <field name="auth_token" password="True" invisible="auth_type not in ['bearer', 'api_key', 'oauth2']" required="auth_type in ['bearer', 'api_key', 'oauth2']"/>
+                            <field name="auth_header_name" invisible="auth_type != 'api_key'" required="auth_type == 'api_key'"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Retry Configuration">
+                            <field name="max_retries"/>
+                            <field name="retry_delay"/>
+                            <field name="retry_multiplier"/>
+                            <field name="timeout"/>
+                        </group>
+                        <group string="Performance">
+                            <field name="batch_size"/>
+                            <field name="priority"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Filtering">
+                            <group>
+                                <field name="event_types" placeholder="order_created,order_updated,order_deleted"/>
+                                <field name="filter_domain" widget="domain" options="{'model': 'discuss_hub.connector'}"/>
+                            </group>
+                        </page>
+                        <page string="Headers">
+                            <group>
+                                <field name="headers" widget="ace" options="{'mode': 'json'}"/>
+                            </group>
+                        </page>
+                        <page string="Statistics">
+                            <group>
+                                <group string="Activity">
+                                    <field name="last_trigger_date"/>
+                                    <field name="last_success_date"/>
+                                    <field name="last_error_date"/>
+                                </group>
+                                <group string="Metrics">
+                                    <field name="total_calls"/>
+                                    <field name="success_count"/>
+                                    <field name="failure_count"/>
+                                    <field name="average_response_time" widget="float_time"/>
+                                </group>
+                            </group>
+                            <separator string="Last Error"/>
+                            <field name="last_error_message" readonly="1" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Webhook Manager Tree View -->
+    <record id="view_webhook_manager_tree" model="ir.ui.view">
+        <field name="name">discuss_hub.webhook_manager.tree</field>
+        <field name="model">discuss_hub.webhook_manager</field>
+        <field name="arch" type="xml">
+            <tree string="Webhooks">
+                <field name="name"/>
+                <field name="url"/>
+                <field name="method"/>
+                <field name="connector_id"/>
+                <field name="active" widget="boolean_toggle"/>
+                <field name="total_calls"/>
+                <field name="success_count"/>
+                <field name="failure_count"/>
+                <field name="last_trigger_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Webhook Queue Tree View -->
+    <record id="view_webhook_queue_tree" model="ir.ui.view">
+        <field name="name">discuss_hub.webhook_queue.tree</field>
+        <field name="model">discuss_hub.webhook_queue</field>
+        <field name="arch" type="xml">
+            <tree string="Webhook Queue" decoration-danger="status == 'failed'" decoration-success="status == 'success'" decoration-info="status == 'processing'">
+                <field name="webhook_manager_id"/>
+                <field name="event_type"/>
+                <field name="status"/>
+                <field name="retry_count"/>
+                <field name="next_retry"/>
+                <field name="processed_date"/>
+                <field name="create_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Webhook Log Tree View -->
+    <record id="view_webhook_log_tree" model="ir.ui.view">
+        <field name="name">discuss_hub.webhook_log.tree</field>
+        <field name="model">discuss_hub.webhook_log</field>
+        <field name="arch" type="xml">
+            <tree string="Webhook Logs" decoration-danger="status == 'failed'" decoration-success="status == 'success'">
+                <field name="webhook_manager_id"/>
+                <field name="status"/>
+                <field name="response_status"/>
+                <field name="response_time" widget="float_time"/>
+                <field name="create_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Message Batch Form View -->
+    <record id="view_message_batch_form" model="ir.ui.view">
+        <field name="name">discuss_hub.message_batch.form</field>
+        <field name="model">discuss_hub.message_batch</field>
+        <field name="arch" type="xml">
+            <form string="Message Batch">
+                <header>
+                    <button name="process_batch" type="object" string="Process Batch" states="pending" class="btn-primary"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,processing,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Configuration">
+                            <field name="batch_type"/>
+                            <field name="batch_size"/>
+                            <field name="priority"/>
+                            <field name="connector_id"/>
+                        </group>
+                        <group string="Performance">
+                            <field name="start_time"/>
+                            <field name="end_time"/>
+                            <field name="processing_time" widget="float_time"/>
+                            <field name="items_processed"/>
+                            <field name="items_failed"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Batch Data">
+                            <field name="batch_data" widget="ace" options="{'mode': 'json'}"/>
+                        </page>
+                        <page string="Error Log" invisible="not error_log">
+                            <field name="error_log" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Async Task Form View -->
+    <record id="view_async_task_form" model="ir.ui.view">
+        <field name="name">discuss_hub.async_task.form</field>
+        <field name="model">discuss_hub.async_task</field>
+        <field name="arch" type="xml">
+            <form string="Async Task">
+                <header>
+                    <button name="execute_task" type="object" string="Execute" states="pending" class="btn-primary"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,running,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Configuration">
+                            <field name="task_type"/>
+                            <field name="priority"/>
+                            <field name="max_retries"/>
+                            <field name="retry_count"/>
+                        </group>
+                        <group string="Execution">
+                            <field name="start_time"/>
+                            <field name="end_time"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Parameters">
+                            <field name="task_params" widget="ace" options="{'mode': 'json'}"/>
+                        </page>
+                        <page string="Result" invisible="not result">
+                            <field name="result" widget="ace" options="{'mode': 'json'}"/>
+                        </page>
+                        <page string="Error" invisible="not error_message">
+                            <field name="error_message" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Actions -->
+    <record id="action_webhook_manager" model="ir.actions.act_window">
+        <field name="name">Webhook Manager</field>
+        <field name="res_model">discuss_hub.webhook_manager</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first webhook
+            </p>
+            <p>
+                Configure webhooks to integrate with external services and receive real-time updates.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_message_batch" model="ir.actions.act_window">
+        <field name="name">Message Batches</field>
+        <field name="res_model">discuss_hub.message_batch</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="action_async_task" model="ir.actions.act_window">
+        <field name="name">Async Tasks</field>
+        <field name="res_model">discuss_hub.async_task</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Menu Items -->
+    <menuitem id="menu_webhook_manager"
+              name="Webhooks"
+              parent="discuss_hub.menu_discuss_hub_root"
+              action="action_webhook_manager"
+              sequence="50"/>
+
+    <menuitem id="menu_performance"
+              name="Performance"
+              parent="discuss_hub.menu_discuss_hub_root"
+              sequence="60"/>
+
+    <menuitem id="menu_message_batch"
+              name="Message Batches"
+              parent="menu_performance"
+              action="action_message_batch"
+              sequence="10"/>
+
+    <menuitem id="menu_async_task"
+              name="Async Tasks"
+              parent="menu_performance"
+              action="action_async_task"
+              sequence="20"/>
+</odoo>
